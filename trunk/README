@@ -4,10 +4,10 @@ Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser. It uses
 the best of three strategies for parsing a mailbox: either using cached folder
 information, GNU grep, or highly optimized Perl.
 
-Version 1.14:
-- Fixed _print_debug_information so that it prints the values of options
-  correctly.
-- Fixed a file handle leak when processing non-mailbox files.
+Version 1.15:
+- Now keeps reading the first paragraph until a maximum number of bytes have
+  been read. This should help people who use MUAs that add a lot of extra
+  header information to the first email in a mailbox.
 
 
 DEPENDENCIES
