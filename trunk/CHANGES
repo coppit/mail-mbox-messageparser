@@ -1,4 +1,8 @@
-Version:
+Version 1.3000:
+- Merged the internal caches used by the different mailbox parser
+  implementations. This allows sharing of caching information. NOTE: Tighter
+  integration of the classes means that you can no longer instantiate any of
+  the implementations directly; you must use Mail::Mbox::MessageParser only.
 - Fixed goofy version dependency for Benchmark::Timer.
 - Fixed improper identification of mailboxes whose first email has a body
   containing a large number of foreign characters. (Thanks to Nigel Horne

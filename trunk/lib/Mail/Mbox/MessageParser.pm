@@ -7,13 +7,15 @@ use File::Spec;
 use File::Temp;
 sub dprint;
 
+use Mail::Mbox::MessageParser::MetaInfo;
 use Mail::Mbox::MessageParser::Config;
 
 use Mail::Mbox::MessageParser::Perl;
 use Mail::Mbox::MessageParser::Grep;
 use Mail::Mbox::MessageParser::Cache;
 
-use vars qw( @ISA $VERSION $DEBUG $UPDATING_CACHE );
+use vars qw( @ISA $VERSION $DEBUG );
+use vars qw( $CACHE $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
@@ -22,10 +24,14 @@ $DEBUG = 0;
 
 #-------------------------------------------------------------------------------
 
-*UPDATING_CACHE = \$Mail::Mbox::MessageParser::Cache::UPDATING_CACHE;
-*SETUP_CACHE = \&Mail::Mbox::MessageParser::Cache::SETUP_CACHE;
-*CLEAR_CACHE = \&Mail::Mbox::MessageParser::Cache::CLEAR_CACHE;
-*WRITE_CACHE = \&Mail::Mbox::MessageParser::Cache::WRITE_CACHE;
+# The class-wide cache, which will be read and written when necessary. i.e.
+# read when an folder reader object is created which uses caching, and
+# written when a different cache is specified, or when the program exits, 
+*CACHE = \$Mail::Mbox::MessageParser::MetaInfo::CACHE;
+
+*UPDATING_CACHE = \$Mail::Mbox::MessageParser::MetaInfo::UPDATING_CACHE;
+*SETUP_CACHE = \&Mail::Mbox::MessageParser::MetaInfo::SETUP_CACHE;
+sub SETUP_CACHE;
 
 #-------------------------------------------------------------------------------
 
@@ -147,6 +153,14 @@ sub new
   $self->{'endline'} = $endline;
 
   return $self;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _init
+{
+  my $self = shift;
+
 }
 
 #-------------------------------------------------------------------------------
@@ -653,12 +667,31 @@ sub reset
 {
   my $self = shift;
 
+  if (_IS_A_PIPE($self->{'file_handle'}))
+  {
+    dprint "Avoiding seek() on a pipe";
+  }
+  else
+  {
+    seek $self->{'file_handle'}, length($self->{'prologue'}), 0
+  }
+
   $self->{'end_of_file'} = 0;
 
   $self->{'email_line_number'} = 0;
   $self->{'email_offset'} = 0;
   $self->{'email_length'} = 0;
   $self->{'email_number'} = 0;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _IS_A_PIPE
+{
+  my $file_handle = shift;
+
+  return (-t $file_handle || -S $file_handle || -p $file_handle ||
+    !-f $file_handle || !(seek $file_handle, 0, 1));
 }
 
 #-------------------------------------------------------------------------------
@@ -771,20 +804,21 @@ sub read_next_email
   {
     dprint "Storing data into cache, length " . $self->{'email_length'};
 
-    my $cache = $Mail::Mbox::MessageParser::Cache::CACHE;
+    my $CACHE = $Mail::Mbox::MessageParser::Cache::CACHE;
 
-    $cache->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}-1]{'length'} =
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}-1]{'length'} =
       $self->{'email_length'};
 
-    $cache->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}-1]{'line_number'} =
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}-1]{'line_number'} =
       $self->{'email_line_number'};
 
-    $cache->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}-1]{'offset'} =
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}-1]{'offset'} =
       $self->{'email_offset'};
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}-1]{'validated'} =
+      1;
 
-    $Mail::Mbox::MessageParser::Cache::CACHE_MODIFIED = 1;
+    $CACHE->{$self->{'file_name'}}{'modified'} = 1;
   }
-
 }
 
 1;
@@ -817,6 +851,8 @@ Mail::Mbox::MessageParser - A fast and simple mbox folder reader
       'enable_cache' => 1,
       'enable_grep' => 1,
     } );
+
+  die $folder_reader unless ref $folder_reader;
 
   # Any newlines or such before the start of the first email
   my $prologue = $folder_reader->prologue;
