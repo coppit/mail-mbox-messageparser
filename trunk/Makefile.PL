@@ -9,28 +9,32 @@ Check_Custom_Installation();
 
 print "\n", '-'x78, "\n\n";
 
-name            ('Mail-Mbox-MessageParser');
-author          ('David Coppit <david@coppit.org>');
-abstract_from   ('lib/Mail/Mbox/MessageParser.pm');
-version_from    ('lib/Mail/Mbox/MessageParser.pm');
-license         ('gpl');
+name              ('Mail-Mbox-MessageParser');
+author            ('David Coppit <david@coppit.org>');
+abstract_from     ('lib/Mail/Mbox/MessageParser.pm');
+version_from      ('lib/Mail/Mbox/MessageParser.pm');
+license           ('gpl');
 
-requires        (
-                  'Storable' => 0,
-                  'FileHandle::Unget' => 0,
-                );
+build_requires    (
+                    'Test::More' => 0,
+                  );
 
-skip            ( 'Test',);
+requires          (
+                    'Storable' => 0,
+                    'FileHandle::Unget' => 0,
+                  );
 
 # Optional features and their modules
-features        (
-                  'Speed Tests' => [
-                    -default => 0,
-                    recommends( 'Benchmark::Timer' => '0.60' ),
-                  ],
-                );
+features          (
+                    'Speed Tests' => [
+                      -default => 0,
+                      # 0.6.0 => 0.006000. This is to prevent a spurious
+                      # warning in ExtUtils::MakeMaker
+                      recommends( 'Benchmark::Timer' => '0.006000' ),
+                    ],
+                  );
 
-postamble       (
+postamble         (
 '
 testspeed :: pure_all
 	PERL_DL_NONLAZY=1 $(PERLRUN) "-I$(INST_LIB)" \
@@ -38,9 +42,9 @@ testspeed :: pure_all
 '
 );
 
-include         ('ExtUtils/AutoInstall.pm');
+include           ('ExtUtils/AutoInstall.pm');
 
-clean_files     ('t/temp');
+clean_files       ('t/temp');
 
 print "\n", '-'x78, "\n\n";
 
@@ -48,7 +52,8 @@ Configure_Programs();
 
 print "\n", '-'x78, "\n\n";
 
-auto_install    ( );
+auto_include_deps ( );
+auto_install      ( );
 WriteAll();
 
 Fix_PREOP();
@@ -86,7 +91,7 @@ sub Configure_Programs
   my %locations = Get_Program_Locations(\%info);
 
   Update_Code('lib/Mail/Mbox/MessageParser.pm', \%locations);
-  Update_Code('lib/Test/Utils.pm', \%locations);
+  Update_Code('t/Test/Utils.pm', \%locations);
   Update_Code('old/Mail/Mbox/MessageParser.pm', \%locations)
     if -e 'old/Mail/Mbox/MessageParser.pm';
 

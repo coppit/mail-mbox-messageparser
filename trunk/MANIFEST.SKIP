@@ -31,8 +31,3 @@ t/temp/
 # Skip filenames with spaces. (I can't specify them in MANIFEST.)
 t/results/.* .*
 t/mailboxes/.* .*
-
-# Mistakenly imported
-inc/File/Glob.pm
-inc/File/Spec/Unix.pm
-inc/Scalar/Util.pm

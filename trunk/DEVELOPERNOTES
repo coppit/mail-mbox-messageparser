@@ -1,5 +1,5 @@
-This file is not distributed with Mail::Mbox::MessageParser. It outlines some
-notes for developers readying a set of files for distribution.
+This file is not distributed with the module. It outlines some notes for
+developers readying a set of files for distribution.
 
 CVS CHECKOUT:
 $ export CVS_RSH=ssh
@@ -32,7 +32,6 @@ Checklist for a release:
 - Update CHANGES file, and copy to server:
   $ scp CHANGES coppit@m-m-msgparser.sourceforge.net:/home/groups/m/m-/m-m-msgparser/htdocs
   (Use your username instead of coppit)
-- Make distribution file. (See above.)
 - Upload to CPAN:
     http://pause.perl.org/pause/authenquery
   or
@@ -48,7 +47,7 @@ Checklist for a release:
   [search for MessageParser, select add release]
 - Announce it to comp.lang.perl.announce.
 - Copy current code to old in devel
-  $ rm -rf old; rsync -r --cvs-exclude * old
+  $ rm -rf old2; rsync -r --cvs-exclude * old2
 - Check in code:
   $ cvs ci
 - Tag the release for easy retrieval later

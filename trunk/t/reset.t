@@ -4,8 +4,8 @@
 
 use strict;
 
-use Test;
-use lib 'lib';
+use Test::More;
+use lib 't';
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Cache;
 use Mail::Mbox::MessageParser::Grep;
@@ -29,53 +29,48 @@ foreach my $filename (@files)
 
   print "Testing partial mailbox reset with Perl implementation\n";
   TestPartialRead($filename,0,0);
-  print "Testing partial mailbox reset with Cache implementation\n";
 
-  if (defined $Storable::VERSION)
+  SKIP:
   {
+    print "Testing partial mailbox reset with Cache implementation\n";
+
+    skip('Storable not installed',1) unless defined $Storable::VERSION;
+
     InitializeCache($filename);
 
     TestPartialRead($filename,1,0);
   }
-  else
-  {
-    skip('Skip Storable not installed',1);
-  }
 
-  print "Testing partial mailbox reset with Grep implementation\n";
-
-  if (defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'})
+  SKIP:
   {
+    print "Testing partial mailbox reset with Grep implementation\n";
+
+    skip('GNU grep not available',1)
+      unless defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'};
+
     TestPartialRead($filename,0,1);
   }
-  else
-  {
-    skip('Skip GNU grep not available',1);
-  }
-
 
   print "Testing full mailbox reset with Perl implementation\n";
   TestFullRead($filename,0,0);
-  print "Testing full mailbox reset with Cache implementation\n";
 
-  if (defined $Storable::VERSION)
+  SKIP:
   {
+    print "Testing full mailbox reset with Cache implementation\n";
+
+    skip('Storable not installed',1) unless defined $Storable::VERSION;
+
     TestFullRead($filename,1,0);
   }
-  else
-  {
-    skip('Skip Storable not installed',1);
-  }
 
-  print "Testing full mailbox reset with Grep implementation\n";
-
-  if (defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'})
+  SKIP:
   {
+    print "Testing full mailbox reset with Grep implementation\n";
+
+    skip('GNU grep not available',1)
+      unless defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'};
+
     TestFullRead($filename,0,1);
-  }
-  else
-  {
-    skip('Skip GNU grep not available',1);
   }
 }
 
