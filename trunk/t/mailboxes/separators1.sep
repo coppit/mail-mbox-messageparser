@@ -1,0 +1,106 @@
+From kre@foo.com  Mon Aug  2 21:25:01 2004
+Return-path: <kre@foo.com>
+Received: from ausl1.central.foo.com [129.153.131.90]
+	by localhost with IMAP (fetchmail-5.8.0)
+	for willf@localhost (single-drop); Mon, 02 Aug 2004 21:25:00 -0500 (CDT)
+Received: from auail.central.foo.com by
+ ausail1.central.foo.com
+ (iPlanet Messaging Server 5.2 HotFix 1.24 (built Dec 19 2003))
+ id <0I1U00101M9HO3@aus1.central.foo.com>
+ (original mail from kruest@foo.com); Mon,
+ 02 Aug 2004 21:24:06 -0500 (CDT)
+Received: from centralm.Central.foo.com
+ (centr2brm.Central.foo.com [129.147.62.14])
+ by aus08-mail1.central.foo.com
+ (iPlanet Messaging Server 5.2 HotFix 1.24 (built Dec 19 2003))
+ with ESMTP id <0I1U00MWPMO68W@aus1.central.foo.com>; Mon,
+ 02 Aug 2004 21:24:06 -0500 (CDT)
+Received: from sunmbrm.Central.foo.com
+ (sunbrm.Central.foo.com [129.147.62.17])
+	by centralmail2brm.Central.foo.com (8.12.10+Sun/8.12.10/ENSMAIL,v2.2)
+ with ESMTP id i732O54F028775; Mon, 02 Aug 2004 20:24:05 -0600 (MDT)
+Received: from sfbaymail2sca.sfbay.foo.com
+ (sfbaymail2sca.SFBay.foo.com [129.145.155.42])	by sunmail1brm.Central.foo.com
+ (8.11.7p1+Sun/8.11.7/ENSMAIL,v2.2) with ESMTP id i732O2305999	for
+ <kre@foo.com>; Mon, 02 Aug 2004 20:24:02 -0600 (MDT)
+Received: from say.foo.com (Say.foo.com [129.146.85.91])
+	by sfbaymail2sca.sfbay.foo.com (8.12.10+Sun/8.12.10/ENSMAIL,v2.2)
+ with ESMTP id i732O2WG003448	for <kre@foo.com>; Mon,
+ 02 Aug 2004 19:24:02 -0700 (PDT)
+Received: from say.foo.com (localhost [127.0.0.1])
+	by say.foo.com (8.12.11+Sun/8.12.11) with ESMTP id i732LQGf011880	for
+ <kre@foo.com>; Mon, 02 Aug 2004 19:21:26 -0700 (PDT)
+Received: (from gtb@localhost)
+	by say.foo.com (8.12.11+Sun/8.12.11/Submit) id i732LCCk011879; Mon,
+ 02 Aug 2004 19:21:12 -0700 (PDT)
+Date: Mon, 02 Aug 2004 19:21:12 -0700
+From: Glonn <gob@foo.com>
+Subject: XXX XXXXXXXXXX XXXX XXXXXXX XXXXX
+To: XXX@XXX.XXX
+Message-id: <8tj8ycxvu5j.fsf@foo.com>
+MIME-version: 1.0
+Content-type: multipart/mixed; boundary="Boundary_(ID_/47deYIXfGxrPcOYhaLT6w)"
+User-Agent: Gnus/5.1006 (Gnus v5.10.6) XEmacs/21.5 (beets, usg-unix-v)
+X-Authentication-warning: say.foo.com: gob set sender to
+ gob@foo.com using -f
+Status: RO
+X-Status: A
+Content-Length: 43603
+Lines: 912
+
+
+--Boundary_(ID_/47deYIXfGxrPcOYhaLT6w)
+Content-type: TEXT/PLAIN
+
+
+X XXX XXX XXXXX XXX XXXXX XXXX XXXXXXXX.
+
+
+--Boundary_(ID_/47deYIXfGxrPcOYhaLT6w)
+Content-type: message/rfc822
+
+Received: from eilmpk.Eng.foo.com
+ (eil1mpk.Say.foo.com [129.146.11.21])
+	by jic.eng.foo.com (8.13.1.Beta0+Sun/8.13.0) with ESMTP id i6U1xpAp216754
+	for <gob@jurassic.Eng.foo.com>; Thu, 29 Jul 2004 18:59:51 -0700 (PDT)
+Received: from maa.foo.com (marda.SFBay.foo.com [129.146.168.238])
+	by eil1mpk.Eng.foo.com (8.12.10+Sun/8.12.10/ENSMAIL,v2.2)
+ with ESMTP id i6U1xowe004362	for <gob@eng.foo.com>; Thu,
+ 29 Jul 2004 18:59:50 -0700 (PDT)
+Received: from maa.foo.com (localhost [127.0.0.1])
+	by maa.foo.com (8.13.0+Sun/8.13.0) with ESMTP id i6U1whYx144847	for
+ <gtb@maa.foo.com>; Thu, 29 Jul 2004 18:58:44 -0700 (PDT)
+Received: (from root@localhost)
+	by maa.foo.com (8.13.0+Sun/8.13.0/Submit) id i6U1wh3E144844	for gtb;
+ Thu, 29 Jul 2004 18:58:43 -0700 (PDT)
+Date: Thu, 29 Jul 2004 18:58:43 -0700 (PDT)
+From: Super-User <root@maa.foo.com>
+Subject: preputback test results
+To: gob@maa.foo.com
+Message-id: <200407300158.i6U1wh3E144844@maa.foo.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+X-From-Line: root@maa.foo.com  Thu Jul 29 18:59:51 2004
+Lines: 866
+Xref: mail.misc:65481
+
+XXXXXXXXX XXX: /XXX/XXX/XXXXXXXXX-XXX.XXXXXX.XXX
+XXXXXXXXX XXX XXXXXXX XX: XXX XXX XX XX:XX:XX XXX XXXX
+
+XXXX XXXX: XXXXX XXXXX X.XX XXXX-XXXX:XX/XX/XXXX XXXXX XXXXX XXXX,XXX-XXXXX-XXX
+XXXXXX XXXX XXXX: XXXXX XXXXXXX.XX X.XX XXXX-XXXX:XX/XX/XXXX XXXXX XXXXX XXXX,XXXXX-XXXX
+XXX XXXXXXXXX: /XXX/XXX/XXX/XXX
+XXX XXXXXXXXX XXXXXX: /XX/XXXX-XXXX
+XXXXXX XXXXXX XXXXXXXXX XXX
+XXXXXXX XXXXXX XXXXXXXXX XXX
+XXXXXX XXXX XXXXXXXX XXXXXXXX XXX
+$XXXXXX = /XXX/XXXX.XXXXX/XXXXXX/XXXXXXXX/XXXXXXXX/XXXX-XXXXX/XXX/XXXXX/XXXXXX
+
+XXXXXXX XX XXX XXX/XXXXXX/XXX/XXXXXX/XXXXXXX XXXXX ==========================
+
+
+XXX-XXXXXXX XXXX XXXXXXXX: XXX XXX XX XX:XX:XX XXX XXXX
+
+
+--Boundary_(ID_/47deYIXfGxrPcOYhaLT6w)--
+

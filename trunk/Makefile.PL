@@ -2,12 +2,6 @@
 
 use strict;
 use inc::Module::Install;
-use lib 'inc';
-use Module::Install::GetProgramLocations;
-
-Check_Custom_Installation();
-
-print "\n", '-'x78, "\n\n";
 
 name              ('Mail-Mbox-MessageParser');
 author            ('David Coppit <david@coppit.org>');
@@ -17,6 +11,7 @@ license           ('gpl');
 
 build_requires    (
                     'Test::More' => 0,
+                    'Text::Diff' => 0,
                   );
 
 requires          (
@@ -94,8 +89,6 @@ sub Configure_Programs
   Update_Code('t/Test/Utils.pm', \%locations);
   Update_Code('old/Mail/Mbox/MessageParser.pm', \%locations)
     if -e 'old/Mail/Mbox/MessageParser.pm';
-
-  return %locations;
 }
 
 # --------------------------------------------------------------------------
@@ -136,7 +129,7 @@ sub Update_Code
   }
   else
   {
-    die "Couldn't find programs hash in MessageParser.pm";
+    die "Couldn't find programs hash in $filename";
   }
 
   _Write_Code($filename, $code);
