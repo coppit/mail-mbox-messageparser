@@ -1,0 +1,79 @@
+Version 1.20:
+- More robust use of GNU grep to find emails on DOS systems (Thanks to Martin
+  Hosken <martin_hosken@sil.org> for the initial patch)
+- Fixed an uninitialized value warning in Cache.pm
+- Made everything work with DOS-style line endings. Added endline() function
+  to return the detected line ending
+
+Version 1.15:
+- Now keeps reading the first paragraph until a maximum number of bytes have
+  been read. This should help people who use MUAs that add a lot of extra
+  header information to the first email in a mailbox. (Thanks to Graham Gough
+  <graham@cs.man.ac.uk> for pointing out the problem with VM under Emacs.)
+
+Version 1.14:
+- At installation, you no longer have to provide a full path to the external
+  programs. (Thanks to Ed Avis <ed.avis@kbcfp.com> for the suggestion.)
+- Fixed _print_debug_information so that it prints the values of options
+  correctly. (Thanks to Jason Brunette <jbrunette@users.sourceforge.net> for
+  the great bug report.)
+- Fixed a file handle leak when processing non-mailbox files. (Thanks to Jason
+  Brunette <jbrunette@users.sourceforge.net> for the great bug report.)
+
+Version 1.13:
+- Fixed portability issues for Windows. (It should now work under the normal
+  Windows command shell.) Note that this requires the use of a temporary file
+  for decompression of file handles on Windows--a minor security risk.
+- Makefile.PL version detection for GNU grep now works correctly for version
+  numbers which end with letters. (Thanks to David Dyck <david.dyck@fluke.com>
+  for the bug report.)
+- Fixed typo bugs in a couple test cases.
+
+Version 1.12:
+- Added "perl Makefile.PL" version checks for external programs like grep.
+  (Suggestion by David N. Blank-Edelman <dnb@ccs.neu.edu>)
+- Fixed a typo in the documented synopsis (Thanks to Christophe Nowicki
+  <nowick_c@epita.fr> for the report.)
+- Implemented a portable ungetc version of FileHandle, and changed this module
+  to use it instead of IO::String. This will hopefully fixed the
+  system-dependent bugs in the last release. (Thanks to David N.
+  Blank-Edelman <dnb@ccs.neu.edu> for providing a test environment.)
+- Improved compatibility with Windows. (Cygwin works, but we're still not
+  there yet for Windows command shell.)
+- Streamlined installation for cases where caching is not enabled in
+  Mail::Mbox::MessageParser.
+
+Version 1.11:
+- Added test cases with spaces in the mailbox names. (Thanks to Johan Ekenberg
+  <johan@fsdata.se> for finding the bug and submitting a partial patch.)
+- Fixed line ending bugs for MS-DOS/Windows (Tests now pass under cygwin)
+- Fixed mailbox detection problem with mailboxes whose first email is a
+  pseudo-email used to store mailbox state information. (Thanks to Johan
+  Ekenberg <johan@fsdata.se> for the bug report.)
+- Fixed a bug on freebsd where mailboxes of size less than 2000 bytes would be
+  incorrectly processed. (This fix is a less-than-optimal one which requires
+  IO::String. I may later get the gumption to do it right using PerlIO::var)
+
+Version 1.10:
+- Testing modules are no longer (accidentally) installed.
+- External programs are now queried during installation instead of just using
+  whatever is in your path (a security risk). (Thanks to David N.
+  Blank-Edelman <dnb@ccs.neu.edu> for the bug report.)
+- Changed testing to use PERLRUN instead of FULLPERLRUN, which is not
+  available with older versions of MakeMaker that ship with older versions of
+  Perl. (Thanks to Ed Avis <ed.avis@kbcfp.com> for catching this.)
+- Cache file permissions are now set to protect against prying eyes. (Patch by
+  Joey Hess <joey@kitenet.net>)
+- Improved speed testing.
+- Added support for opening of files, and decompressing files or filehandles.
+- Restructured test cases.
+- Fixed a bug in _PUT_BACK_STRING which would cause major failures on Solaris.
+- Fixed compatibility problems with perl 5.005_01
+- Fixed grep implementation for filenames with spaces in them. (Thanks to
+  Johan Ekenberg <johan@fsdata.se> for the bug report and patch.)
+- Added "force_processing" option to force processing of files even if they
+  look to be binary or non-mailboxes.
+
+Version 1.00:
+- Initial version, with caching and grep support. Code taken from version 5.00
+  of grepmail
