@@ -33,7 +33,7 @@ sub CheckDiffs
     my @diffs;
     diff $output_filename, $filename, { STYLE => 'OldStyle', OUTPUT => \@diffs };
 
-    my $numdiffs = grep { /^\d+[cd]\d+$/ } @diffs;
+    my $numdiffs = grep { /^[\d,]+[cd][\d,]+$/ } @diffs;
 
     if ($numdiffs != 0)
     {

@@ -5,6 +5,7 @@ no strict;
 @ISA = qw( Exporter Mail::Mbox::MessageParser );
 
 use strict;
+use Carp;
 
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Config;
@@ -27,17 +28,17 @@ sub new
   my $self  = {};
   bless ($self, $class);
 
-  die "Need file_handle option" unless defined $options->{'file_handle'};
+  carp "Need file_handle option" unless defined $options->{'file_handle'};
 
   $self->{'file_handle'} = $options->{'file_handle'};
-
-  $self->reset();
 
   $self->{'file_name'} = $options->{'file_name'}
     if defined $options->{'file_name'};
 
   $self->{'READ_CHUNK_SIZE'} =
     $Mail::Mbox::MessageParser::Config{'read_chunk_size'};
+
+  $self->reset();
 
   $self->_print_debug_information();
 
@@ -83,12 +84,7 @@ sub reset
   $self->{'START_OF_EMAIL'} = 0;
   $self->{'END_OF_EMAIL'} = 0;
 
-  $self->{'end_of_file'} = 0;
-
-  $self->{'email_line_number'} = 0;
-  $self->{'email_offset'} = 0;
-  $self->{'email_length'} = 0;
-  $self->{'email_number'} = 0;
+  $self->SUPER::reset();
 }
 
 #-------------------------------------------------------------------------------
@@ -107,7 +103,7 @@ sub _read_prologue
 {
   my $self = shift;
 
-  dprint "Reading mailbox prologue";
+  dprint "Reading mailbox prologue using Perl";
 
   # Look for the start of the next email
   LOOK_FOR_FIRST_HEADER:
@@ -186,8 +182,6 @@ sub _read_prologue
 sub read_next_email
 {
   my $self = shift;
-
-  dprint "Using Perl" if $DEBUG;
 
   $self->{'email_line_number'} = $self->{'CURRENT_LINE_NUMBER'};
   $self->{'email_offset'} = $self->{'CURRENT_OFFSET'};

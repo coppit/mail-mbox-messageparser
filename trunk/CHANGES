@@ -1,3 +1,13 @@
+Version:
+- Fixed goofy version dependency for Benchmark::Timer.
+- Fixed improper identification of mailboxes whose first email has a body
+  containing a large number of foreign characters. (Thanks to Nigel Horne
+  <njh@bandsman.co.uk> for the bug report and sample data.)
+- Fixed a spurious warning in a test case. (Thanks to Nigel Horne
+  <njh@bandsman.co.uk> for the bug report.)
+- Fixed a test code bug that would cause some failed tests to incorrectly
+  pass.
+
 Version 1.2130: Tue Dec 21 2004
 - Fixed version numbers, which were incompatible with some modules. (Thanks to
   Tassilo von Parseval <tassilo.von.parseval@rwth-aachen.de> for the bug
