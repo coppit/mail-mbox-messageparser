@@ -101,6 +101,8 @@ sub _IS_A_PIPE
      -p $file_handle || !(seek $file_handle, 0, 1));
 }
 
+#-------------------------------------------------------------------------------
+
 sub _read_prologue
 {
   my $self = shift;

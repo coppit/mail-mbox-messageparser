@@ -25,7 +25,9 @@ WriteMakefile( %makefile_attributes );
 
 print "\n","-"x78,"\n\n";
 
-Configure(@program_options);
+my %locations = Configure(@program_options);
+
+Check_Program_Prerequisites(%locations);
 
 exit;
 
@@ -74,7 +76,7 @@ sub Compute_Makefile_Attributes
       'lib/Mail/Mbox/MessageParser/Grep.pm' => '$(INST_LIB)/Mail/Mbox/MessageParser/Grep.pm',
       'lib/Mail/Mbox/MessageParser/Perl.pm' => '$(INST_LIB)/Mail/Mbox/MessageParser/Perl.pm',
     },
-    'PREREQ_PM' => { 'Storable' => 0, 'IO::String' => 0 },
+    'PREREQ_PM' => { 'Storable' => 0, 'FileHandle::Unget' => 0, },
     'DIR' => [ ],
   );
 
@@ -91,6 +93,8 @@ sub Configure
 
   Update_Code('lib/Mail/Mbox/MessageParser.pm', \%locations);
   Update_Code('lib/Test/Utils.pm', \%locations);
+
+  return %locations;
 }
 
 # --------------------------------------------------------------------------
@@ -279,6 +283,118 @@ home directory using both getpwuid and your HOME environment variable.
     unless defined $home;
 
   return $home;
+}
+
+# --------------------------------------------------------------------------
+
+sub Check_Program_Prerequisites
+{
+  my %locations = @_;
+
+  print "\n";
+
+  Check_Diff_Version($locations{'diff'}) if defined $locations{'diff'};
+  Check_Grep_Version($locations{'grep'}) if defined $locations{'grep'};
+  Check_Tzip_Version($locations{'tzip'}) if defined $locations{'tzip'};
+  Check_Gzip_Version($locations{'gzip'}) if defined $locations{'gzip'};
+  Check_Bzip_Version($locations{'bzip'}) if defined $locations{'bzip'};
+  Check_Bzip2_Version($locations{'bzip2'}) if defined $locations{'bzip2'};
+}
+
+# --------------------------------------------------------------------------
+
+sub Check_Diff_Version
+{
+  my $program = shift;
+
+  # Right now we pass everything until we hear about a version which doesn't
+  # work.
+}
+
+# --------------------------------------------------------------------------
+
+sub Check_Grep_Version
+{
+  my $program = shift;
+
+  my $command = "$program --version 2>" . File::Spec->devnull();
+  my $version = `$command`;
+
+  unless ($version =~ /\bGNU\b/)
+  {
+    warn "\n$program is not GNU grep!\n";
+    return;
+  }
+
+  $version =~ s/^.*?([\d.]+)\n.*/$1/s;
+
+  my $version_number;
+
+  # Converts 2.5.1 into 2.0501 for comparison later. (I assume that we'll
+  # never have a subversion number greater than 99)
+  {
+    my $exponent = 0;
+    $version =~ s/(\d+)/$version_number += $1 * (10 ** $exponent);$exponent -= 2; $1/ge;
+  }
+
+  # 2.0 fails, according to David N. Blank-Edelman <dnb@ccs.neu.edu>
+  warn "Your version of GNU grep is too old.\n"
+    unless $version_number >= 2.01;
+}
+
+# --------------------------------------------------------------------------
+
+sub Check_Tzip_Version
+{
+  my $program = shift;
+
+  # Right now we pass everything until we hear about a version which doesn't
+  # work.
+}
+
+# --------------------------------------------------------------------------
+
+sub Check_Gzip_Version
+{
+  my $program = shift;
+
+  # Right now we pass everything until we hear about a version which doesn't
+  # work.
+}
+
+# --------------------------------------------------------------------------
+
+sub Check_Bzip_Version
+{
+  my $program = shift;
+
+  # Right now we pass everything until we hear about a version which doesn't
+  # work.
+}
+
+# --------------------------------------------------------------------------
+
+sub Check_Bzip2_Version
+{
+  my $program = shift;
+
+  my $command = "$program --help 2>&1 1>" . File::Spec->devnull();
+  my $version = `$command`;
+
+  $version =~ s/^.*?([\d.]+\.[\d.]+).*/$1/s;
+
+  my $version_number;
+
+  # Converts 2.5.1 into 2.0501 for comparison later. (I assume that we'll
+  # never have a subversion number greater than 99)
+  {
+    my $exponent = 0;
+    $version =~ s/(\d+)/$version_number += $1 * (10 ** $exponent);$exponent -= 2; $1/ge;
+  }
+
+  # <1.0 fails
+  warn "Your version of bzip2 is too old.\n"
+    unless $version_number >= 1.0;
 }
 
 # --------------------------------------------------------------------------

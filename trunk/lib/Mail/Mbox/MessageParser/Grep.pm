@@ -10,7 +10,7 @@ use Carp;
 
 use vars qw( $VERSION $DEBUG $GREP_DATA );
 
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 $GREP_DATA = {};
 
@@ -104,11 +104,11 @@ sub _READ_GREP_DATA
     
     if ($force_processing)
     {
-      @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text '^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$' '$filename'`;
+      @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$" "$filename"`;
     }
     else
     {
-      @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset '^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$' '$filename'`;
+      @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$" "$filename"`;
     }
 
     dprint "Read " . scalar(@grep_results) . " lines of grep data";

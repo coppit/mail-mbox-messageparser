@@ -1,22 +1,20 @@
 package Mail::Mbox::MessageParser;
 
-no strict;
-
-@ISA = qw(Exporter);
-
 use strict;
 use Carp;
-use FileHandle;
+use FileHandle::Unget;
+use File::Spec;
 sub dprint;
 
 use Mail::Mbox::MessageParser::Perl;
 use Mail::Mbox::MessageParser::Grep;
 use Mail::Mbox::MessageParser::Cache;
-use IO::String;
 
-use vars qw( $VERSION $DEBUG $FROM_PATTERN $UPDATING_CACHE %PROGRAMS );
+use vars qw( @ISA $VERSION $DEBUG $FROM_PATTERN $UPDATING_CACHE %PROGRAMS );
 
-$VERSION = '1.11';
+@ISA = qw(Exporter);
+
+$VERSION = '1.12';
 $DEBUG = 0;
 
 %PROGRAMS = (
@@ -89,6 +87,9 @@ sub new
 
   my ($file_type, $need_to_close_filehandle, $error);
 
+  $DEBUG = $options->{'debug'}
+    if defined $options->{'debug'};
+
   ($options->{'file_handle'}, $file_type, $need_to_close_filehandle, $error) =
     _PREPARE_FILE_HANDLE($options->{'file_name'}, $options->{'file_handle'});
 
@@ -152,9 +153,6 @@ sub new
 
   dprint "Instantiate mailbox parser implementation: " . ref $self;
 
-  $DEBUG = $options->{'debug'}
-    if defined $options->{'debug'};
-
   $self->_print_debug_information();
 
   $self->_read_prologue();
@@ -181,8 +179,14 @@ sub _PREPARE_FILE_HANDLE
   my $file_name = shift;
   my $file_handle = shift;
 
+  dprint "Preparing file handle";
+
   if (defined $file_handle)
   {
+    # Promote this to a FileHandle::Unget if it isn't already
+    $file_handle = new FileHandle::Unget($file_handle)
+      unless UNIVERSAL::isa($file_handle, 'FileHandle::Unget');
+
     binmode $file_handle;
 
     my $file_type = _GET_FILE_TYPE(\$file_handle);
@@ -257,7 +261,7 @@ sub _OPEN_FILE_HANDLE
   # Non-compressed file
   unless (_IS_COMPRESSED_TYPE($file_type))
   {
-    my $file_handle = new FileHandle($file_name);
+    my $file_handle = new FileHandle::Unget($file_name);
     return (undef,"Can't open $file_name: $!") unless defined $file_handle;
 
     binmode $file_handle;
@@ -277,10 +281,10 @@ sub _OPEN_FILE_HANDLE
 
   use vars qw(*OLDSTDERR);
   open OLDSTDERR,">&STDERR" or die "Can't save STDERR: $!\n";
-  open STDERR,">/dev/null"
-    or die "Can't redirect STDERR to /dev/null: $!\n";
+  open STDERR,">" . File::Spec->devnull()
+    or die "Can't redirect STDERR to " . File::Spec->devnull() . ": $!\n";
 
-  my $file_handle = new FileHandle($filter_command);
+  my $file_handle = new FileHandle::Unget($filter_command);
 
   binmode $file_handle;
 
@@ -312,7 +316,7 @@ sub _GET_FILE_TYPE
 
   if (ref $file_name_or_handle_ref eq 'SCALAR')
   {
-    my $temp = new FileHandle($$file_name_or_handle_ref);
+    my $temp = new FileHandle::Unget($$file_name_or_handle_ref);
     return 'unknown' unless defined $temp;
     $file_handle_ref = \$temp;
 
@@ -337,19 +341,8 @@ sub _GET_FILE_TYPE
 
   return 'unknown' unless defined $readResult && $readResult != 0;
 
-
-  # This is a stopgap measure until we can get a real putbackstring. (Our
-  # putbackstring implementation doesn't work on freebsd if we happen to read
-  # the EOF.)
-  if ($readResult < 2000)
-  {
-    $$file_handle_ref = new IO::String($testChars);
-  }
-  else
-  {
-    _PUT_BACK_STRING($$file_handle_ref,$testChars)
-      unless $need_to_close_filehandle;
-  }
+  $$file_handle_ref->ungets($testChars)
+    unless $need_to_close_filehandle;
 
   # Do -B on the data stream
   my $isBinary = 0;
@@ -396,6 +389,33 @@ sub _IS_COMPRESSED_TYPE
 
 #-------------------------------------------------------------------------------
 
+# man perlfork for details
+# simulate open(FOO, "-|")
+sub pipe_from_fork ($)
+{
+  my $parent = shift;
+  my $child = new FileHandle::Unget;
+
+  pipe $parent, $child or die;
+
+  my $pid = fork();
+  return undef unless defined $pid;
+
+  if ($pid)
+  {
+      close $child;
+  }
+  else
+  {
+      close $parent;
+      open(STDOUT, ">&=" . fileno($child)) or die;
+  }
+
+  return $pid;
+}
+
+#-------------------------------------------------------------------------------
+
 sub _DO_DECOMPRESSION
 {
   my $file_handle = shift;
@@ -409,8 +429,8 @@ sub _DO_DECOMPRESSION
   dprint "Calling \"$filter_command\" to decompress filehandle";
 
   # Implicit fork
-  my $decompressed_file_handle = new FileHandle;
-  my $pid = $decompressed_file_handle->open('-|');
+  my $decompressed_file_handle = new FileHandle::Unget;
+  my $pid = pipe_from_fork($decompressed_file_handle);
 
   unless (defined($pid))
   {
@@ -425,19 +445,15 @@ sub _DO_DECOMPRESSION
   # uncompressed input.
   unless ($pid)
   {
-    open(FRONT_OF_PIPE, "|$filter_command 2>/dev/null")
+    open(FRONT_OF_PIPE, "|$filter_command 2>" . File::Spec->devnull())
       or return (undef,"Can't execute \"$filter_command\" on file handle: $!");
 
     binmode FRONT_OF_PIPE;
 
     print FRONT_OF_PIPE <$file_handle>;
 
-    # Quell IO::String complaint about references still existing
-    {
-      local $^W = 0;
-      $file_handle->close()
-        or return (undef,"Can't execute \"$filter_command\" on file handle: $!");
-    }
+    $file_handle->close()
+      or return (undef,"Can't execute \"$filter_command\" on file handle: $!");
 
     # We intentionally don't check for error here. This is because the
     # parent may have aborted, in which case we let it take care of
@@ -451,21 +467,6 @@ sub _DO_DECOMPRESSION
 
   # In parent
   return ($decompressed_file_handle,undef);
-}
-
-#-------------------------------------------------------------------------------
-
-# Puts a string back on a file handle
-
-sub _PUT_BACK_STRING
-{
-  my $file_handle = shift;
-  my $string = shift;
-
-  for (my $char_position=CORE::length($string)-1;$char_position >=0; $char_position--)
-  {
-    $file_handle->ungetc(ord(substr($string,$char_position,1)));
-  }
 }
 
 #-------------------------------------------------------------------------------
@@ -640,7 +641,7 @@ Mail::Mbox::MessageParser - A fast and simple mbox folder reader
   print $prologue;
 
   # This is the main loop. It's executed once for each email
-  while(!$folder_reader->end_of_file());
+  while(!$folder_reader->end_of_file())
   {
     my $email = $folder_reader->read_next_email();
     print $email;
