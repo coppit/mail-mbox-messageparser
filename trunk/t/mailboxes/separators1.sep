@@ -59,6 +59,7 @@ X XXX XXX XXXXX XXX XXXXX XXXX XXXXXXXX.
 --Boundary_(ID_/47deYIXfGxrPcOYhaLT6w)
 Content-type: message/rfc822
 
+X-From-Line: root@maa.foo.com  Thu Jul 29 18:59:51 2004
 Received: from eilmpk.Eng.foo.com
  (eil1mpk.Say.foo.com [129.146.11.21])
 	by jic.eng.foo.com (8.13.1.Beta0+Sun/8.13.0) with ESMTP id i6U1xpAp216754
@@ -80,7 +81,6 @@ To: gob@maa.foo.com
 Message-id: <200407300158.i6U1wh3E144844@maa.foo.com>
 MIME-version: 1.0
 Content-type: TEXT/PLAIN
-X-From-Line: root@maa.foo.com  Thu Jul 29 18:59:51 2004
 Lines: 866
 Xref: mail.misc:65481
 
@@ -104,3 +104,88 @@ XXX-XXXXXXX XXXX XXXXXXXX: XXX XXX XX XX:XX:XX XXX XXXX
 
 --Boundary_(ID_/47deYIXfGxrPcOYhaLT6w)--
 
+From klopp Mon Jan  5 08:50:15 +0100 2004
+X-VM-Message-Order:
+	(190 189 188 187 186 185 184 183 182 181 180 179 178 177 176
+	 175 174 173 172 171 170 169 168 167 166 165 164 163 162 161
+	 160 159 158 157 156 155 154 153 152 151 150 149 148 147 146
+	 145 144 143 142 141 140 139 138 137 136 135 134 133 132 131
+	 130 129 128 127 126 125 124 123 122 121 120 119 118 117 116
+	 115 114 113 112 111 110 109 108 107 106 105 104 103 102 101
+	 100 99 98 97 96 95 94 93 92 91 90 89 88 87 86
+	 85 84 83 82 81 80 79 78 77 76 75 74 73 72 71
+	 70 69 68 67 66 65 64 63 62 61 60 59 58 57 56
+	 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41
+	 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26
+	 24 25 23 22 21 20 19 18 17 16 15 14 13 12 11
+	 10 9 8 7 6 5 4 3 2 1)
+X-VM-Summary-Format: "%n %*%a %-17.17F %-3.3m %2d %4l/%-5c %I\"%s\"\n"
+X-VM-Labels: nil
+X-VM-VHeader: ("Resent-" "From:" "Sender:" "To:" "Apparently-To:" "Cc:" "Subject:" "Date:") nil
+X-VM-Last-Modified: (16415 32825 917193)
+X-VM-IMAP-Retrieved: nil
+X-VM-POP-Retrieved: nil
+X-VM-Bookmark: 179
+X-VM-v5-Data: ([nil nil nil nil nil nil nil t nil]
+	["1438" "Monday" "5" "January" "2004" "08:50:15" "+0100" "=?iso-8859-1?Q?Fr=E9d=E9ric?= Klopp" "klopp@math.univ-paris13.fr" nil "49" #("Bonne annÅÈe et texte" 0 6 nil 6 11 (vm-coding iso-latin-1 vm-charset "iso-8859-1" vm-string t) 11 20 nil) "^From:" "n@filonov.pdmi.ras.ru, filonov@mph.phys.spbu.ru" "Nikolai Filonov, Nikolai Filonov" "1" "2004010508:50:15" nil (number " " mark "   E To: Nikolai Filon Jan  5   49/1438  " thread-indent "\"Bonne =?iso-8859-1?Q?ann=E9e?= et texte\"\n") nil nil nil nil nil nil]
+	nil)
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="NQWuVOReNt"
+Content-Transfer-Encoding: 8bit
+Message-ID: <16377.5943.822058.623137@omega.maison.fr>
+X-Mailer: VM 7.17-rfhacked under Emacs 21.2.93.1
+Reply-To: FréÈdéÈric Klopp <klopp@math.univ-paris13.fr>
+From: =?iso-8859-1?Q?Fr=E9d=E9ric?= Klopp <klopp@math.univ-paris13.fr>
+To: XXXXXXX XXXXXXX <X@XXXXXXX.XXXX.XXX.XX>, XXXXXXX XXXXXXX <XXXXXXX@XXX.XXXX.XXXX.XX>
+Subject: XXXXX =?XXX-XXXX-X?X?XXX=XXX?= XX XXXXX
+Date: Mon, 5 Jan 2004 08:50:15 +0100
+
+
+--XXXXXXXXXX
+XXXXXXX-XXXX: XXXX/XXXXX; XXXXXXX=XXX-XXXX-X
+XXXXXXX-XXXXXXXXXXX: XXXXXXX XXXX XXXX
+XXXXXXX-XXXXXXXX-XXXXXXXX: XXXX
+
+XXXX XXXXXXX,
+	XXXX X'XXXXX, XX XX XXXXXXXX XXX XXËX XXXXX XXXÈX XXXX.
+
+	X'XX XXXX XXXXX XXXXX XX XX X'XX XXX XXXXXÈ XXXXX-XXXXX ‡
+	XXXXXXXX. XX-XXXXX XX XXXXXXXX XXXXXXX. XX XXXX XX XXXXXXXX,
+	XX XXXX X'XXXXXXX ‡ XX XXXXXXX XX XX XÈXXXXX XXX XXX XXXXXXXX
+	XXXXXX ; XXXX XX XXXXXXX, XXX XXXXXX-XX XX XXXXXXXXX
+	XXXXXXXXXXX
+	(XXXX://XXX.XXXXXXXXXX.XXX-XXXXXXXXX.XX/XXXXXXXXX/) ?
+	X'XXX XX XXXXXXX XÈXÈXXXXXXX, XX X'XX XX XXX XX XXXXX XX
+	X. XXXXXX, XX XXXXXXXXX XXX X XXXXXXXXÈ XXXX XXXXXX XX
+	XXXXXXXXXXX, XXX XXXXXÈ XXXX XX XXXXXXX XXXXXX.
+
+XXXXXÈX,
+	XXÈXÈXXX
+
+
+--XXXXXXXXXX
+XXXXXXX-XXXX: XXXX/XXXXX; XXXXXXX=XX-XXXXX
+
+[XXXXXXX XXXXXXXXXXX/XXX]
+
+--XXXXXXXXXX
+XXXXXXX-XXXX: XXXX/XXXXX; XXXXXXX=XX-XXXXX
+
+[XXXXXXX XXXXX XXXX]
+
+--XXXXXXXXXX
+XXXXXXX-XXXX: XXXX/XXXXX; XXXXXXX=XXX-XXXX-X
+XXXXXXX-XXXXXXXXXXX: .XXXXXXXXX
+XXXXXXX-XXXXXXXX-XXXXXXXX: XXXX
+
+
+
+-- 
+--------------------------------------------------------------------------
+| XXÈXÈXXX XXXXX               |   XÈX: XX/X X XX XX XX XX (XXX./XXX.)	 |
+| XXXX, XXXXXXXX XXXXXÈX       |   XXX: XX/X X XX XX XX XX (XXX./XXX.)	 |
+| XXXXXXXXXÈ XXXXX-XXXX        |  		XXXXXXXX:                |
+| X-XXXXX XXXXXXXXXXXX, XXXXXX | XXXX://XXXX.XXXX.XXXX-XXXXXXX.XX/~XXXXX |
+--------------------------------------------------------------------------
+
+--XXXXXXXXXX--

@@ -34,7 +34,7 @@ sub CheckDiffs
     my @diffs;
     diff $output_filename, $filename, { STYLE => 'OldStyle', OUTPUT => \@diffs };
 
-    my $numdiffs = grep { /^[\d,]+[cd][\d,]+$/ } @diffs;
+    my $numdiffs = grep { /^[\d,]+[acd][\d,]+$/ } @diffs;
 
     if ($numdiffs != 0)
     {
@@ -93,6 +93,9 @@ sub InitializeCache
   $filehandle->close();
 
   Mail::Mbox::MessageParser::MetaInfo::WRITE_CACHE();
+
+  # Check that the cache is actually there
+  die "Couldn't initialize cache" unless -e $cache_file;
 }
 
 # ---------------------------------------------------------------------------
@@ -147,7 +150,7 @@ sub Broken_Pipe
   print F<<EOF;
 unless (open B, '-|')
 {
-  open(F, "|cat 2>$dev_null");
+  open(F, "|$^X -pe 'print' 2>$dev_null");
   print F 'x';
   close F;
   exit;

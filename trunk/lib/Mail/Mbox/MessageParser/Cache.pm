@@ -147,7 +147,7 @@ sub read_next_email
     if ($end_of_string =~
         /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i ||
         $end_of_string =~
-          /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline$endline/i)
+          /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline(?:$endline)+$/i)
     {
       dprint "Incorrect start of email found--adjusting cache data";
 
@@ -178,10 +178,6 @@ sub read_next_email
   $self->{'email_number'}++;
 
   $self->SUPER::read_next_email();
-
-  $Mail::Mbox::MessageParser::MetaInfo::UPDATING_CACHE = 0
-    if $self->{'email_number'} - 1 ==
-      $#{ $CACHE->{$self->{'file_name'}}{'emails'} };
 
   return \$email;
 }

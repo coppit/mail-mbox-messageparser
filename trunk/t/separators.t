@@ -13,7 +13,7 @@ use FileHandle;
 eval 'require Storable;';
 
 my %tests = (
-  "t/mailboxes/separators1.sep" => 1,
+  "t/mailboxes/separators1.sep" => 2,
 );
 
 mkdir catfile('t','temp'), 0700;
