@@ -5,22 +5,18 @@ no strict;
 @ISA = qw( Exporter Mail::Mbox::MessageParser );
 
 use strict;
-use warnings 'all';
-no warnings 'redefine';
+use Mail::Mbox::MessageParser;
 
-our $VERSION = '1.01';
+use vars qw( $VERSION $DEBUG $READ_CHUNK_SIZE );
 
-our $DEBUG = 0;
+$VERSION = '1.02';
+
+*DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
+*dprint = \&Mail::Mbox::MessageParser::dprint;
+sub dprint;
 
 # Need this for a lookahead.
-our $READ_CHUNK_SIZE = 20000;
-
-#-------------------------------------------------------------------------------
-
-sub dprint
-{
-  return Mail::Mbox::MessageParser::dprint @_;
-}
+$READ_CHUNK_SIZE = 20000;
 
 #-------------------------------------------------------------------------------
 
@@ -326,6 +322,7 @@ Mail::Mbox::MessageParser::Perl - A Perl-based mbox folder reader
       'file_handle' => $filehandle,
     } );
 
+  die $folder_reader unless ref $folder_reader;
   
   # Any newlines or such before the start of the first email
   my $prologue = $folder_reader->prologue;
@@ -362,6 +359,9 @@ the Mail::Mbox::MessageParser documentation.
 The constructor for the class takes two parameters. The optional I<file_name>
 parameter is the filename of the mailbox. The required I<file_handle> argument
 is the opened file handle to the mailbox. 
+
+Returns a reference to a Mail::Mbox::MessageParser object, or a string
+describing the error.
 
 
 =head1 BUGS

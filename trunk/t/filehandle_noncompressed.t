@@ -4,9 +4,9 @@
 # files.
 
 use strict;
-use warnings 'all';
 
 use Test;
+use lib 'lib';
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Cache;
 use Mail::Mbox::MessageParser::Grep;
@@ -14,28 +14,61 @@ use Mail::Mbox::MessageParser::Perl;
 use Test::Utils;
 use FileHandle;
 
-my $installed = CheckInstalled();
-
 my @files = <t/mailboxes/mail*.txt>;
 
-mkdir 't/temp';
+mkdir 't/temp', 0700;
 
 plan (tests => 4 * scalar (@files));
 
 foreach my $filename (@files) 
 {
-  skip('Skip bzip2 not available',1)
-    if $filename =~ /\.bz2$/ && !$installed->{'bzip'};
-  skip('Skip gzip not available',1)
-    if $filename =~ /\.gz$/ && !$installed->{'gzip'};
-  skip('Skip tzip not available',1)
-    if $filename =~ /\.tz$/ && !$installed->{'tzip'};
-
+  if ($filename =~ /\.bz2$/ && !defined $PROGRAMS{'bzip2'})
+  {
+    skip('Skip bzip2 not available',1);
+    skip('Skip bzip2 not available',1);
+    skip('Skip bzip2 not available',1);
+    skip('Skip bzip2 not available',1);
+    next;
+  }
+  if ($filename =~ /\.bz$/ && !defined $PROGRAMS{'bzip'})
+  {
+    skip('Skip bzip not available',1);
+    skip('Skip bzip not available',1);
+    skip('Skip bzip not available',1);
+    skip('Skip bzip not available',1);
+    next;
+  }
+  if ($filename =~ /\.gz$/ && !defined $PROGRAMS{'gzip'})
+  {
+    skip('Skip gzip not available',1);
+    skip('Skip gzip not available',1);
+    skip('Skip gzip not available',1);
+    skip('Skip gzip not available',1);
+    next;
+  }
+  if ($filename =~ /\.tz$/ && !defined $PROGRAMS{'tzip'})
+  {
+    skip('Skip tzip not available',1);
+    skip('Skip tzip not available',1);
+    skip('Skip tzip not available',1);
+    skip('Skip tzip not available',1);
+    next;
+  }
+  
   InitializeCache($filename);
 
   TestImplementation($filename,0,0);
   TestImplementation($filename,1,0);
-  TestImplementation($filename,0,1);
+
+  if (defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'})
+  {
+    TestImplementation($filename,0,1);
+  }
+  else
+  {
+    skip('Skip GNU grep not available',1);
+  }
+
   TestImplementation($filename,1,1);
 }
 
@@ -54,7 +87,7 @@ sub TestImplementation
   my ($folder_name) = $filename =~ /\/([^\/]*)\.txt.*$/;
 
   my $output_filename =
-    "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.testoutput";
+    "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout";
 
   my $output = new FileHandle(">$output_filename");
 
@@ -70,6 +103,8 @@ sub TestImplementation
         'enable_cache' => $enable_cache,
         'enable_grep' => $enable_grep,
       } );
+
+  die $folder_reader unless ref $folder_reader;
 
   my $prologue = $folder_reader->prologue;
   print $output $prologue;

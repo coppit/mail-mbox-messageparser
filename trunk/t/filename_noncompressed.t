@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
-use warnings 'all';
 
 use Test;
+use lib 'lib';
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Cache;
 use Mail::Mbox::MessageParser::Grep;
@@ -11,23 +11,14 @@ use Mail::Mbox::MessageParser::Perl;
 use Test::Utils;
 use FileHandle;
 
-my $installed = CheckInstalled();
-
 my @files = <t/mailboxes/mailarc-*.txt>;
 
-mkdir 't/temp';
+mkdir 't/temp', 0700;
 
 plan (tests => 1 * scalar (@files));
 
 foreach my $filename (@files) 
 {
-  skip('Skip bzip2 not available',1)
-    if $filename =~ /\.bz2$/ && !$installed->{'bzip'};
-  skip('Skip gzip not available',1)
-    if $filename =~ /\.gz$/ && !$installed->{'gzip'};
-  skip('Skip tzip not available',1)
-    if $filename =~ /\.tz$/ && !$installed->{'tzip'};
-
   TestImplementation($filename,0,0);
 }
 
@@ -46,7 +37,7 @@ sub TestImplementation
   my ($folder_name) = $filename =~ /\/([^\/]*)\.txt$/;
 
   my $output_filename =
-    "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.testoutput";
+    "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout";
 
   my $output = new FileHandle(">$output_filename");
 
@@ -60,6 +51,8 @@ sub TestImplementation
         'enable_cache' => $enable_cache,
         'enable_grep' => $enable_grep,
       } );
+
+  die $folder_reader unless ref $folder_reader;
 
   my $prologue = $folder_reader->prologue;
   print $output $prologue;

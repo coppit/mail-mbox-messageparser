@@ -3,15 +3,29 @@
 
 use strict;
 use ExtUtils::MakeMaker;
+use lib 'lib';
+use Config;
+use File::Spec;
 
 require 5.004;
 
-@ARGV = Set_Install_Options(@ARGV)
-  unless (grep {/^PREFIX=/} @ARGV) || (grep {/^INSTALLDIRS=/} @ARGV);
+my @program_options = grep {/^(GREP|TZIP|GZIP|BZIP2?)=/} @ARGV;
+@ARGV = grep {!/^(GREP|TZIP|GZIP|BZIP2?)=/} @ARGV;
 
-my %makefile_attributes = Compute_Makefile_Attributes(@ARGV);
+unless ((grep {/^PREFIX=/} @ARGV) || (grep {/^INSTALLDIRS=/} @ARGV))
+{
+  @ARGV = Set_Install_Options(@ARGV);
+}
+
+print "\n","-"x78,"\n\n";
+
+my %makefile_attributes = Compute_Makefile_Attributes();
 
 WriteMakefile( %makefile_attributes );
+
+print "\n","-"x78,"\n\n";
+
+Configure(@program_options);
 
 exit;
 
@@ -42,29 +56,8 @@ sub Set_Install_Options
 
 # --------------------------------------------------------------------------
 
-# Figures out the user's home directory in Unix
-
-sub Get_Home_Directory()
-{
-  # Get the user's home directory. First try the password info, then the
-  # registry (if it's a Windows machine), then any HOME environment variable.
-  my $home = eval { (getpwuid($>))[7] } || $ENV{HOME};
-
-  die <<"  EOF"
-Your home directory could not be determined. I tried to get your
-home directory using both getpwuid and your HOME environment variable.
-  EOF
-    unless defined $home;
-
-  return $home;
-}
-
-# --------------------------------------------------------------------------
-
 sub Compute_Makefile_Attributes
 {
-  my @args = @_;
-
   my %makefile_attributes = (
     'NAME'  => 'Mail::Mbox::MessageParser',
     'VERSION_FROM' => 'lib/Mail/Mbox/MessageParser.pm',
@@ -85,30 +78,212 @@ sub Compute_Makefile_Attributes
 
 # --------------------------------------------------------------------------
 
-# So that "SUPER" works right
-package MY;
+sub Configure
+{
+  my @args = @_;
 
-sub test {
-  my $inherited = shift->SUPER::test(@_);
-  $inherited =~ s#'\)" \$\(TEST_FILES\)#', 'lib'\)" \$\(TEST_FILES\)#;
-  $inherited =~ s#"-I\$\(INST_ARCHLIB\)" \$\(TEST_FILE\)#"-I\$\(INST_ARCHLIB\)" "-Ilib" \$\(TEST_FILE\)#;
-  $inherited;
+  my %locations = Get_Program_Locations(@args);
+
+  Update_Code('lib/Mail/Mbox/MessageParser.pm', \%locations);
+  Update_Code('lib/Test/Utils.pm', \%locations);
 }
 
 # --------------------------------------------------------------------------
 
+sub Update_Code
+{
+  my $filename = shift;
+  my %locations = %{ shift @_ };
+
+  my $code = _Read_Code($filename);
+
+  foreach my $program (keys %locations)
+  {
+    if (defined $locations{$program})
+    {
+      $locations{$program} = "\'$locations{$program}\'";
+    }
+    else
+    {
+      $locations{$program} = "undef";
+    }
+  }
+
+  if ($code =~ /(PROGRAMS = \(.*?\))/s)
+  {
+    my $original_programs = $1;
+    my $new_programs = $original_programs;
+
+    $new_programs =~ s/('grep' *=> *).*?,/$1$locations{grep},/;
+    $new_programs =~ s/('tzip' *=> *).*?,/$1$locations{tzip},/;
+    $new_programs =~ s/('gzip' *=> *).*?,/$1$locations{gzip},/;
+    $new_programs =~ s/('compress' *=> *).*?,/$1$locations{gzip},/;
+    $new_programs =~ s/('bzip' *=> *).*?,/$1$locations{bzip},/;
+    $new_programs =~ s/('bzip2' *=> *).*?,/$1$locations{bzip2},/;
+
+    $code =~ s/\Q$original_programs\E/$new_programs/;
+  }
+  else
+  {
+    die "Couldn't find programs hash in MessageParser.pm";
+  }
+
+  _Write_Code($filename, $code);
+}
+
+# --------------------------------------------------------------------------
+
+sub _Read_Code
+{
+  my $filename = shift;
+
+  local $/ = undef;
+
+  open SOURCE, $filename
+    or die "Couldn't open file \"$filename\": $!";
+  my $code = <SOURCE>;
+  close SOURCE;
+
+  return $code;
+}
+
+# --------------------------------------------------------------------------
+
+sub _Write_Code
+{
+  my $filename = shift;
+  my $code = shift;
+
+  open SOURCE, ">$filename"
+    or die "Couldn't open grepmail file \"$filename\": $!";
+  print SOURCE $code;
+  close SOURCE;
+}
+
+# --------------------------------------------------------------------------
+
+sub Get_Program_Locations
+{
+  my @args = @_;
+
+  my %defaults = (
+      'grep'     => 'grep',
+      'tzip'     => 'tzip',
+      'gzip'     => 'gzip',
+      'bzip2'    => 'bzip2',
+      'bzip'     => 'bzip2',
+  );
+
+  my %programs = (
+      'grep'     => undef,
+      'tzip'     => undef,
+      'gzip'     => undef,
+      'bzip2'    => undef,
+      'bzip'     => undef,
+  );
+
+  foreach my $arg (@args)
+  {
+    my ($var,$value) = $arg =~ /^(.*?)=(.*)$/;
+    $value = undef if $value eq '';
+    $programs{'grep'} = $value if $var eq 'GREP';
+    $programs{'tzip'} = $value if $var eq 'TZIP';
+    $programs{'bzip'} = $value if $var eq 'BZIP';
+    $programs{'gzip'} = $value if $var eq 'GZIP';
+    $programs{'bzip2'} = $value if $var eq 'BZIP2';
+  }
+
+  return %programs if grep {/^(GREP|TZIP|GZIP|BZIP2?)=/} @args;
+
+  print<<EOF;
+You must now specify the location of external programs for decompressing
+compressed folders. You must specify the full path--otherwise you may
+accidentally execute a trojan version of the decompression program.  You can
+enter "none" to disable support for decompressing files of a given type.
+
+EOF
+
+  my @path = split /$Config{path_sep}/, $ENV{PATH};
+
+  foreach my $program (sort keys %programs)
+  {
+    my $name = $Config{$program} || $defaults{$program};
+
+    my $full_path = Find_Program($name, [@path]);
+    $full_path = $name if !defined $full_path && MM->maybe_command($name);
+
+    $full_path = 'none' if !defined $full_path || $full_path eq '';
+
+    my $choice = ExtUtils::MakeMaker::prompt(
+      "Where can I find your \"$program\" executable?" => $full_path);
+
+    $programs{$program} = undef, next if $choice eq 'none';
+
+    if (File::Spec->file_name_is_absolute($choice) &&
+      MM->maybe_command($choice))
+    {
+      $programs{$program} = $choice;
+      next;
+    }
+    else
+    {
+      print "\"$choice\" does not appear to be a valid executable\n";
+      redo;
+    }
+  }
+
+  return %programs;
+}
+
+# --------------------------------------------------------------------------
+
+sub Find_Program
+{
+  my $program = shift;
+  my @path = @{ shift @_ };
+
+  my $param = (($program =~ s/(\s+.*)//) ? $1 : '');
+
+  for my $dir (@path)
+  {
+    my $abs = File::Spec->catfile($dir, $program);
+    return $abs.$param if $abs = MM->maybe_command($abs);
+  }
+
+  return undef;
+}
+
+# ---------------------------------------------------------------------------
+
+# Figures out the user's home directory in Unix
+
+sub Get_Home_Directory
+{
+  # Get the user's home directory. First try the password info, then the
+  # registry (if it's a Windows machine), then any HOME environment variable.
+  my $home = eval { (getpwuid($>))[7] } || $ENV{HOME};
+
+  die <<"  EOF"
+Your home directory could not be determined. I tried to get your
+home directory using both getpwuid and your HOME environment variable.
+  EOF
+    unless defined $home;
+
+  return $home;
+}
+
+# --------------------------------------------------------------------------
+
+# So that "SUPER" works right
+package MY;
+
 sub postamble
 {
-# Add a target for testing the speed, and one for testing
-# functionality
 '
 testspeed :: pure_all
 	PERL_DL_NONLAZY=1 $(PERLRUN) "-I$(INST_LIB)" \
-	  "-I$(INST_ARCHLIB)" "-Ilib" t/speed.pl
-
-testfunc :: pure_all
-	PERL_DL_NONLAZY=1 $(PERLRUN) "-I$(INST_LIB)" \
-	  "-I$(INST_ARCHLIB)" "-Ilib" t/*.t
+	  "-I$(INST_ARCHLIB)" t/speed.pl
 ';
 }
+
 

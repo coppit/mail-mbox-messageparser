@@ -5,22 +5,29 @@ no strict;
 @ISA = qw(Exporter);
 
 use strict;
-use warnings 'all';
-no warnings 'redefine';
 use Carp;
 use FileHandle;
 
-our $VERSION = '1.10';
-our $DEBUG = 0;
+sub dprint;
 
-our $UPDATING_CACHE = 0;
+use Mail::Mbox::MessageParser::Perl;
+use Mail::Mbox::MessageParser::Grep;
+use Mail::Mbox::MessageParser::Cache;
 
-our %PROGRAMS = (
- 'tzip' => 'tzip',
- 'gzip' => 'gzip',
- 'compress' => 'gzip',
- 'bzip' => 'bzip2',
- 'bzip2' => 'bzip2',
+use vars qw( $VERSION $DEBUG $UPDATING_CACHE %PROGRAMS );
+
+$VERSION = '1.10';
+$DEBUG = 0;
+
+$UPDATING_CACHE = 0;
+
+%PROGRAMS = (
+ 'grep' => '/usr/cs/contrib/bin/grep',
+ 'tzip' => undef,
+ 'gzip' => '/usr/cs/contrib/bin/gzip',
+ 'compress' => '/usr/cs/contrib/bin/gzip',
+ 'bzip' => undef,
+ 'bzip2' => undef,
 );
 
 #-------------------------------------------------------------------------------
@@ -46,42 +53,21 @@ sub dprint
 
 sub SETUP_CACHE
 {
-  if (eval 'require Mail::Mbox::MessageParser::Cache;')
-  {
-    Mail::Mbox::MessageParser::Cache::SETUP_CACHE(@_);
-  }
-  else
-  {
-    # We'll catch loading errors later in new()
-  }
+  Mail::Mbox::MessageParser::Cache::SETUP_CACHE(@_);
 }
 
 #-------------------------------------------------------------------------------
 
 sub CLEAR_CACHE
 {
-  if (eval 'require Mail::Mbox::MessageParser::Cache;')
-  {
-    Mail::Mbox::MessageParser::Cache::CLEAR_CACHE(@_);
-  }
-  else
-  {
-    # We'll catch loading errors later in new()
-  }
+  Mail::Mbox::MessageParser::Cache::CLEAR_CACHE(@_);
 }
 
 #-------------------------------------------------------------------------------
 
 sub WRITE_CACHE
 {
-  if (eval 'require Mail::Mbox::MessageParser::Cache;')
-  {
-    Mail::Mbox::MessageParser::Cache::WRITE_CACHE(@_);
-  }
-  else
-  {
-    # We'll catch loading errors later in new()
-  }
+  Mail::Mbox::MessageParser::Cache::WRITE_CACHE(@_);
 }
 
 #-------------------------------------------------------------------------------
@@ -119,44 +105,40 @@ sub new
 
   if (defined $options->{'enable_cache'} && $options->{'enable_cache'})
   {
-    if (eval 'require Mail::Mbox::MessageParser::Cache;')
-    {
-      $self = new Mail::Mbox::MessageParser::Cache($options, $cache_options);
+    $self = new Mail::Mbox::MessageParser::Cache($options, $cache_options);
 
-      if ($Mail::Mbox::MessageParser::Cache::UPDATING_CACHE)
-      {
-        $UPDATING_CACHE = 1;
-        $self = undef;
-      }
-    }
-    else
+    unless (ref $self)
     {
-      dprint "Couldn't load Mail::Mbox::MessageParser::Cache: $@";
+      warn "Couldn't instantiate Mail::Mbox::MessageParser::Cache: $self";
+      $self = undef;
+    }
+
+    if ($Mail::Mbox::MessageParser::Cache::UPDATING_CACHE)
+    {
+      $UPDATING_CACHE = 1;
+      $self = undef;
     }
   }
 
   if (!defined $self &&
     defined $options->{'enable_grep'} && $options->{'enable_grep'})
   {
-    if (eval 'require Mail::Mbox::MessageParser::Grep;')
+    $self = new Mail::Mbox::MessageParser::Grep($options);
+
+    unless (ref $self)
     {
-      $self = new Mail::Mbox::MessageParser::Grep($options);
-    }
-    else
-    {
-      dprint "Couldn't load Mail::Mbox::MessageParser::Grep: $@";
+      warn "Couldn't instantiate Mail::Mbox::MessageParser::Grep: $self";
+      $self = undef;
     }
   }
 
   if (!defined $self)
   {
-    if (eval 'require Mail::Mbox::MessageParser::Perl;')
+    $self = new Mail::Mbox::MessageParser::Perl($options);
+
+    unless (ref $self)
     {
-      $self = new Mail::Mbox::MessageParser::Perl($options);
-    }
-    else
-    {
-      carp "Couldn't load Mail::Mbox::MessageParser::Perl: $@";
+      die "Couldn't instantiate Mail::Mbox::MessageParser::Perl: $self";
     }
   }
 
@@ -262,6 +244,9 @@ sub _OPEN_FILE_HANDLE
     return ($file_handle,undef);
   }
 
+  return (undef,"Can't decompress $file_name--no decompressor available")
+    unless defined $PROGRAMS{$file_type};
+
   # It must be a known compressed file type
   my $filter_command = "$PROGRAMS{$file_type} -cd '$file_name' |";
 
@@ -315,6 +300,8 @@ sub _GET_FILE_TYPE
   
   # Read test characters
   my $testChars;
+
+  binmode $file_handle;
 
   my $readResult = read($file_handle,$testChars,2000);
 
@@ -374,6 +361,9 @@ sub _DO_DECOMPRESSION
 {
   my $file_handle = shift;
   my $file_type = shift;
+
+  return (undef,"Can't decompress file handle--no decompressor available")
+    unless defined $PROGRAMS{$file_type};
 
   my $filter_command = "$PROGRAMS{$file_type} -cd";
 
@@ -448,9 +438,6 @@ sub _PUT_BACK_STRING
   my $file_handle = shift;
   my $string = shift;
 
-  # Try to just move the file pointer
-  seek($file_handle, 0, 0) and return;
-
   for (my $char_position=CORE::length($string)-1;$char_position >=0; $char_position--)
   {
     $file_handle->ungetc(ord(substr($string,$char_position,1)));
@@ -473,7 +460,7 @@ sub _IS_MAILBOX
 #  if ($buffer =~ /^(X-Draft-From:|X-From-Line:|From)\s/im &&
 #      $buffer =~ /^(Date|Subject|X-Status|Status|To):\s/im)
   if ($test_characters =~ /^(X-Draft-From:|X-From-Line:|From:?)\s/im &&
-      $test_characters =~ /^(Date|To|Bcc):\s/im)
+      $test_characters =~ /^Received:.*\bfrom\b.*\bby\b.*for\b/sm)
   {
     return 1;
   }

@@ -3,17 +3,15 @@
 # Test that we can pipe compressed data to the module
 
 use strict;
-use warnings 'all';
 
 use Test;
+use lib 'lib';
 use Test::Utils;
 use FileHandle;
 
-my $installed = CheckInstalled();
-
 my @files = <t/mailboxes/mail*.txt.*>;
 
-mkdir 't/temp';
+mkdir 't/temp', 0700;
 
 plan (tests => 1 * scalar (@files));
 
@@ -23,12 +21,26 @@ my $test_program = <DATA>;
 
 foreach my $filename (@files) 
 {
-  skip('Skip bzip2 not available',1)
-    if $filename =~ /\.bz2$/ && !$installed->{'bzip'};
-  skip('Skip gzip not available',1)
-    if $filename =~ /\.gz$/ && !$installed->{'gzip'};
-  skip('Skip tzip not available',1)
-    if $filename =~ /\.tz$/ && !$installed->{'tzip'};
+  if ($filename =~ /\.bz2$/ && !defined $PROGRAMS{'bzip2'})
+  {
+    skip('Skip bzip2 not available',1);
+    next;
+  }
+  if ($filename =~ /\.bz$/ && !defined $PROGRAMS{'bzip'})
+  {
+    skip('Skip bzip not available',1);
+    next;
+  }
+  if ($filename =~ /\.gz$/ && !defined $PROGRAMS{'gzip'})
+  {
+    skip('Skip gzip not available',1);
+    next;
+  }
+  if ($filename =~ /\.tz$/ && !defined $PROGRAMS{'tzip'})
+  {
+    skip('Skip tzip not available',1);
+    next;
+  }
 
   TestImplementation($filename, $test_program);
 }
@@ -47,7 +59,7 @@ sub TestImplementation
   my ($folder_name) = $filename =~ /\/([^\/]*)\.txt.*$/;
 
   my $output_filename =
-    "t/temp/${testname}_${folder_name}.testoutput";
+    "t/temp/${testname}_${folder_name}.stdout";
 
   local $/ = undef;
 
@@ -106,6 +118,8 @@ sub ParseFile
         'enable_cache' => 0,
         'enable_grep' => 0,
       } );
+
+  die $folder_reader unless ref $folder_reader;
 
   print $output_file_handle $folder_reader->prologue();
 

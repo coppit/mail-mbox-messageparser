@@ -3,12 +3,26 @@ package Test::Utils;
 use strict;
 use Exporter;
 use Test;
+use FileHandle;
 
 use vars qw( @EXPORT @ISA );
 use Mail::Mbox::MessageParser;
 
 @ISA = qw( Exporter );
-@EXPORT = qw( CheckDiffs DoDiff InitializeCache CheckInstalled );
+@EXPORT = qw( CheckDiffs DoDiff InitializeCache ModuleInstalled %PROGRAMS
+  Broken_Pipe No_such_file_or_directory
+);
+
+use vars qw( %PROGRAMS );
+
+%PROGRAMS = (
+ 'grep' => '/usr/cs/contrib/bin/grep',
+ 'tzip' => undef,
+ 'gzip' => '/usr/cs/contrib/bin/gzip',
+ 'compress' => '/usr/cs/contrib/bin/gzip',
+ 'bzip' => undef,
+ 'bzip2' => undef,
+);
 
 sub CheckDiffs
 {
@@ -79,7 +93,7 @@ sub DoDiff
 
   if ($numdiffs == 0)
   {
-    print "Output looks good.\n";
+    print "Output $output_filename looks good.\n";
 
     unlink "$output_filename";
     unlink "$output_filename.diff";
@@ -106,6 +120,8 @@ sub InitializeCache
         'enable_grep' => 0,
       } );
 
+  die $folder_reader unless ref $folder_reader;
+
   my $prologue = $folder_reader->prologue;
 
   # This is the main loop. It's executed once for each email
@@ -121,33 +137,68 @@ sub InitializeCache
 
 # ---------------------------------------------------------------------------
 
-sub CheckInstalled
+sub ModuleInstalled
 {
-  # Save old STDERR and redirect temporarily to nothing. This will prevent the
-  # test script from emitting a warning if the backticks can't find the
-  # compression programs
-  use vars qw(*OLDSTDERR);
-  open OLDSTDERR,">&STDERR" or die "Can't save STDERR: $!\n";
-  open STDERR,">/dev/null" or die "Can't redirect STDERR to /dev/null: $!\n";
+  my $module_name = shift;
 
-  my %return = (
-    'gzip' => 0,
-    'bzip' => 0,
-    'tzip' => 0,
-  );
+  $module_name =~ s/::/\//g;
+  $module_name .= '.pm';
 
-  my $temp = `bzip2 -h 2>&1`;
-  $return{'bzip'} = 1 if $temp =~ /usage/;
+  foreach my $inc (@INC)
+  {
+    return 1 if -e "$inc/$module_name";
+  }
 
-  $temp = `gzip -h 2>&1`;
-  $return{'gzip'} = 1 if $temp =~ /usage/;
-
-  $temp = `tzip -h 2>&1`;
-  $return{'tzip'} = 1 if $temp =~ /usage/;
-
-  open STDERR,">&OLDSTDERR" or die "Can't restore STDERR: $!\n";
-
-  return \%return;
+  return 0;
 }
+
+# ---------------------------------------------------------------------------
+
+sub No_such_file_or_directory
+{
+  my $filename = 0;
+
+  $filename++ while -e $filename;
+
+  local $!;
+
+  my $foo = new FileHandle;
+  $foo->open($filename);
+
+  die q{Couldn't determine local text for "No such file or directory"}
+    if $! eq '';
+
+  return $!;
+}
+
+# ---------------------------------------------------------------------------
+
+# I think this works, but I haven't been able to test it because I can't find
+# a system which will report a broken pipe. Also, is there a pure Perl way of
+# doing this?
+sub Broken_Pipe
+{
+  mkdir 't/temp', 0700;
+
+  open F, ">t/temp/broken_pipe.pl";
+  print F<<EOF;
+unless (open B, '-|')
+{
+  open(F, "|cat 2>/dev/null");
+  print F 'x';
+  close F;
+  exit;
+}
+EOF
+  close F;
+
+  my $result = `$^X t/temp/broken_pipe.pl 2>&1 1>/dev/null`;
+
+  $result = '' unless defined $result;
+
+  return $result;
+}
+
+# ---------------------------------------------------------------------------
 
 1;
