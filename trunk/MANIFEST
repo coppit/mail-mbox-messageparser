@@ -1,98 +1,117 @@
-anonymize_mailbox                     A tool to anonymize mailboxes
-README                                Read this first
-MANIFEST                              This file
-CHANGES                               A change history
-LICENSE                               A copy of the license
-Makefile.PL                           Makes the makefile
-lib/Mail/Mbox/MessageParser.pm        One of the module files
-lib/Mail/Mbox/MessageParser/Cache.pm  One of the module files
-lib/Mail/Mbox/MessageParser/Grep.pm   One of the module files
-lib/Mail/Mbox/MessageParser/Perl.pm   One of the module files
-lib/Test/Utils.pm                     A helper module used during testing
-lib/Benchmark/Timer.pm                A helper module used during testing
-old/Mail/Mbox/MessageParser.pm        The previous version of the module
-old/Mail/Mbox/MessageParser/Perl.pm   The previous version of the module
-old/Mail/Mbox/MessageParser/Grep.pm   The previous version of the module
-old/Mail/Mbox/MessageParser/Cache.pm  The previous version of the module
-t/endline.t                           Test program
-t/grep.t                              Test program
-t/bzip2.t                             Test program
-t/gzip.t                              Test program
-t/tzip.t                              Test program
-t/length.t                            Test program
-t/line_number.t                       Test program
-t/filehandle_compressed.t             Test program
-t/filehandle_noncompressed.t          Test program
-t/filename_compressed.t               Test program
-t/filename_noncompressed.t            Test program
-t/prologue.t                          Test program
-t/number.t                            Test program
-t/offset.t                            Test program
-t/reset.t                             Test program
-t/stdin_compressed.t                  Test program
-t/stdin_uncompressed.t                Test program
-t/speed.pl                            A performance comparing program
-t/mailboxes/gnus.txt                  Test input file
-t/mailboxes/mailarc-1.txt             Test input file
-t/mailboxes/mailarc-1-dos.txt         Test input file
-t/mailboxes/mailarc-2.txt             Test input file
-t/mailboxes/mailarc-2.txt.gz          Test input file
-t/mailboxes/mailarc-2.txt.bz2         Test input file
-t/mailboxes/mailarc-2.txt.tz          Test input file
-t/mailboxes/mailarc-3.txt             Test input file
-t/mailboxes/mailseparators.txt        Test input file
-t/mailboxes/newlines_at_beginning.txt Test input file
-#t/mailboxes/mailbox with space.txt    Test input file
-#t/mailboxes/mailbox with space.txt.gz Test input file
-t/mailboxes/non-mailbox.txt.gz        Test input file
-t/mailboxes/vm-emacs.txt              Test input file
-t/results/mailarc-2.txt                           Correct output file
-t/results/grep_1                                  Correct output file
-t/results/grep_2                                  Correct output file
-t/results/grep_3                                  Correct output file
-t/results/grep_4                                  Correct output file
-t/results/grep_5                                  Correct output file
-t/results/none                                    Correct output file
-t/results/length_gnus.stdout                      Correct output file
-t/results/length_mailarc-1.stdout                 Correct output file
-t/results/length_mailarc-1-dos.stdout             Correct output file
-t/results/length_mailarc-2.stdout                 Correct output file
-t/results/length_mailarc-3.stdout                 Correct output file
-t/results/length_mailseparators.stdout            Correct output file
-t/results/length_newlines_at_beginning.stdout     Correct output file
-t/results/line_number_gnus.stdout                 Correct output file
-t/results/line_number_mailarc-1.stdout            Correct output file
-t/results/line_number_mailarc-1-dos.stdout        Correct output file
-t/results/line_number_mailarc-2.stdout            Correct output file
-t/results/line_number_mailarc-3.stdout            Correct output file
-t/results/line_number_mailseparators.stdout       Correct output file
-t/results/line_number_newlines_at_beginning.stdout Correct output file
-t/results/number_gnus.stdout                      Correct output file
-t/results/number_mailarc-1.stdout                 Correct output file
-t/results/number_mailarc-1-dos.stdout             Correct output file
-t/results/number_mailarc-2.stdout                 Correct output file
-t/results/number_mailarc-3.stdout                 Correct output file
-t/results/number_mailseparators.stdout            Correct output file
-t/results/number_newlines_at_beginning.stdout     Correct output file
-t/results/offset_gnus.stdout                      Correct output file
-t/results/offset_mailarc-1.stdout                 Correct output file
-t/results/offset_mailarc-1-dos.stdout             Correct output file
-t/results/offset_mailarc-2.stdout                 Correct output file
-t/results/offset_mailarc-3.stdout                 Correct output file
-t/results/offset_mailseparators.stdout            Correct output file
-t/results/offset_newlines_at_beginning.stdout     Correct output file
-t/results/reset_gnus.stdout                       Correct output file
-t/results/reset_mailarc-1.stdout                  Correct output file
-t/results/reset_mailarc-1-dos.stdout              Correct output file
-t/results/reset_mailarc-2.stdout                  Correct output file
-t/results/reset_mailarc-3.stdout                  Correct output file
-t/results/reset_mailseparators.stdout             Correct output file
-t/results/reset_newlines_at_beginning.stdout      Correct output file
-t/results/reset_newlines_at_beginning.stdout      Correct output file
-#t/results/length_mailbox with space.stdout        Correct output file
-#t/results/line_number_mailbox with space.stdout   Correct output file
-#t/results/number_mailbox with space.stdout        Correct output file
-#t/results/offset_mailbox with space.stdout        Correct output file
-#t/results/reset_mailbox with space.stdout         Correct output file
+CHANGES
+LICENSE
+MANIFEST
+MANIFEST.SKIP
+Makefile.PL
+README
 
-META.yml                                Module meta-data (added by MakeMaker)
+# A utility program for bug reporting
+anonymize_mailbox
+
+# The module files
+lib/Mail/Mbox/MessageParser.pm
+lib/Mail/Mbox/MessageParser/Cache.pm
+lib/Mail/Mbox/MessageParser/Grep.pm
+lib/Mail/Mbox/MessageParser/Perl.pm
+lib/Test/Utils.pm
+
+# Tests
+t/endline.t
+t/grep.t
+t/bzip2.t
+t/gzip.t
+t/tzip.t
+t/length.t
+t/line_number.t
+t/filehandle_compressed.t
+t/filehandle_noncompressed.t
+t/filename_compressed.t
+t/filename_noncompressed.t
+t/prologue.t
+t/number.t
+t/offset.t
+t/reset.t
+t/stdin_compressed.t
+t/stdin_uncompressed.t
+t/speed.pl
+t/mailboxes/gnus.txt
+t/mailboxes/mailarc-1.txt
+t/mailboxes/mailarc-1-dos.txt
+t/mailboxes/mailarc-2.txt
+t/mailboxes/mailarc-2.txt.gz
+t/mailboxes/mailarc-2.txt.bz2
+t/mailboxes/mailarc-2.txt.tz
+t/mailboxes/mailarc-3.txt
+t/mailboxes/mailseparators.txt
+t/mailboxes/newlines_at_beginning.txt
+#t/mailboxes/mailbox with space.txt
+#t/mailboxes/mailbox with space.txt.gz
+t/mailboxes/non-mailbox.txt.gz
+t/mailboxes/vm-emacs.txt
+t/results/mailarc-2.txt
+t/results/grep_1
+t/results/grep_2
+t/results/grep_3
+t/results/grep_4
+t/results/grep_5
+t/results/none
+t/results/length_gnus.stdout
+t/results/length_mailarc-1.stdout
+t/results/length_mailarc-1-dos.stdout
+t/results/length_mailarc-2.stdout
+t/results/length_mailarc-3.stdout
+t/results/length_mailseparators.stdout
+t/results/length_newlines_at_beginning.stdout
+t/results/line_number_gnus.stdout
+t/results/line_number_mailarc-1.stdout
+t/results/line_number_mailarc-1-dos.stdout
+t/results/line_number_mailarc-2.stdout
+t/results/line_number_mailarc-3.stdout
+t/results/line_number_mailseparators.stdout
+t/results/line_number_newlines_at_beginning.stdout
+t/results/number_gnus.stdout
+t/results/number_mailarc-1.stdout
+t/results/number_mailarc-1-dos.stdout
+t/results/number_mailarc-2.stdout
+t/results/number_mailarc-3.stdout
+t/results/number_mailseparators.stdout
+t/results/number_newlines_at_beginning.stdout
+t/results/offset_gnus.stdout
+t/results/offset_mailarc-1.stdout
+t/results/offset_mailarc-1-dos.stdout
+t/results/offset_mailarc-2.stdout
+t/results/offset_mailarc-3.stdout
+t/results/offset_mailseparators.stdout
+t/results/offset_newlines_at_beginning.stdout
+t/results/reset_gnus.stdout
+t/results/reset_mailarc-1.stdout
+t/results/reset_mailarc-1-dos.stdout
+t/results/reset_mailarc-2.stdout
+t/results/reset_mailarc-3.stdout
+t/results/reset_mailseparators.stdout
+t/results/reset_newlines_at_beginning.stdout
+t/results/reset_newlines_at_beginning.stdout
+#t/results/length_mailbox with space.stdout
+#t/results/line_number_mailbox with space.stdout
+#t/results/number_mailbox with space.stdout
+#t/results/offset_mailbox with space.stdout
+#t/results/reset_mailbox with space.stdout
+
+# Module::Install extensions
+inc/ExtUtils/AutoInstall.pm
+inc/File/HomeDir.pm
+inc/Module/Install/AutoInstall.pm
+inc/Module/Install/Base.pm
+inc/Module/Install/Can.pm
+inc/Module/Install/CustomInstallationPath.pm
+inc/Module/Install/Fetch.pm
+inc/Module/Install/GetProgramLocations.pm
+inc/Module/Install/Include.pm
+inc/Module/Install/Makefile.pm
+inc/Module/Install/Metadata.pm
+inc/Module/Install/Win32.pm
+inc/Module/Install/WriteAll.pm
+inc/Module/Install.pm
+inc/Sort/Versions.pm
+
+META.yml

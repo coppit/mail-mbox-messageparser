@@ -16,18 +16,18 @@ use vars qw( @ISA $VERSION $DEBUG $MAX_TESTCHAR_BUFFER_SIZE %PROGRAMS
 
 @ISA = qw(Exporter);
 
-$VERSION = '1.20';
+$VERSION = '1.21.0';
 $DEBUG = 0;
 
 $MAX_TESTCHAR_BUFFER_SIZE = 1048576;
 
 %PROGRAMS = (
- 'grep' => '/bin/grep',
- 'tzip' => '/home/david/bin/tzip',
- 'gzip' => '/bin/gzip',
- 'compress' => '/bin/gzip',
- 'bzip' => '/usr/bin/bzip2',
- 'bzip2' => '/usr/bin/bzip2',
+ 'grep' => '/usr/bin/grep',
+ 'tzip' => undef,
+ 'gzip' => '/sw/bin/gzip',
+ 'compress' => '/sw/bin/gzip',
+ 'bzip' => '/sw/bin/bzip2',
+ 'bzip2' => '/sw/bin/bzip2',
 );
 
 # X-From-Line is used by Gnus, and From is used by normal Unix

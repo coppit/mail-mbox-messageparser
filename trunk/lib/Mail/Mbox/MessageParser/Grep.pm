@@ -10,7 +10,7 @@ use Carp;
 
 use vars qw( $VERSION $DEBUG $GREP_DATA );
 
-$VERSION = '1.04';
+$VERSION = '1.5.0';
 
 $GREP_DATA = {};
 
@@ -40,12 +40,10 @@ sub new
 
   $self->{'file_name'} = $options->{'file_name'};
   $self->{'file_name'} = $options->{'file_name'};
-  $self->{'force_processing'} = $options->{'force_processing'}
-    if exists $options->{'force_processing'};
 
   $self->reset();
 
-  _READ_GREP_DATA($self->{'file_name'},$self->{'force_processing'})
+  _READ_GREP_DATA($self->{'file_name'})
     unless defined $GREP_DATA->{$self->{'file_name'}};
 
   return "Couldn't read grep data"
@@ -94,7 +92,6 @@ sub _read_prologue
 sub _READ_GREP_DATA
 {
   my $filename = shift;
-  my $force_processing = shift;
 
   my @lines_and_offsets;
 
@@ -103,14 +100,7 @@ sub _READ_GREP_DATA
   {
     my @grep_results;
     
-    if ($force_processing)
-    {
-      @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\r?\$" "$filename"`;
-    }
-    else
-    {
-      @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\r?\$" "$filename"`;
-    }
+    @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\r?\$" "$filename"`;
 
     dprint "Read " . scalar(@grep_results) . " lines of grep data";
 
@@ -287,12 +277,10 @@ the Mail::Mbox::MessageParser documentation.
 =over 4
 
 =item $ref = new( { 'file_name' => <mailbox file name>,
-                    'file_handle' => <mailbox file handle>,
-                    'force_processing' => <1 or 0>, });
+                    'file_handle' => <mailbox file handle>, });
 
     <file_name> - The full filename of the mailbox
     <file_handle> - An opened file handle for the mailbox
-    <force_processing> - true to force processing of files that look invalid
 
 The constructor for the class takes two parameters. I<file_name> is the
 filename of the mailbox.  The I<file_handle> argument is the opened file

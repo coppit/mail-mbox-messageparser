@@ -1,0 +1,38 @@
+# Version control files and dirs.
+\bRCS\b
+\bCVS\b
+,v$
+\B\.svn\b
+
+# Makemaker generated files and dirs.
+^MANIFEST\.
+^Makefile$
+^Makefile\.old$
+^blib/
+^pm_to_blib$
+^MakeMaker-\d
+
+# Temp, old, emacs backup, and vim swap files.
+~$
+\.old$
+\.bak$
+^#.*#$
+^\.#
+\..*\.swp$
+
+# Other stuff
+^todo$
+^DEVELOPERNOTES$
+^announce.sample$
+^old/
+\.tar\.gz$
+t/temp/
+
+# Skip filenames with spaces. (I can't specify them in MANIFEST.)
+t/results/.* .*
+t/mailboxes/.* .*
+
+# Mistakenly imported
+inc/File/Glob.pm
+inc/File/Spec/Unix.pm
+inc/Scalar/Util.pm
