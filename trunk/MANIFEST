@@ -78,3 +78,4 @@ t/results/reset_mailarc-2.stdout                  Correct output file
 t/results/reset_mailarc-3.stdout                  Correct output file
 t/results/reset_mailseparators.stdout             Correct output file
 t/results/reset_newlines_at_beginning.stdout      Correct output file
+
