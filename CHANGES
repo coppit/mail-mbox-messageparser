@@ -1,3 +1,7 @@
+Version 1.2130: Tue Dec 21 2004
+- Fixed version numbers, which were incompatible with some modules. (Thanks to
+  Tassilo von Parseval <tassilo.von.parseval@rwth-aachen.de> for the bug
+  report)
 
 Version 1.21.2:
 - Fixed a dependency version error for Benchmark::Timer

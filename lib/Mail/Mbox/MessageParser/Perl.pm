@@ -11,7 +11,7 @@ use Mail::Mbox::MessageParser::Config;
 
 use vars qw( $VERSION $DEBUG );
 
-$VERSION = '1.4.2';
+$VERSION = sprintf "%d.%02d%02d", q/1.40.30/ =~ /(\d+)/g;
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *dprint = \&Mail::Mbox::MessageParser::dprint;

@@ -12,7 +12,7 @@ use Mail::Mbox::MessageParser::Config;
 
 use vars qw( $VERSION $DEBUG $GREP_DATA );
 
-$VERSION = '1.5.2';
+$VERSION = sprintf "%d.%02d%02d", q/1.50.30/ =~ /(\d+)/g;
 
 $GREP_DATA = {};
 

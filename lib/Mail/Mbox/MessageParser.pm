@@ -17,7 +17,7 @@ use vars qw( @ISA $VERSION $DEBUG $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
-$VERSION = '1.21.2';
+$VERSION = sprintf "%d.%02d%02d", q/1.21.30/ =~ /(\d+)/g;
 $DEBUG = 0;
 
 #-------------------------------------------------------------------------------
