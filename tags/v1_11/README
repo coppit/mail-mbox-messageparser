@@ -1,0 +1,110 @@
+Mail::Mbox::MessageParser - A fast and simple mbox folder reader
+
+Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser. It uses
+the best of three strategies for parsing a mailbox: either using cached folder
+information, GNU grep, or highly optimized Perl.
+
+Version 1.11:
+- Added test cases with spaces in the mailbox names.
+- Fixed line ending bugs for MS-DOS/Windows (Tests now pass under cygwin)
+- Fixed mailbox detection problem with mailboxes whose first email is a
+  pseudo-email used to store mailbox state information.
+- Fixed a bug on freebsd where mailboxes of size less than 2000 bytes would be
+  incorrectly processed. (This fix is a less-than-optimal one which requires
+  IO::String. I may later get the gumption to do it right using PerlIO::var)
+
+
+DEPENDENCIES
+
+- Storable: required if you want to use caching
+- IO::String: required for now (may be removed later)
+- GNU grep(1): required if you want to use grep support
+
+The modules can be found here:
+
+Storable:                  http://search.cpan.org/search?dist=Storable
+IO::String:                http://search.cpan.org/search?dist=IO-String
+
+Installation can also be done automatically using the CPAN module:
+
+  perl -MCPAN -e 'install Storable'
+  perl -MCPAN -e 'install IO::String'
+
+
+INSTALLATION
+
+=> On Non-Windows systems:
+
+  % perl Makefile.PL
+  % make
+  % make test
+  % make install
+
+The "perl Makefile.PL" command will prompt you for an installation location if
+you run it interactively, and will use the default values if it is run
+non-iteractively. You will be asked to select the locations of certain
+external compression programs.
+
+You can force it to run non-interactively by specifying each of the following:
+
+- either "PREFIX=/installation/path" (for installation into a custom
+  location), "INSTALLDIRS=site" (for installation into site-specific Perl
+  directories), or "INSTALLDIRS=perl" (for installation into standard Perl
+  directories).
+- the path to one or more external programs. For example,
+  "GREP=/gnu/bin/grep TZIP= GZIP=/gnu/bin/gzip BZIP=/bin/bzip2 BZIP2=/bin/bzip2"
+  would set values for all but one program. "TZIP=" disables compression
+  support and prevents interactive execution. (NOTE: These values are not
+  validated as they are in the interactive query.)
+
+If make test fails, please see the INSTALLATION PROBLEMS section below.
+
+
+INSTALLATION PROBLEMS
+
+If "make test" fails, run
+
+  make test TEST_VERBOSE=1
+
+and see which test(s) are failing. Please email, to the address below, the
+*.testoutput and *.testoutput.diff files for the test, which are located in
+t/temp.
+
+For other bugs, see the section REPORTING BUGS below.
+
+
+DOCUMENTATION
+
+Just "perldoc Mail::Mbox::MessageParser". After installation on Unix systems,
+you can also do "man Mail::Mbox::MessageParser". If you are interested in the
+Cache, Grep, or Perl implementations, you can do the same for
+Mail::Mbox::MessageParser::Cache, Mail::Mbox::MessageParser::Grep. and
+Mail::Mbox::MessageParser::Perl
+
+
+HOMEPAGE
+
+http://m-m-msgparser.sourceforge.net/
+
+
+REPORTING BUGS
+
+You can report bugs by filing a bug report at the project homepage. Please
+attach the output files noted above. If the bug is related to processing of a
+particular mailbox, try to trim the mailbox to the smallest set of emails that
+still exhibit the problem.  Then use the "anonymize_mailbox" program that
+comes with the distribution to remove any sensitive information, and attach
+the mailbox to the bug report.
+
+
+PRIMARY AUTHOR
+
+Written by David Coppit (david@coppit.org, http://coppit.org/), with the
+generous help of many kind people. See the file CHANGES for detailed
+information.
+
+
+LICENSE
+
+This code is distributed under the GNU General Public License (GPL). See
+the file LICENSE included in the distribution.
