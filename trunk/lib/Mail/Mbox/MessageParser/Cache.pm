@@ -107,14 +107,8 @@ sub WRITE_CACHE
 
   dprint "Writing cache.";
 
-  # The mail box cache may contain sensitive information, so protect it
-  # from prying eyes.
-  my $oldmask=umask(077);
-
   # Serialize using Storable
   store($CACHE, $CACHE_OPTIONS{'file_name'});
-
-  umask($oldmask);
 
   $CACHE_MODIFIED = 0;
 }
