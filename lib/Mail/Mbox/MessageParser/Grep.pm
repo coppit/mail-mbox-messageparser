@@ -10,15 +10,16 @@ use Carp;
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Config;
 
-use vars qw( $VERSION $DEBUG $GREP_DATA );
+use vars qw( $VERSION $DEBUG );
+use vars qw( $CACHE );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.50.30/ =~ /(\d+)/g;
-
-$GREP_DATA = {};
+$VERSION = sprintf "%d.%02d%02d", q/1.60.0/ =~ /(\d+)/g;
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *dprint = \&Mail::Mbox::MessageParser::dprint;
 sub dprint;
+
+$CACHE = {};
 
 #-------------------------------------------------------------------------------
 
@@ -33,23 +34,24 @@ sub new
   carp "Need file_name option" unless defined $options->{'file_name'};
   carp "Need file_handle option" unless defined $options->{'file_handle'};
 
-  return "GNU grep not installed"
-    unless defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'};
-
   $self->{'file_handle'} = undef;
   $self->{'file_handle'} = $options->{'file_handle'}
     if exists $options->{'file_handle'};
 
   $self->{'file_name'} = $options->{'file_name'};
-  $self->{'file_name'} = $options->{'file_name'};
+
+  return "GNU grep not installed"
+    unless defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'};
+
+  _READ_GREP_DATA($self->{'file_name'})
+    unless defined $CACHE->{$self->{'file_name'}};
+
+  return "Couldn't read grep data"
+    unless defined $CACHE->{$self->{'file_name'}};
 
   $self->reset();
 
-  _READ_GREP_DATA($self->{'file_name'})
-    unless defined $GREP_DATA->{$self->{'file_name'}};
-
-  return "Couldn't read grep data"
-    unless defined $GREP_DATA->{$self->{'file_name'}};
+  $self->_print_debug_information();
 
   return $self;
 }
@@ -63,12 +65,7 @@ sub reset
   seek $self->{'file_handle'}, length($self->{'prologue'}), 0
     if defined $self->{'file_handle'} && defined $self->{'prologue'};
 
-  $self->{'end_of_file'} = 0;
-
-  $self->{'email_line_number'} = 0;
-  $self->{'email_offset'} = 0;
-  $self->{'email_length'} = 0;
-  $self->{'email_number'} = 0;
+  $self->SUPER::reset();
 }
 
 #-------------------------------------------------------------------------------
@@ -79,11 +76,10 @@ sub _read_prologue
 
   dprint "Reading mailbox prologue using grep";
 
-  my $prologue_length = $GREP_DATA->{$self->{'file_name'}}{'offsets'}[0];
-  my $bytes_read = 0;
+  my $prologue_length = $CACHE->{$self->{'file_name'}}{'emails'}[0]{'offset'};
 
-  do
-  {
+  my $bytes_read = 0;
+  do {
     $bytes_read += read($self->{'file_handle'}, $self->{'prologue'},
       $prologue_length-$bytes_read, $bytes_read);
   } while ($bytes_read != $prologue_length);
@@ -118,23 +114,24 @@ sub _READ_GREP_DATA
   {
     if ($match_number == $#lines_and_offsets)
     {
-      my $filesize = -s $filename; $GREP_DATA->{$filename}{'lengths'}[$match_number] =
+      my $filesize = -s $filename;
+      $CACHE->{$filename}{'emails'}[$match_number]{'length'} =
         $filesize - $lines_and_offsets[$match_number]{'byte offset'};
     }
     else
     {
-      $GREP_DATA->{$filename}{'lengths'}[$match_number] =
+      $CACHE->{$filename}{'emails'}[$match_number]{'length'} =
         $lines_and_offsets[$match_number+1]{'byte offset'} -
         $lines_and_offsets[$match_number]{'byte offset'};
     }
 
-    $GREP_DATA->{$filename}{'line_numbers'}[$match_number] =
+    $CACHE->{$filename}{'emails'}[$match_number]{'line_number'} =
       $lines_and_offsets[$match_number]{'line number'};
 
-    $GREP_DATA->{$filename}{'offsets'}[$match_number] =
+    $CACHE->{$filename}{'emails'}[$match_number]{'offset'} =
       $lines_and_offsets[$match_number]{'byte offset'};
 
-    $GREP_DATA->{$filename}{'validated'}[$match_number] = 0;
+    $CACHE->{$filename}{'emails'}[$match_number]{'validated'} = 0;
   }
 }
 
@@ -145,18 +142,18 @@ sub read_next_email
   my $self = shift;
 
   $self->{'email_line_number'} =
-    $GREP_DATA->{$self->{'file_name'}}{'line_numbers'}[$self->{'email_number'}];
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'line_number'};
   $self->{'email_offset'} =
-    $GREP_DATA->{$self->{'file_name'}}{'offsets'}[$self->{'email_number'}];
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'offset'};
 
   my $email = '';
 
   LOOK_FOR_NEXT_EMAIL:
   while ($self->{'email_number'} <=
-      $#{$GREP_DATA->{$self->{'file_name'}}{'lengths'}})
+      $#{$CACHE->{$self->{'file_name'}}{'emails'}})
   {
     $self->{'email_length'} =
-      $GREP_DATA->{$self->{'file_name'}}{'lengths'}[$self->{'email_number'}];
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
 
     {
       my $bytes_read = length($email);
@@ -167,7 +164,7 @@ sub read_next_email
     }
 
     last LOOK_FOR_NEXT_EMAIL
-      if $GREP_DATA->{$self->{'file_name'}}{'validated'}[$self->{'email_number'}];
+      if $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'};
 
     my $endline = $self->{'endline'};
 
@@ -189,43 +186,31 @@ sub read_next_email
     {
       dprint "Incorrect start of email found--adjusting grep data";
 
-      $GREP_DATA->{$self->{'file_name'}}{'lengths'}[$self->{'email_number'}] +=
-        $GREP_DATA->{$self->{'file_name'}}{'lengths'}[$self->{'email_number'}+1];
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'} +=
+        $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}+1]{'length'};
 
-      my $last_email_index = $#{$GREP_DATA->{$self->{'file_name'}}{'lengths'}};
+      my $last_email_index = $#{$CACHE->{$self->{'file_name'}}{'emails'}};
 
       if($self->{'email_number'}+2 <= $last_email_index)
       {
-        @{$GREP_DATA->{$self->{'file_name'}}{'lengths'}}
+        @{$CACHE->{$self->{'file_name'}}{'emails'}}
           [$self->{'email_number'}+1..$last_email_index-1] =
-            @{$GREP_DATA->{$self->{'file_name'}}{'lengths'}}
-            [$self->{'email_number'}+2..$last_email_index];
-
-        @{$GREP_DATA->{$self->{'file_name'}}{'line_numbers'}}
-          [$self->{'email_number'}+1..$last_email_index-1] =
-            @{$GREP_DATA->{$self->{'file_name'}}{'line_numbers'}}
-            [$self->{'email_number'}+2..$last_email_index];
-
-        @{$GREP_DATA->{$self->{'file_name'}}{'offsets'}}
-          [$self->{'email_number'}+1..$last_email_index-1] =
-            @{$GREP_DATA->{$self->{'file_name'}}{'offsets'}}
+            @{$CACHE->{$self->{'file_name'}}{'emails'}}
             [$self->{'email_number'}+2..$last_email_index];
       }
 
-      pop @{$GREP_DATA->{$self->{'file_name'}}{'lengths'}};
-      pop @{$GREP_DATA->{$self->{'file_name'}}{'line_numbers'}};
-      pop @{$GREP_DATA->{$self->{'file_name'}}{'offsets'}};
+      pop @{$CACHE->{$self->{'file_name'}}{'emails'}};
     }
     else
     {
-      $GREP_DATA->{$self->{'file_name'}}{'validated'}[$self->{'email_number'}] = 1;
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'} = 1;
       last LOOK_FOR_NEXT_EMAIL;
     }
   }
 
   $self->{'end_of_file'} = 1
-    if $self->{'email_number'} == 
-      $#{$GREP_DATA->{$self->{'file_name'}}{'lengths'}};
+    if $self->{'email_number'} ==
+      $#{ $CACHE->{$self->{'file_name'}}{'emails'} };
 
   $self->{'email_number'}++;
 

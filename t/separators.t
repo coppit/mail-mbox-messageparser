@@ -58,7 +58,7 @@ sub TestImplementation
   my $testname = [splitdir($0)]->[-1];
   $testname =~ s#\.t##;
 
-  my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt$/;
+  my ($folder_name) = $filename =~ /\/([^\/\\]*)\..*?$/;
 
   my $output_filename = catfile('t','temp',
     "${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout");

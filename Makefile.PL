@@ -23,9 +23,7 @@ requires          (
 features          (
                     'Speed Tests' => [
                       -default => 0,
-                      # 0.6.0 => 0.006000. This is to prevent a spurious
-                      # warning in ExtUtils::MakeMaker
-                      recommends( 'Benchmark::Timer' => '0.006000' ),
+                      recommends( 'Benchmark::Timer' => '0.7100' ),
                     ],
                   );
 

@@ -10,10 +10,10 @@ use Carp;
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Config;
 
-use vars qw( $VERSION $DEBUG $CACHE %CACHE_OPTIONS $UPDATING_CACHE
-  $CACHE_MODIFIED );
+use vars qw( $VERSION $DEBUG );
+use vars qw( $CACHE %CACHE_OPTIONS $UPDATING_CACHE $CACHE_MODIFIED );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.20.20/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.30.0/ =~ /(\d+)/g;
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *dprint = \&Mail::Mbox::MessageParser::dprint;
@@ -156,26 +156,14 @@ sub new
   $self->{'file_handle'} = $options->{'file_handle'}
     if exists $options->{'file_handle'};
 
-  # The buffer information. (Used when caching is not enabled)
-  $self->{'READ_BUFFER'} = '';
-
-  $self->{'end_of_file'} = 0;
-
-  # The line number of the last read email.
-  $self->{'email_line_number'} = 0;
-  # The offset of the last read email.
-  $self->{'email_offset'} = 0;
-  # The length of the last read email.
-  $self->{'email_length'} = 0;
-
-  $self->{'email_number'} = 0;
-
   # We need the file name as a key to the cache
   $self->{'file_name'} = $options->{'file_name'};
 
-  $self->_print_debug_information();
-
   $self->_validate_and_initialize_cache_entry();
+
+  $self->reset();
+
+  $self->_print_debug_information();
 
   return $self;
 }
@@ -186,16 +174,10 @@ sub reset
 {
   my $self = shift;
 
-  seek $self->{'file_handle'}, length($self->{'prologue'}), 0;
+  seek $self->{'file_handle'}, length($self->{'prologue'}), 0
+    if defined $self->{'file_handle'} && defined $self->{'prologue'};
 
-  $self->{'READ_BUFFER'} = '';
-
-  $self->{'end_of_file'} = 0;
-
-  $self->{'email_line_number'} = 0;
-  $self->{'email_offset'} = 0;
-  $self->{'email_length'} = 0;
-  $self->{'email_number'} = 0;
+  $self->SUPER::reset();
 
   # If we're in the middle of parsing this file, we need to reset the cache
   if ($UPDATING_CACHE)
@@ -211,7 +193,7 @@ sub reset
     delete $CACHE->{$self->{'file_name'}};
     $CACHE->{$self->{'file_name'}}{'size'} = $size;
     $CACHE->{$self->{'file_name'}}{'time_stamp'} = $time_stamp;
-    $CACHE->{$self->{'file_name'}}{'lengths'} = [];
+    $CACHE->{$self->{'file_name'}}{'emails'} = [];
 
     $CACHE_MODIFIED = 0;
   }
@@ -223,15 +205,15 @@ sub _read_prologue
 {
   my $self = shift;
 
-  my $prologue_length = $CACHE->{$self->{'file_name'}}{'offsets'}[0];
+  dprint "Reading mailbox prologue using grep";
 
-  {
-    my $bytes_read = 0;
-    do {
-      $bytes_read += read($self->{'file_handle'}, $self->{'prologue'},
-        $prologue_length-$bytes_read, $bytes_read);
-    } while ($bytes_read != $prologue_length);
-  }
+  my $prologue_length = $CACHE->{$self->{'file_name'}}{'emails'}[0]{'offset'};
+
+  my $bytes_read = 0;
+  do {
+    $bytes_read += read($self->{'file_handle'}, $self->{'prologue'},
+      $prologue_length-$bytes_read, $bytes_read);
+  } while ($bytes_read != $prologue_length);
 }
 
 #-------------------------------------------------------------------------------
@@ -245,7 +227,7 @@ sub _print_debug_information
   $self->SUPER::_print_debug_information();
 
   dprint "Valid cache entry exists: " .
-    ($#{ $CACHE->{$self->{'file_name'}}{'lengths'} } != -1 ? "Yes" : "No");
+    ($#{ $CACHE->{$self->{'file_name'}}{'emails'} } != -1 ? "Yes" : "No");
 }
 
 #-------------------------------------------------------------------------------
@@ -285,7 +267,7 @@ sub _validate_and_initialize_cache_entry
 
     $CACHE->{$self->{'file_name'}}{'size'} = $size;
     $CACHE->{$self->{'file_name'}}{'time_stamp'} = $time_stamp;
-    $CACHE->{$self->{'file_name'}}{'lengths'} = [];
+    $CACHE->{$self->{'file_name'}}{'emails'} = [];
 
     $UPDATING_CACHE = 1;
   }
@@ -298,31 +280,31 @@ sub read_next_email
   my $self = shift;
 
   $self->{'email_line_number'} =
-    $CACHE->{$self->{'file_name'}}{'line_numbers'}[$self->{'email_number'}];
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'line_number'};
   $self->{'email_offset'} =
-    $CACHE->{$self->{'file_name'}}{'offsets'}[$self->{'email_number'}];
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'offset'};
   $self->{'email_length'} = 
-    $CACHE->{$self->{'file_name'}}{'lengths'}[$self->{'email_number'}];
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
 
-  $self->{'READ_BUFFER'} = '';
+  my $email = '';
 
   {
     my $bytes_read = 0;
     do {
-      $bytes_read += read($self->{'file_handle'}, $self->{'READ_BUFFER'}, $self->{'email_length'}-$bytes_read, $bytes_read);
+      $bytes_read += read($self->{'file_handle'}, $email, $self->{'email_length'}-$bytes_read, $bytes_read);
     } while ($bytes_read != $self->{'email_length'});
   }
 
-  if ($self->{'email_number'} ==
-    $#{ $CACHE->{$self->{'file_name'}}{'lengths'} })
-  {
-    $self->{'end_of_file'} = 1;
-    $UPDATING_CACHE = 0;
-  }
+  $self->{'end_of_file'} = 1
+    if $self->{'email_number'} ==
+      $#{ $CACHE->{$self->{'file_name'}}{'emails'} };
+  $UPDATING_CACHE = 0
+    if $self->{'email_number'} ==
+      $#{ $CACHE->{$self->{'file_name'}}{'emails'} };
 
   $self->{'email_number'}++;
 
-  return \$self->{'READ_BUFFER'};
+  return \$email;
 }
 
 1;
@@ -412,7 +394,7 @@ automatically write the information when the program exits.
 
 
 =item $ref = new( { 'file_name' => <mailbox file name>,
-                    'file_handle' => <mailbox file handle> });
+                    'file_handle' => <mailbox file handle>, });
 
     <file_name> - The full filename of the mailbox
     <file_handle> - An opened file handle for the mailbox
@@ -424,6 +406,7 @@ the opened file handle to the mailbox. Both arguments are required.
 
 Returns a reference to a Mail::Mbox::MessageParser object, or a string
 describing the error.
+
 
 =head1 BUGS
 

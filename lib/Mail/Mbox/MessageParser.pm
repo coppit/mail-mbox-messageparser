@@ -17,7 +17,7 @@ use vars qw( @ISA $VERSION $DEBUG $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
-$VERSION = sprintf "%d.%02d%02d", q/1.21.30/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.22.0/ =~ /(\d+)/g;
 $DEBUG = 0;
 
 #-------------------------------------------------------------------------------
@@ -337,7 +337,7 @@ sub _GET_FILE_TYPE
 
     last unless defined $readResult && $readResult != 0;
 
-    last if _IS_BINARY(\$test_chars);
+    last if _IS_BINARY_MAILBOX(\$test_chars);
 
     if(CORE::length($test_chars) >
         $Mail::Mbox::MessageParser::Config{'max_testchar_buffer_size'})
@@ -365,7 +365,7 @@ sub _GET_FILE_TYPE
   return 'unknown' unless defined $readResult && $readResult != 0;
 
 
-  unless (_IS_BINARY(\$test_chars))
+  unless (_IS_BINARY_MAILBOX(\$test_chars))
   {
     return 'mailbox' if _IS_MAILBOX(\$test_chars);
     return 'non-mailbox ascii';
@@ -421,7 +421,7 @@ sub _GET_ENDLINE
 
     last unless defined $readResult && $readResult != 0;
 
-    last if _IS_BINARY(\$test_chars);
+    last if _IS_BINARY_MAILBOX(\$test_chars);
 
     if(CORE::length($test_chars) >
         $Mail::Mbox::MessageParser::Config{'max_testchar_buffer_size'})
@@ -448,7 +448,7 @@ sub _GET_ENDLINE
 
   return undef unless defined $readResult && $readResult != 0;
 
-  return undef if _IS_BINARY(\$test_chars);
+  return undef if _IS_BINARY_MAILBOX(\$test_chars);
 
   if(index($test_chars,"\r\n") != -1)
   {
@@ -609,21 +609,20 @@ sub _DO_DECOMPRESSION
 
 #-------------------------------------------------------------------------------
 
-# Simulates -B, which consumes data on a stream.
-sub _IS_BINARY
+# Simulates -B, which consumes data on a stream. We only look at the first
+# 1000 characters because the body may have foreign binary-like characters
+sub _IS_BINARY_MAILBOX
 {
-  my $data_length = CORE::length(${$_[0]});
-  my $bin_length = ${$_[0]} =~ tr/[\t\n\x20-\x7e]//c;
+  my $data_length;
+  $data_length = index(${$_[0]},"\n\n");
+  $data_length = index(${$_[0]},"\r\n\r\n") if $data_length == -1;
+  $data_length = CORE::length(${$_[0]}) if $data_length == -1;
+
+  my $bin_length = substr(${$_[0]},0,$data_length) =~ tr/[\t\n\x20-\x7e]//c;
+
   my $non_bin_length = $data_length - $bin_length;
 
-  if (($non_bin_length / $data_length) > .70)
-  {
-    return 0;
-  }
-  else
-  {
-    return 1;
-  }
+  return (($non_bin_length / $data_length) <= .70);
 }
 
 #-------------------------------------------------------------------------------
@@ -652,7 +651,14 @@ sub _IS_MAILBOX
 
 sub reset
 {
-  die "Derived class must provide an implementation";
+  my $self = shift;
+
+  $self->{'end_of_file'} = 0;
+
+  $self->{'email_line_number'} = 0;
+  $self->{'email_offset'} = 0;
+  $self->{'email_length'} = 0;
+  $self->{'email_number'} = 0;
 }
 
 #-------------------------------------------------------------------------------
@@ -767,13 +773,13 @@ sub read_next_email
 
     my $cache = $Mail::Mbox::MessageParser::Cache::CACHE;
 
-    $cache->{$self->{'file_name'}}{'lengths'}[$self->{'email_number'}-1] =
+    $cache->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}-1]{'length'} =
       $self->{'email_length'};
 
-    $cache->{$self->{'file_name'}}{'line_numbers'}[$self->{'email_number'}-1] =
+    $cache->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}-1]{'line_number'} =
       $self->{'email_line_number'};
 
-    $cache->{$self->{'file_name'}}{'offsets'}[$self->{'email_number'}-1] =
+    $cache->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}-1]{'offset'} =
       $self->{'email_offset'};
 
     $Mail::Mbox::MessageParser::Cache::CACHE_MODIFIED = 1;
