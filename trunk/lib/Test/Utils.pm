@@ -16,12 +16,12 @@ use Mail::Mbox::MessageParser;
 use vars qw( %PROGRAMS );
 
 %PROGRAMS = (
- 'grep' => '/usr/cs/contrib/bin/grep',
- 'tzip' => undef,
- 'gzip' => '/usr/cs/contrib/bin/gzip',
- 'compress' => '/usr/cs/contrib/bin/gzip',
- 'bzip' => undef,
- 'bzip2' => undef,
+ 'grep' => '/bin/grep',
+ 'tzip' => '/home/david/bin/tzip',
+ 'gzip' => '/bin/gzip',
+ 'compress' => '/bin/gzip',
+ 'bzip' => '/usr/bin/bzip2',
+ 'bzip2' => '/usr/bin/bzip2',
 );
 
 sub CheckDiffs
@@ -51,13 +51,13 @@ sub DoDiff
   my $filename = shift;
   my $output_filename = shift;
 
-  my $diffstring = "diff $output_filename $filename";
+  my $diffstring = "diff '$output_filename' '$filename'";
 
-  system "echo $diffstring > $output_filename.diff ".
-    "2>$output_filename.diff.error";
+  system "echo $diffstring > '$output_filename.diff' ".
+    "2>'$output_filename.diff.error'";
 
-  system "$diffstring >> $output_filename.diff ".
-    "2>$output_filename.diff.error";
+  system "$diffstring >> '$output_filename.diff' ".
+    "2>'$output_filename.diff.error'";
 
   open DIFF_ERR, "$output_filename.diff.error";
   my $diff_err = join '', <DIFF_ERR>;
@@ -79,7 +79,7 @@ sub DoDiff
 
   local $/ = "\n";
 
-  my @diffs = `cat $output_filename.diff`;
+  my @diffs = `cat '$output_filename.diff'`;
   shift @diffs;
   my $numdiffs = ($#diffs + 1) / 2;
 

@@ -9,7 +9,8 @@ use lib 'lib';
 use Test::Utils;
 use FileHandle;
 
-my @files = <t/mailboxes/mail*.txt.*>;
+my @files = <t/mailboxes/*.txt.*>;
+@files = grep { !/non-mailbox/ } @files;
 
 mkdir 't/temp', 0700;
 
@@ -71,7 +72,7 @@ sub TestImplementation
   my $mailbox = <MAILBOX>;
   close MAILBOX;
 
-  open PIPE, "|$^X -Iblib/lib t/temp/stdin.pl $output_filename";
+  open PIPE, "|$^X -Iblib/lib t/temp/stdin.pl '$output_filename'";
   local $SIG{PIPE} = sub { die "test program pipe broke" };
   print PIPE $mailbox;
   close PIPE;
