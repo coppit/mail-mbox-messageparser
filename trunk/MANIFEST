@@ -118,5 +118,7 @@ inc/Module/Install/WriteAll.pm
 inc/Module/Install.pm
 inc/Scalar/Util.pm
 inc/Sort/Versions.pm
+inc/Test/Builder.pm
+inc/Test/More.pm
 
 META.yml

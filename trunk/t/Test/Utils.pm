@@ -30,20 +30,25 @@ sub CheckDiffs
 {
   my @pairs = @_;
 
-  foreach my $pair (@pairs)
+  SKIP:
   {
-    my $filename = $pair->[0];
-    my $output_filename = $pair->[1];
+    skip('diff not available',1) unless defined $PROGRAMS{'diff'};
 
-    my ($diff,$result) = DoDiff($filename,$output_filename);
+    foreach my $pair (@pairs)
+    {
+      my $filename = $pair->[0];
+      my $output_filename = $pair->[1];
 
-    ok(0,"Running diff for $filename and $output_filename"), return
-      if $diff == 0;
-    ok(0,"Computing differences between $filename and $output_filename"), return
-      if $result == 0;
+      my ($diff,$result) = DoDiff($filename,$output_filename);
+
+      ok(0,"Running diff for $filename and $output_filename"), return
+        if $diff == 0;
+      ok(0,"Computing differences between $filename and $output_filename"), return
+        if $result == 0;
+    }
+
+    ok(1,"Checking differences"), return;
   }
-
-  ok(1,"Checking differences"), return;
 }
 
 # ---------------------------------------------------------------------------
