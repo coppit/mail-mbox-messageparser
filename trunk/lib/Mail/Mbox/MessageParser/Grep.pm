@@ -10,7 +10,7 @@ use Carp;
 
 use vars qw( $VERSION $DEBUG $GREP_DATA );
 
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 $GREP_DATA = {};
 
@@ -40,7 +40,8 @@ sub new
 
   $self->{'file_name'} = $options->{'file_name'};
   $self->{'file_name'} = $options->{'file_name'};
-  $self->{'force_processing'} = $options->{'force_processing'};
+  $self->{'force_processing'} = $options->{'force_processing'}
+    if exists $options->{'force_processing'};
 
   $self->reset();
 

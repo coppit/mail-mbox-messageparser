@@ -15,7 +15,7 @@ use vars qw( @ISA $VERSION $DEBUG $FROM_PATTERN $UPDATING_CACHE %PROGRAMS );
 
 @ISA = qw(Exporter);
 
-$VERSION = '1.13';
+$VERSION = '1.14';
 $DEBUG = 0;
 
 %PROGRAMS = (
@@ -94,8 +94,14 @@ sub new
   ($options->{'file_handle'}, $file_type, $need_to_close_filehandle, $error) =
     _PREPARE_FILE_HANDLE($options->{'file_name'}, $options->{'file_handle'});
 
-  return $error unless !defined $error ||
-    ($error eq 'Not a mailbox' && $options->{'force_processing'});
+  if (defined $error &&
+    !($error eq 'Not a mailbox' && $options->{'force_processing'}))
+  {
+    # Here I assume the only error for which the filehandle was opened is
+    # "Not a mailbox"
+    close $options->{'file_handle'} if $error eq 'Not a mailbox';
+    return $error;
+  }
 
   # Grep implementation doesn't support compression right now
   $options->{'enable_grep'} = 0 if _IS_COMPRESSED_TYPE($file_type);
@@ -571,9 +577,19 @@ sub _print_debug_information
 
   dprint "Version: $VERSION";
 
-  foreach my $key ($self)
+  foreach my $key (keys %$self)
   {
-    dprint "$key: $self->{$key}" if ref \$self->{$key} eq 'SCALAR';
+    my $value = $self->{$key};
+    if (defined $value)
+    {
+      $value = '<non-scalar>' unless ref \$value eq 'SCALAR';
+    }
+    else
+    {
+      $value = '<undef>';
+    }
+
+    dprint "$key: $value";
   }
 }
 
@@ -698,7 +714,7 @@ Mail::Mbox::MessageParser - A fast and simple mbox folder reader
   while(!$folder_reader->end_of_file())
   {
     my $email = $folder_reader->read_next_email();
-    print $email;
+    print $$email;
   }
 
 =head1 DESCRIPTION

@@ -35,7 +35,8 @@ sub new
 
   $self->reset();
 
-  $self->{'file_name'} = $options->{'file_name'};
+  $self->{'file_name'} = $options->{'file_name'}
+    if defined $options->{'file_name'};
 
   $self->{'READ_CHUNK_SIZE'} = $READ_CHUNK_SIZE;
 
