@@ -5,35 +5,27 @@ no strict;
 @ISA = qw( Exporter Mail::Mbox::MessageParser );
 
 use strict;
-use warnings 'all';
-no warnings 'redefine';
+use Mail::Mbox::MessageParser;
 
-our $VERSION = '1.00';
+use vars qw( $VERSION $DEBUG $CACHE %CACHE_OPTIONS $UPDATING_CACHE
+  $CACHE_MODIFIED );
 
-our $DEBUG = 0;
+$VERSION = '1.01';
+
+*DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
+*dprint = \&Mail::Mbox::MessageParser::dprint;
+sub dprint;
 
 # The class-wide cache, which will be read and written when necessary. i.e.
 # read when an folder reader object is created which uses caching, and
 # written when a different cache is specified, or when the program exits, 
-our $CACHE = undef;
+$CACHE = undef;
 
-our %CACHE_OPTIONS = ();
+%CACHE_OPTIONS = ();
 
-our $UPDATING_CACHE = 0;
+$UPDATING_CACHE = 0;
 
-our $CACHE_MODIFIED = 0;
-
-#-------------------------------------------------------------------------------
-
-sub dprint
-{
-  return Mail::Mbox::MessageParser::dprint @_;
-}
-
-#-------------------------------------------------------------------------------
-
-die "Can not load " . __PACKAGE__ . ": Storable is not installed.\n"
-  unless _LOAD_STORABLE();
+$CACHE_MODIFIED = 0;
 
 #-------------------------------------------------------------------------------
 
@@ -55,6 +47,9 @@ sub _LOAD_STORABLE
 sub SETUP_CACHE
 {
   my $options = shift;
+
+  return "Can not load " . __PACKAGE__ . ": Storable is not installed.\n"
+    unless _LOAD_STORABLE();
   
   # Load Storable if we need to
   # See if the client is setting up a different cache
@@ -71,6 +66,8 @@ sub SETUP_CACHE
   _READ_CACHE() if -f $CACHE_OPTIONS{'file_name'};
 
   $CACHE_MODIFIED = 0;
+
+  return 1;
 }
 
 #-------------------------------------------------------------------------------
@@ -107,8 +104,14 @@ sub WRITE_CACHE
 
   dprint "Writing cache.";
 
+  # The mail box cache may contain sensitive information, so protect it
+  # from prying eyes.
+  my $oldmask=umask(077);
+
   # Serialize using Storable
   store($CACHE, $CACHE_OPTIONS{'file_name'});
+
+  umask($oldmask);
 
   $CACHE_MODIFIED = 0;
 }
@@ -119,7 +122,7 @@ sub WRITE_CACHE
 sub END
 {
   dprint "Exiting and writing cache if necessary"
-    if defined(&Mail::Mbox::MessageParser::dprint);
+    if defined(&dprint);
 
   WRITE_CACHE() if $CACHE_MODIFIED;
 }
@@ -342,6 +345,7 @@ Mail::Mbox::MessageParser::Cache - A cache-based mbox folder reader
       'file_handle' => $filehandle,
     } );
 
+  die $folder_reader unless ref $folder_reader;
   
   die "No cached information"
     if $Mail::Mbox::MessageParser::Cache::UPDATING_CACHE;
@@ -382,6 +386,7 @@ the Mail::Mbox::MessageParser documentation.
 Call this function once to set up the cache before creating any parsers. You
 must provide the location to the cache file. There is no default value.
 
+Returns an error string or 1 if there is no error.
 
 =item CLEAR_CACHE();
 
@@ -408,6 +413,8 @@ filename of the mailbox. This will be used as the cache key, so it's important
 that it fully defines the path to the mailbox. The I<file_handle> argument is
 the opened file handle to the mailbox. Both arguments are required.
 
+Returns a reference to a Mail::Mbox::MessageParser object, or a string
+describing the error.
 
 =head1 BUGS
 

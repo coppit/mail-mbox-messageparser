@@ -5,43 +5,17 @@ no strict;
 @ISA = qw( Exporter Mail::Mbox::MessageParser );
 
 use strict;
-use warnings 'all';
-no warnings 'redefine';
+use Mail::Mbox::MessageParser;
 
-our $VERSION = '1.00';
+use vars qw( $VERSION $DEBUG $GREP_DATA );
 
-our $DEBUG = 0;
+$VERSION = '1.01';
 
-our $GREP_DATA = {};
+$GREP_DATA = {};
 
-#-------------------------------------------------------------------------------
-
-sub dprint
-{
-  return Mail::Mbox::MessageParser::dprint @_;
-}
-
-#-------------------------------------------------------------------------------
-
-sub _HAS_GREP
-{
-  my $temp = `grep --help 2>&1`;
-
-  if ($temp =~ /usage/i && $temp =~ /extended-reg/i &&
-    $temp =~ /byte-offset/i && $temp =~ /line-numb/i)
-  {
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
-}
-
-#-------------------------------------------------------------------------------
-
-die "Can not load " . __PACKAGE__ . ": GNU grep is not installed.\n"
-  unless _HAS_GREP();
+*DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
+*dprint = \&Mail::Mbox::MessageParser::dprint;
+sub dprint;
 
 #-------------------------------------------------------------------------------
 
@@ -55,6 +29,8 @@ sub new
 
   die "Need file_name option" unless defined $options->{'file_name'};
   die "Need file_handle option" unless defined $options->{'file_handle'};
+  return "GNU grep not installed"
+    unless defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'};
 
   $self->{'file_handle'} = undef;
   $self->{'file_handle'} = $options->{'file_handle'}
@@ -102,7 +78,7 @@ sub _read_prologue
 {
   my $self = shift;
 
-  Mail::Mbox::MessageParser::dprint "Reading mailbox prologue using grep";
+  dprint "Reading mailbox prologue using grep";
 
   my $prologue_length = $GREP_DATA->{$self->{'file_name'}}{'offsets'}[0];
   my $bytes_read = 0;
@@ -122,8 +98,12 @@ sub _READ_GREP_DATA
 
   my @lines_and_offsets;
 
+  dprint "Reading grep data";
+
   {
-    my @grep_results = `grep --extended-regexp --line-number --byte-offset '^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2}( +([A-Z]{2,3}|[+-]?[0-9]{4})){1,3}( remote from .*)?)\$' $filename`;
+    my @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset '^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$' $filename`;
+
+    dprint "Read " . scalar(@grep_results) . " lines of grep data";
 
     foreach my $match_result (@grep_results)
     {
@@ -164,7 +144,7 @@ sub read_next_email
 {
   my $self = shift;
 
-  Mail::Mbox::MessageParser::dprint "Using grep data" if $DEBUG;
+  dprint "Using grep data" if $DEBUG;
 
   $self->{'email_line_number'} =
     $GREP_DATA->{$self->{'file_name'}}{'line_numbers'}[$self->{'email_number'}];
@@ -256,18 +236,6 @@ Mail::Mbox::MessageParser::Grep - A GNU grep-based mbox folder reader
 
   #!/usr/bin/perl
 
-  unless (eval 'require Mail::Mbox::MessageParser::Grep;')
-  {
-    if ($@ =~ /GNU grep is not installed/)
-    {
-      die "GNU grep is not installed\n";
-    }
-    else
-    {
-      die $@;
-    }
-  }
-
   use Mail::Mbox::MessageParser::Grep;
 
   my $filename = 'mail/saved-mail';
@@ -279,6 +247,7 @@ Mail::Mbox::MessageParser::Grep - A GNU grep-based mbox folder reader
       'file_handle' => $filehandle,
     } );
 
+  die $folder_reader unless ref $folder_reader;
   
   # Any newlines or such before the start of the first email
   my $prologue = $folder_reader->prologue;
@@ -316,6 +285,9 @@ the Mail::Mbox::MessageParser documentation.
 The constructor for the class takes two parameters. I<file_name> is the
 filename of the mailbox.  The I<file_handle> argument is the opened file
 handle to the mailbox. Both arguments are required.
+
+Returns a reference to a Mail::Mbox::MessageParser object, or a string
+describing the error.
 
 
 =head1 BUGS
