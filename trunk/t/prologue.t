@@ -7,6 +7,7 @@ use strict;
 use Test::More;
 use lib 't';
 use Mail::Mbox::MessageParser;
+use Mail::Mbox::MessageParser::Config;
 use Mail::Mbox::MessageParser::Cache;
 use Mail::Mbox::MessageParser::Grep;
 use Mail::Mbox::MessageParser::Perl;
@@ -40,7 +41,7 @@ foreach my $filename (@files)
   SKIP:
   {
     skip('GNU grep not available',1)
-      unless defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'};
+      unless defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'};
 
     TestImplementation($filename,0,1);
   }

@@ -4,10 +4,11 @@ use strict;
 
 use Test::More;
 use lib 't';
+use Mail::Mbox::MessageParser::Config;
 use File::Spec::Functions qw(:ALL);
 use Test::Utils;
 
-my $GREP = $Mail::Mbox::MessageParser::PROGRAMS{'grep'} || 'grep';
+my $GREP = $Mail::Mbox::MessageParser::Config{'programs'}{'grep'} || 'grep';
 
 my %tests = (
 "$GREP --extended-regexp --line-number --byte-offset \"^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$\" " . catfile('t','mailboxes','mailarc-1.txt')
@@ -89,7 +90,7 @@ sub SetSkip
 
   my %skip;
 
-  unless (defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'})
+  unless (defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'})
   {
     $skip{"$GREP --extended-regexp --line-number --byte-offset '^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$' " . catfile('t','mailboxes','mailarc-1.txt')}
     = 1;

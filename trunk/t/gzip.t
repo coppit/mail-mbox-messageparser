@@ -5,11 +5,12 @@ use strict;
 
 use Test::More;
 use lib 't';
-use File::Spec::Functions qw(:ALL);
 use Test::Utils;
 use Mail::Mbox::MessageParser;
+use Mail::Mbox::MessageParser::Config;
+use File::Spec::Functions qw(:ALL);
 
-my $GZIP = $Mail::Mbox::MessageParser::PROGRAMS{'gzip'} || 'gzip';
+my $GZIP = $Mail::Mbox::MessageParser::Config{'programs'}{'gzip'} || 'gzip';
 
 my %tests = (
 "cat " . catfile('t','mailboxes','mailarc-2.txt.gz') . " | $GZIP -cd"
@@ -81,7 +82,7 @@ sub SetSkip
 
   my %skip;
 
-  unless (defined $Mail::Mbox::MessageParser::PROGRAMS{'gzip'})
+  unless (defined $Mail::Mbox::MessageParser::Config{'programs'}{'gzip'})
   {
     $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.gz') . " | $GZIP -cd"}
       = 'gzip not available';

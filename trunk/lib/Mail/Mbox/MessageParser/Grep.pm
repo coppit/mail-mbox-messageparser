@@ -5,12 +5,14 @@ no strict;
 @ISA = qw( Exporter Mail::Mbox::MessageParser );
 
 use strict;
-use Mail::Mbox::MessageParser;
 use Carp;
+
+use Mail::Mbox::MessageParser;
+use Mail::Mbox::MessageParser::Config;
 
 use vars qw( $VERSION $DEBUG $GREP_DATA );
 
-$VERSION = '1.5.1';
+$VERSION = '1.5.2';
 
 $GREP_DATA = {};
 
@@ -32,7 +34,7 @@ sub new
   carp "Need file_handle option" unless defined $options->{'file_handle'};
 
   return "GNU grep not installed"
-    unless defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'};
+    unless defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'};
 
   $self->{'file_handle'} = undef;
   $self->{'file_handle'} = $options->{'file_handle'}
@@ -100,7 +102,7 @@ sub _READ_GREP_DATA
   {
     my @grep_results;
     
-    @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\r?\$" "$filename"`;
+    @grep_results = `$Mail::Mbox::MessageParser::Config{'programs'}{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\r?\$" "$filename"`;
 
     dprint "Read " . scalar(@grep_results) . " lines of grep data";
 

@@ -11,20 +11,8 @@ use vars qw( @EXPORT @ISA );
 use Mail::Mbox::MessageParser;
 
 @ISA = qw( Exporter );
-@EXPORT = qw( CheckDiffs InitializeCache ModuleInstalled %PROGRAMS
+@EXPORT = qw( CheckDiffs InitializeCache ModuleInstalled
   Broken_Pipe No_such_file_or_directory
-);
-
-use vars qw( %PROGRAMS );
-
-%PROGRAMS = (
- 'diff' => '/sw/bin/diff',
- 'grep' => '/usr/bin/grep',
- 'tzip' => undef,
- 'gzip' => '/sw/bin/gzip',
- 'compress' => '/sw/bin/gzip',
- 'bzip' => '/sw/bin/bzip2',
- 'bzip2' => '/sw/bin/bzip2',
 );
 
 # ---------------------------------------------------------------------------

@@ -85,15 +85,14 @@ sub Configure_Programs
 
   my %locations = Get_Program_Locations(\%info);
 
-  Update_Code('lib/Mail/Mbox/MessageParser.pm', \%locations);
-  Update_Code('t/Test/Utils.pm', \%locations);
-  Update_Code('old/Mail/Mbox/MessageParser.pm', \%locations)
+  Update_Config('lib/Mail/Mbox/MessageParser/Config.pm', \%locations);
+  Update_Config('old/Mail/Mbox/MessageParser/Config.pm', \%locations)
     if -e 'old/Mail/Mbox/MessageParser.pm';
 }
 
 # --------------------------------------------------------------------------
 
-sub Update_Code
+sub Update_Config
 {
   my $filename = shift;
   my %locations = %{ shift @_ };
@@ -112,18 +111,15 @@ sub Update_Code
     }
   }
 
-  if ($code =~ /(PROGRAMS = \(.*?\))/s)
+  if ($code =~ /'programs'\s*=>\s*{\s*?\n([^}]+?) *}/s)
   {
     my $original_programs = $1;
-    my $new_programs = $original_programs;
+    my $new_programs = '';
 
-    $new_programs =~ s/('diff' *=> *).*?,/$1$locations{diff},/;
-    $new_programs =~ s/('grep' *=> *).*?,/$1$locations{grep},/;
-    $new_programs =~ s/('tzip' *=> *).*?,/$1$locations{tzip},/;
-    $new_programs =~ s/('gzip' *=> *).*?,/$1$locations{gzip},/;
-    $new_programs =~ s/('compress' *=> *).*?,/$1$locations{gzip},/;
-    $new_programs =~ s/('bzip' *=> *).*?,/$1$locations{bzip},/;
-    $new_programs =~ s/('bzip2' *=> *).*?,/$1$locations{bzip2},/;
+    foreach my $program (sort keys %locations)
+    {
+      $new_programs .= "    '$program' => $locations{$program},\n";
+    }
 
     $code =~ s/\Q$original_programs\E/$new_programs/;
   }
