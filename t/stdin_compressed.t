@@ -6,13 +6,14 @@ use strict;
 
 use Test;
 use lib 'lib';
+use File::Spec::Functions qw(:ALL);
 use Test::Utils;
 use FileHandle;
 
 my @files = <t/mailboxes/*.txt.*>;
 @files = grep { !/non-mailbox/ } @files;
 
-mkdir 't/temp', 0700;
+mkdir catfile('t','temp'), 0700;
 
 plan (tests => 1 * scalar (@files));
 
@@ -55,18 +56,17 @@ sub TestImplementation
   my $filename = shift;
   my $test_program = shift;
 
-  my $testname = $0;
-  $testname =~ s/.*\///;
-  $testname =~ s/\.t//;
+  my $testname = [splitdir($0)]->[-1];
+  $testname =~ s#\.t##;
 
-  my ($folder_name) = $filename =~ /\/([^\/]*)\.txt.*$/;
+  my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt.*$/;
 
-  my $output_filename =
-    "t/temp/${testname}_${folder_name}.stdout";
+  my $output_filename = catfile('t','temp',
+    "${testname}_${folder_name}.stdout");
 
   local $/ = undef;
 
-  open TESTER, ">t/temp/stdin.pl";
+  open TESTER, ">" . catfile('t','temp','stdin.pl');
   print TESTER $test_program;
   close TESTER;
 
@@ -74,13 +74,14 @@ sub TestImplementation
   my $mailbox = <MAILBOX>;
   close MAILBOX;
 
-  open PIPE, "|$^X -Iblib/lib t/temp/stdin.pl '$output_filename'";
+  open PIPE, "|$^X -I" . catdir('blib','lib') . " " .
+    catfile('t','temp','stdin.pl') . " \"$output_filename\"";
   binmode PIPE;
   local $SIG{PIPE} = sub { die "test program pipe broke" };
   print PIPE $mailbox;
   close PIPE;
 
-  $filename =~ s/\.(tz|bz2|gz)$//;
+  $filename =~ s#\.(tz|bz2|gz)$##;
 
   CheckDiffs([$filename,$output_filename]);
 }

@@ -8,12 +8,13 @@ use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Cache;
 use Mail::Mbox::MessageParser::Grep;
 use Mail::Mbox::MessageParser::Perl;
+use File::Spec::Functions qw(:ALL);
 use Test::Utils;
 use FileHandle;
 
 my @files = <t/mailboxes/*.txt>;
 
-mkdir 't/temp', 0700;
+mkdir catfile('t','temp'), 0700;
 
 plan (tests => 1 * scalar (@files));
 
@@ -32,19 +33,20 @@ sub TestImplementation
   my $enable_cache = shift;
   my $enable_grep = shift;
 
-  my $testname = $0;
-  $testname =~ s/.*\///;
-  $testname =~ s/\.t//;
+  my $testname = [splitdir($0)]->[-1];
+  $testname =~ s#\.t##;
 
-  my ($folder_name) = $filename =~ /\/([^\/]*)\.txt$/;
+  my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt$/;
 
-  my $output_filename =
-    "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout";
+  my $output_filename = catfile('t','temp',
+    "${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout");
 
   my $output = new FileHandle(">$output_filename");
   binmode $output;
 
-  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => 't/temp/cache'})
+  my $cache_file = catfile('t','temp','cache');
+
+  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache_file})
     if $enable_cache;
 
   my $folder_reader =

@@ -52,3 +52,5 @@ Checklist for a release:
   $ cd devel
   $ rm -rf old
   $ cp -r lib old
+- Tag the release for easy retrieval later
+  $ cvs tag "v1_11"

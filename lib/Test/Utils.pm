@@ -3,7 +3,8 @@ package Test::Utils;
 use strict;
 use Exporter;
 use Test;
-use FileHandle;
+use FileHandle::Unget;
+use File::Spec::Functions qw(:ALL);
 
 use vars qw( @EXPORT @ISA );
 use Mail::Mbox::MessageParser;
@@ -52,13 +53,13 @@ sub DoDiff
   my $filename = shift;
   my $output_filename = shift;
 
-  my $diffstring = "$PROGRAMS{'diff'} '$output_filename' '$filename'";
+  my $diffstring = "$PROGRAMS{'diff'} \"$output_filename\" \"$filename\"";
 
-  system "echo $diffstring > '$output_filename.diff' ".
-    "2>'$output_filename.diff.error'";
+  system "echo $diffstring > \"$output_filename.diff\" ".
+    "2>\"$output_filename.diff.error\"";
 
-  system "$diffstring >> '$output_filename.diff' ".
-    "2>'$output_filename.diff.error'";
+  system "$diffstring >> \"$output_filename.diff\" ".
+    "2>\"$output_filename.diff.error\"";
 
   open DIFF_ERR, "$output_filename.diff.error";
   my $diff_err = join '', <DIFF_ERR>;
@@ -80,7 +81,7 @@ sub DoDiff
 
   local $/ = "\n";
 
-  my @diffs = `cat '$output_filename.diff'`;
+  my @diffs = `cat "$output_filename.diff"`;
   shift @diffs;
   my $numdiffs = ($#diffs + 1) / 2;
 
@@ -108,10 +109,12 @@ sub InitializeCache
 {
   my $filename = shift;
 
-  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => 't/temp/cache'});
+  my $cache_file = catfile('t','temp','cache');
+
+  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache_file});
   Mail::Mbox::MessageParser::CLEAR_CACHE();
 
-  my $filehandle = new FileHandle($filename);
+  my $filehandle = new FileHandle::Unget($filename);
 
   my $folder_reader =
       new Mail::Mbox::MessageParser( {
@@ -142,12 +145,12 @@ sub ModuleInstalled
 {
   my $module_name = shift;
 
-  $module_name =~ s/::/\//g;
+  $module_name =~ s#::#/#g;
   $module_name .= '.pm';
 
   foreach my $inc (@INC)
   {
-    return 1 if -e "$inc/$module_name";
+    return 1 if -e catfile($inc,$module_name);
   }
 
   return 0;
@@ -179,13 +182,16 @@ sub No_such_file_or_directory
 # doing this?
 sub Broken_Pipe
 {
-  mkdir 't/temp', 0700;
+  mkdir catdir('t','temp'), 0700;
 
-  open F, ">t/temp/broken_pipe.pl";
+  my $script_path = catfile('t','temp','broken_pipe.pl');
+  my $dev_null = devnull();
+
+  open F, ">$script_path";
   print F<<EOF;
 unless (open B, '-|')
 {
-  open(F, "|cat 2>/dev/null");
+  open(F, "|cat 2>$dev_null");
   print F 'x';
   close F;
   exit;
@@ -193,7 +199,7 @@ unless (open B, '-|')
 EOF
   close F;
 
-  my $result = `$^X t/temp/broken_pipe.pl 2>&1 1>/dev/null`;
+  my $result = `$^X $script_path 2>&1 1>$dev_null`;
 
   $result = '' unless defined $result;
 

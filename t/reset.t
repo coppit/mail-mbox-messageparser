@@ -10,12 +10,15 @@ use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Cache;
 use Mail::Mbox::MessageParser::Grep;
 use Mail::Mbox::MessageParser::Perl;
+use File::Spec::Functions qw(:ALL);
 use Test::Utils;
 use FileHandle;
 
+eval 'require Storable;';
+
 my @files = <t/mailboxes/*.txt>;
 
-mkdir 't/temp', 0700;
+mkdir catfile('t','temp'), 0700;
 
 plan (tests => 6 * scalar (@files));
 
@@ -23,12 +26,21 @@ foreach my $filename (@files)
 {
   print "Testing filename: $filename\n";
 
-  InitializeCache($filename);
-
   print "Testing partial mailbox reset with Perl implementation\n";
   TestPartialRead($filename,0,0);
   print "Testing partial mailbox reset with Cache implementation\n";
-  TestPartialRead($filename,1,0);
+
+  if (defined $Storable::VERSION)
+  {
+    InitializeCache($filename);
+
+    TestPartialRead($filename,1,0);
+  }
+  else
+  {
+    skip('Skip Storable not installed',1);
+  }
+
   print "Testing partial mailbox reset with Grep implementation\n";
 
   if (defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'})
@@ -44,7 +56,16 @@ foreach my $filename (@files)
   print "Testing full mailbox reset with Perl implementation\n";
   TestFullRead($filename,0,0);
   print "Testing full mailbox reset with Cache implementation\n";
-  TestFullRead($filename,1,0);
+
+  if (defined $Storable::VERSION)
+  {
+    TestFullRead($filename,1,0);
+  }
+  else
+  {
+    skip('Skip Storable not installed',1);
+  }
+
   print "Testing full mailbox reset with Grep implementation\n";
 
   if (defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'})
@@ -65,21 +86,22 @@ sub TestPartialRead
   my $enable_cache = shift;
   my $enable_grep = shift;
 
-  my $testname = $0;
-  $testname =~ s/.*\///;
-  $testname =~ s/\.t//;
+  my $testname = [splitdir($0)]->[-1];
+  $testname =~ s#\.t##;
 
-  my ($folder_name) = $filename =~ /\/([^\/]*)\.txt$/;
+  my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt$/;
 
-  my $output_filename =
-    "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout";
+  my $output_filename = catfile('t','temp',
+    "${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout");
 
   my $output = new FileHandle(">$output_filename");
   binmode $output;
 
   my $filehandle = new FileHandle($filename);
 
-  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => 't/temp/cache'})
+  my $cache_file = catfile('t','temp','cache');
+
+  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache_file})
     if $enable_cache;
 
   my $folder_reader =
@@ -114,7 +136,7 @@ sub TestPartialRead
   $output->close();
 
   my $compare_filename = 
-    "t/results/${testname}_${folder_name}.stdout";
+    catfile('t','results',"${testname}_${folder_name}.stdout");
 
   CheckDiffs([$compare_filename,$output_filename]);
 }
@@ -127,21 +149,22 @@ sub TestFullRead
   my $enable_cache = shift;
   my $enable_grep = shift;
 
-  my $testname = $0;
-  $testname =~ s/.*\///;
-  $testname =~ s/\.t//;
+  my $testname = [splitdir($0)]->[-1];
+  $testname =~ s#\.t##;
 
-  my ($folder_name) = $filename =~ /\/([^\/]*)\.txt$/;
+  my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt$/;
 
   my $output_filename =
-    "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout";
+    catfile('t','temp',"${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout");
 
   my $output = new FileHandle(">$output_filename");
   binmode $output;
 
   my $filehandle = new FileHandle($filename);
 
-  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => 't/temp/cache'})
+  my $cache_file = catfile('t','temp','cache');
+
+  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache_file})
     if $enable_cache;
 
   my $folder_reader =
@@ -179,7 +202,7 @@ sub TestFullRead
   $output->close();
 
   my $compare_filename = 
-    "t/results/${testname}_${folder_name}.stdout";
+    catfile('t','results',"${testname}_${folder_name}.stdout");
 
   CheckDiffs([$compare_filename,$output_filename]);
 }

@@ -4,31 +4,35 @@ Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser. It uses
 the best of three strategies for parsing a mailbox: either using cached folder
 information, GNU grep, or highly optimized Perl.
 
-Version 1.11:
-- Added test cases with spaces in the mailbox names.
-- Fixed line ending bugs for MS-DOS/Windows (Tests now pass under cygwin)
-- Fixed mailbox detection problem with mailboxes whose first email is a
-  pseudo-email used to store mailbox state information.
-- Fixed a bug on freebsd where mailboxes of size less than 2000 bytes would be
-  incorrectly processed. (This fix is a less-than-optimal one which requires
-  IO::String. I may later get the gumption to do it right using PerlIO::var)
-
+Version 1.12:
+- Added "perl Makefile.PL" version checks for external programs like grep.  
+- Fixed a typo in the documented synopsis
+- Implemented a portable ungetc version of FileHandle, and changed this module
+  to use it instead of IO::String. This will hopefully fixed the
+  system-dependent bugs in the last release.
+- Improved compatibility with Windows. (Cygwin works, but we're still not
+  there yet for Windows command shell.)
+- Streamlined installation for cases where caching is not enabled in
+  Mail::Mbox::MessageParser.
 
 DEPENDENCIES
 
+- FileHandle::Unget
 - Storable: required if you want to use caching
-- IO::String: required for now (may be removed later)
 - GNU grep(1): required if you want to use grep support
+- bzip2(1): required if you want to use bzip and bzip2 support
+- bzip(1): required if you want to use bzip support
+- tzip(1): required if you want to use tzip support
 
 The modules can be found here:
 
-Storable:                  http://search.cpan.org/search?dist=Storable
-IO::String:                http://search.cpan.org/search?dist=IO-String
+Storable:                http://search.cpan.org/search?dist=Storable
+FileHandle::Unget:       http://search.cpan.org/search?dist=FileHandle-Unget
 
 Installation can also be done automatically using the CPAN module:
 
   perl -MCPAN -e 'install Storable'
-  perl -MCPAN -e 'install IO::String'
+  perl -MCPAN -e 'install FileHandle::Unget'
 
 
 INSTALLATION

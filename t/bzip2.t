@@ -7,18 +7,19 @@ use Test;
 use lib 'lib';
 use Test::Utils;
 use Mail::Mbox::MessageParser;
+use File::Spec::Functions qw( :ALL );
 
 my $BZIP2 = $Mail::Mbox::MessageParser::PROGRAMS{bzip2} || 'bzip';
 
 my %tests = (
-"cat t/mailboxes/mailarc-2.txt.bz2 | $BZIP2 -cd"
+"cat " . catfile('t','mailboxes','mailarc-2.txt.bz2') . " | $BZIP2 -cd"
   => ['mailarc-2.txt','none'],
 );
 
 my %expected_errors = (
 );
 
-mkdir 't/temp', 0700;
+mkdir catfile('t','temp'), 0700;
 
 plan (tests => scalar (keys %tests));
 
@@ -41,12 +42,11 @@ sub TestIt
   my ($stdout_file,$stderr_file) = @{ shift @_ };
   my $error_expected = shift;
 
-  my $testname = $0;
-  $testname =~ s/.*\///;
-  $testname =~ s/\.t//;
+  my $testname = [splitdir($0)]->[-1];
+  $testname =~ s#\.t##;
 
-  my $test_stdout = "t/temp/${testname}_$stdout_file.stdout";
-  my $test_stderr = "t/temp/${testname}_$stderr_file.stderr";
+  my $test_stdout = catfile('t','temp',"${testname}_$stdout_file.stdout");
+  my $test_stderr = catfile('t','temp',"${testname}_$stderr_file.stderr");
 
   system "$test 1>$test_stdout 2>$test_stderr";
 
@@ -66,8 +66,8 @@ sub TestIt
   }
 
 
-  my $real_stdout = "t/results/$stdout_file";
-  my $real_stderr = "t/results/$stderr_file";
+  my $real_stdout = catfile('t','results',$stdout_file);
+  my $real_stderr = catfile('t','results',$stderr_file);
 
   CheckDiffs([$real_stdout,$test_stdout],[$real_stderr,$test_stderr]);
 }
@@ -82,7 +82,7 @@ sub SetSkip
 
   unless (defined $Mail::Mbox::MessageParser::PROGRAMS{'bzip2'})
   {
-    $skip{"cat t/mailboxes/mailarc-2.txt.bz2 | $BZIP2 -cd"}
+    $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.bz2') . " | $BZIP2 -cd"}
       = 'bzip2 support not enabled in Mail::Mbox::MessageParser';
   }
 

@@ -1,3 +1,21 @@
+Not quite finished:
+- Fixed portability issues for Windows. (It should now work under the normal
+  Windows command shell.)
+
+Version 1.12:
+- Added "perl Makefile.PL" version checks for external programs like grep.
+  (Suggestion by David N. Blank-Edelman <dnb@ccs.neu.edu>)
+- Fixed a typo in the documented synopsis (Thanks to Christophe Nowicki
+  <nowick_c@epita.fr> for the report.)
+- Implemented a portable ungetc version of FileHandle, and changed this module
+  to use it instead of IO::String. This will hopefully fixed the
+  system-dependent bugs in the last release. (Thanks to David N.
+  Blank-Edelman <dnb@ccs.neu.edu> for providing a test environment.)
+- Improved compatibility with Windows. (Cygwin works, but we're still not
+  there yet for Windows command shell.)
+- Streamlined installation for cases where caching is not enabled in
+  Mail::Mbox::MessageParser.
+
 Version 1.11:
 - Added test cases with spaces in the mailbox names. (Thanks to Johan Ekenberg
   <johan@fsdata.se> for finding the bug and submitting a partial patch.)
