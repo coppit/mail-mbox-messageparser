@@ -1,6 +1,11 @@
-Not quite finished:
+Version 1.13:
 - Fixed portability issues for Windows. (It should now work under the normal
-  Windows command shell.)
+  Windows command shell.) Note that this requires the use of a temporary file
+  for decompression of file handles on Windows--a minor security risk.
+- Makefile.PL version detection for GNU grep now works correctly for version
+  numbers which end with letters. (Thanks to David Dyck <david.dyck@fluke.com>
+  for the bug report.)
+- Fixed typo bugs in a couple test cases.
 
 Version 1.12:
 - Added "perl Makefile.PL" version checks for external programs like grep.

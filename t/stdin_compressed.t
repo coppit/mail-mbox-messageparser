@@ -67,10 +67,12 @@ sub TestImplementation
   local $/ = undef;
 
   open TESTER, ">" . catfile('t','temp','stdin.pl');
+  binmode TESTER;
   print TESTER $test_program;
   close TESTER;
 
   open MAILBOX, $filename;
+  binmode MAILBOX;
   my $mailbox = <MAILBOX>;
   close MAILBOX;
 

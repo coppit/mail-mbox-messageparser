@@ -326,7 +326,7 @@ sub Check_Grep_Version
     return;
   }
 
-  $version =~ s/^.*?([\d.]+)\n.*/$1/s;
+  $version =~ s/^.*?([\d.]+).*/$1/s;
 
   my $version_number;
 

@@ -97,8 +97,8 @@ sub _IS_A_PIPE
 {
   my $file_handle = shift;
 
-  return (-t $file_handle || -S $file_handle ||
-     -p $file_handle || !(seek $file_handle, 0, 1));
+  return (-t $file_handle || -S $file_handle || -p $file_handle ||
+    !-f $file_handle || !(seek $file_handle, 0, 1));
 }
 
 #-------------------------------------------------------------------------------
