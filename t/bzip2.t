@@ -83,7 +83,7 @@ sub SetSkip
   unless (defined $Mail::Mbox::MessageParser::PROGRAMS{'bzip2'})
   {
     $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.bz2') . " | $BZIP2 -cd"}
-      = 'bzip2 support not enabled in Mail::Mbox::MessageParser';
+      = 'bzip2 not available';
   }
 
   return %skip;

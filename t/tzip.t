@@ -84,7 +84,7 @@ sub SetSkip
   unless (defined $PROGRAMS{'tzip'})
   {
     $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.tz') . " | $TZIP -cd"}
-      = 'tzip support not enabled in Mail::Mbox::MessageParser';
+      = 'tzip not available';
   }
 
   return %skip;

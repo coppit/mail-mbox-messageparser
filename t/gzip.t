@@ -84,7 +84,7 @@ sub SetSkip
   unless (defined $Mail::Mbox::MessageParser::PROGRAMS{'gzip'})
   {
     $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.gz') . " | $GZIP -cd"}
-      = 'gzip support not enabled in Mail::Mbox::MessageParser';
+      = 'gzip not available';
   }
 
   return %skip;
