@@ -4,9 +4,22 @@ Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser. It uses
 the best of three strategies for parsing a mailbox: either using cached folder
 information, GNU grep, or highly optimized Perl.
 
-New in version 1.00:
-- This is the initial version. The code is based on a previous version that
-  was part of the grepmail package.
+Version 1.10:
+- Testing modules are no longer (accidentally) installed.
+- External programs are now queried during installation instead of just using
+  whatever is in your path (a security risk).
+- Changed testing to use PERLRUN instead of FULLPERLRUN, which is not
+  available with older versions of MakeMaker that ship with older versions of
+  Perl.
+- Cache file permissions are now set to protect against prying eyes.
+- Improved speed testing.
+- Added support for opening of files, and decompressing files or filehandles.
+- Restructured test cases.
+- Fixed a bug in _PUT_BACK_STRING which would cause major failures on Solaris.
+- Fixed compatibility problems with perl 5.005_01
+- Fixed grep implementation for filenames with spaces in them. 
+- Added "force_processing" option to force processing of files even if they
+  look to be binary or non-mailboxes.
 
 
 DEPENDENCIES
