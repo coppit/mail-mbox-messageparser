@@ -5,8 +5,8 @@
 
 use strict;
 
-use Test;
-use lib 'lib';
+use Test::More;
+use lib 't';
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Cache;
 use Mail::Mbox::MessageParser::Grep;
@@ -29,26 +29,22 @@ foreach my $filename (@files)
 
   TestImplementation($filename,0,0);
 
-  if (defined $Storable::VERSION)
+  SKIP:
   {
+    skip('Storable not installed',2) unless defined $Storable::VERSION;
+
     InitializeCache($filename);
 
     TestImplementation($filename,1,0);
     TestImplementation($filename,1,1);
   }
-  else
-  {
-    skip('Skip Storable not installed',1);
-    skip('Skip Storable not installed',1);
-  }
 
-  if (defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'})
+  SKIP:
   {
+    skip('Skip GNU grep not available',1)
+      unless defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'};
+
     TestImplementation($filename,0,1);
-  }
-  else
-  {
-    skip('Skip GNU grep not available',1);
   }
 }
 
@@ -77,25 +73,11 @@ sub TestImplementation
 
   if ($filename =~ /-dos/)
   {
-    if ($folder_reader->endline() eq "\r\n")
-    {
-      ok(1);
-    }
-    else
-    {
-      ok(0); # Not a dos endline as expected
-    }
+    is($folder_reader->endline(),"\r\n",'Dos endline expected');
   }
   else
   {
-    if ($folder_reader->endline() eq "\n")
-    {
-      ok(1);
-    }
-    else
-    {
-      ok(0); # Not a unix endline as expected
-    }
+    is($folder_reader->endline(),"\n",'Unix endline expected');
   }
 }
 

@@ -4,8 +4,8 @@
 
 use strict;
 
-use Test;
-use lib 'lib';
+use Test::More;
+use lib 't';
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Cache;
 use Mail::Mbox::MessageParser::Grep;
@@ -29,26 +29,22 @@ foreach my $filename (@files)
 
   TestImplementation($filename,0,0);
 
-  if (defined $Storable::VERSION)
+  SKIP:
   {
+    skip('Storable not installed',1) unless defined $Storable::VERSION;
+
     InitializeCache($filename);
 
     TestImplementation($filename,1,0);
   }
-  else
-  {
-    skip('Skip Storable not installed',1);
-  }
 
-  if (defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'})
+  SKIP:
   {
+    skip('GNU grep not available',1)
+      unless defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'};
+
     TestImplementation($filename,0,1);
   }
-  else
-  {
-    skip('Skip GNU grep not available',1);
-  }
-
 }
 
 # ---------------------------------------------------------------------------

@@ -7,7 +7,7 @@
 use strict;
 use warnings 'all';
 
-use lib 'lib';
+use lib 't';
 use Benchmark;
 
 my $MAILBOX_SIZE = 10_000_000;

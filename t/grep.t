@@ -2,8 +2,8 @@
 
 use strict;
 
-use Test;
-use lib 'lib';
+use Test::More;
+use lib 't';
 use File::Spec::Functions qw(:ALL);
 use Test::Utils;
 
@@ -35,9 +35,12 @@ foreach my $test (sort keys %tests)
 {
   print "Running test:\n  $test\n";
 
-  skip("Skip $skip{$test}",1), next if exists $skip{$test};
+  SKIP:
+  {
+    skip("$skip{$test}",1) if exists $skip{$test};
 
-  TestIt($test, $tests{$test}, $expected_errors{$test});
+    TestIt($test, $tests{$test}, $expected_errors{$test});
+  }
 }
 
 # ---------------------------------------------------------------------------

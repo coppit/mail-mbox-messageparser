@@ -4,8 +4,8 @@
 
 use strict;
 
-use Test;
-use lib 'lib';
+use Test::More;
+use lib 't';
 use File::Spec::Functions qw(:ALL);
 use Test::Utils;
 use FileHandle;

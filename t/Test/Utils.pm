@@ -2,7 +2,7 @@ package Test::Utils;
 
 use strict;
 use Exporter;
-use Test;
+use Test::More;
 use FileHandle::Unget;
 use File::Spec::Functions qw(:ALL);
 
@@ -37,11 +37,13 @@ sub CheckDiffs
 
     my ($diff,$result) = DoDiff($filename,$output_filename);
 
-    ok(0), return if $diff == 0;
-    ok(0), return if $result == 0;
+    ok(0,"Running diff for $filename and $output_filename"), return
+      if $diff == 0;
+    ok(0,"Computing differences between $filename and $output_filename"), return
+      if $result == 0;
   }
 
-  ok(1), return;
+  ok(1,"Checking differences"), return;
 }
 
 # ---------------------------------------------------------------------------

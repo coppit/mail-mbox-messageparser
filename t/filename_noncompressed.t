@@ -2,8 +2,8 @@
 
 use strict;
 
-use Test;
-use lib 'lib';
+use Test::More;
+use lib 't';
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Cache;
 use Mail::Mbox::MessageParser::Grep;
