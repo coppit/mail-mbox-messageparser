@@ -24,7 +24,7 @@
 ^todo$
 ^DEVELOPERNOTES$
 ^announce.sample$
-^old/
+^old2/
 \.tar\.gz$
 t/temp/
 

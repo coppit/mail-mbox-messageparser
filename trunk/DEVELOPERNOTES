@@ -48,8 +48,8 @@ Checklist for a release:
   [search for MessageParser, select add release]
 - Announce it to comp.lang.perl.announce.
 - Copy current code to old in devel
-  $ rm -rf old; rsync -r --cvs-exclude lib/* old
+  $ rm -rf old; rsync -r --cvs-exclude * old
 - Check in code:
   $ cvs ci
 - Tag the release for easy retrieval later
-  $ cvs tag "v1_11"
+  $ cvs tag "v1_21_0"

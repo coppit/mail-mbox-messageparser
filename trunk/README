@@ -7,14 +7,10 @@ information, GNU grep, or highly optimized Perl.
 
 NEW IN THIS VERSION
 
-Version 1.21.0: Wed Sep 15 2004
-- Fixed missing file warnings from "make distcheck" resulting from a
-  workaround for a MakeMaker bug.
-- Dropped force_processing in M::M::Grep (all files treated as text), since
-  M::MessageParser detects file types. This fixes a Perl warning issued when
-  force_processing is false and M::MessageParser determines that the file is
-  text, but it contains a binary character. 
-- Updated Makefile.PL to use Module::Install
+Version 1.21.1: Thu Sep 16 2004
+- Fixed broken dependency specification in Makefile.PL
+- Removed Module::Install extension dependency code from Makefile.PL. (Not
+  needed with fixed extensions.)
 
 
 MODULE DEPENDENCIES

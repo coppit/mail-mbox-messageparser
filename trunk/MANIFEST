@@ -100,6 +100,7 @@ t/results/reset_newlines_at_beginning.stdout
 # Module::Install extensions
 inc/ExtUtils/AutoInstall.pm
 inc/File/HomeDir.pm
+inc/File/Spec.pm
 inc/Module/Install/AutoInstall.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
@@ -109,6 +110,7 @@ inc/Module/Install/GetProgramLocations.pm
 inc/Module/Install/Include.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
+inc/Module/Install/Skip.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 inc/Module/Install.pm

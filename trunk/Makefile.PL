@@ -16,13 +16,16 @@ version_from    ('lib/Mail/Mbox/MessageParser.pm');
 license         ('gpl');
 
 requires        (
-                  'Storable',
-                  'FileHandle::Unget',
+                  'Storable' => 0,
+                  'FileHandle::Unget' => 0,
                 );
+
+skip            ( 'Test',);
 
 # Optional features and their modules
 features        (
                   'Speed Tests' => [
+                    -default => 0,
                     recommends( 'Benchmark::Timer' => '0.60' ),
                   ],
                 );
@@ -45,14 +48,7 @@ Configure_Programs();
 
 print "\n", '-'x78, "\n\n";
 
-requires        ( 'perl' => 5.00503 );
-
-# For some reason, Module::Install doesn't detect dependent modules of
-# extensions. :(
-Include_Dependencies_Of_Extensions();
-
 auto_install    ( );
-
 WriteAll();
 
 Fix_PREOP();
@@ -179,34 +175,4 @@ sub Fix_PREOP
   my $commands = q{; \$(CP) t/mailboxes/*\\\\ * \$(DISTVNAME)/t/mailboxes; \$(CP) t/results/*\\\\ * \$(DISTVNAME)/t/results};
 
   system "$^X -pi -e 's|^(PREOP\\s*=.*)|\$1$commands|' Makefile";
-}
-
-# --------------------------------------------------------------------------
-
-sub Include_Dependencies_Of_Extensions
-{
-  # These don't have non-core dependencies (presumably)
-  my @module_install_modules = qw(
-    Module::Install::AutoInstall Module::Install::Base Module::Install::Build
-    Module::Install::Bundle Module::Install::Can Module::Install::Fetch
-    Module::Install::Include Module::Install::Inline Module::Install::InstallDirs
-    Module::Install::Makefile Module::Install::Makefile::Name
-    Module::Install::Makefile::Version Module::Install::MakeMaker
-    Module::Install::Metadata Module::Install::PAR Module::Install::Run
-    Module::Install::Scripts Module::Install::Skip Module::Install::Win32
-    Module::Install::WriteAll
-  );
-
-  foreach my $included_file (<inc/Module/Install/*.pm>,
-    <inc/Module/Install/PRIVATE/*.pm>,<inc/Module/Install/PRIVATE.*pm>)
-  {
-    my $module = $included_file;
-    $module =~ s#^inc/(.*)\.pm$#$1#;
-    $module =~ s#/#::#g;
-
-    next if grep { $_ eq $module } @module_install_modules;
-    print "--> Including dependent modules for non-standard Module::Install extension $module\n";
-
-    include_deps($module);
-  }
 }
