@@ -22,27 +22,34 @@ sub dprint;
 
 sub new
 {
-  my ($proto, $options) = @_;
+  my ($proto, $self) = @_;
 
-  my $class = ref($proto) || $proto;
-  my $self  = {};
-  bless ($self, $class);
+  carp "Need file_handle option" unless defined $self->{'file_handle'};
 
-  carp "Need file_handle option" unless defined $options->{'file_handle'};
+  bless ($self, __PACKAGE__);
 
-  $self->{'file_handle'} = $options->{'file_handle'};
+  $self->_init();
 
-  $self->{'file_name'} = $options->{'file_name'}
-    if defined $options->{'file_name'};
+  return $self;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _init
+{
+  my $self = shift;
 
   $self->{'READ_CHUNK_SIZE'} =
     $Mail::Mbox::MessageParser::Config{'read_chunk_size'};
 
-  $self->reset();
+  $self->{'CURRENT_LINE_NUMBER'} = 1;
+  $self->{'CURRENT_OFFSET'} = 0;
 
-  $self->_print_debug_information();
+  $self->{'READ_BUFFER'} = '';
+  $self->{'START_OF_EMAIL'} = 0;
+  $self->{'END_OF_EMAIL'} = 0;
 
-  return $self;
+  $self->SUPER::_init();
 }
 
 #-------------------------------------------------------------------------------
@@ -51,50 +58,14 @@ sub reset
 {
   my $self = shift;
 
-  if (defined $self->{'prologue'})
-  {
-    if (_IS_A_PIPE($self->{'file_handle'}))
-    {
-      dprint "Avoiding seek() on a pipe";
-    }
-    else
-    {
-      seek $self->{'file_handle'}, length($self->{'prologue'}), 0
-    }
-
-    $self->{'CURRENT_LINE_NUMBER'} = ($self->{'prologue'} =~ tr/\n//) + 1;
-    $self->{'CURRENT_OFFSET'} = length($self->{'prologue'});
-  }
-  else
-  {
-    if (_IS_A_PIPE($self->{'file_handle'}))
-    {
-      dprint "Avoiding seek() on a pipe";
-    }
-    else
-    {
-      seek $self->{'file_handle'}, 0, 0;
-    }
-
-    $self->{'CURRENT_LINE_NUMBER'} = 1;
-    $self->{'CURRENT_OFFSET'} = 0;
-  }
+  $self->{'CURRENT_LINE_NUMBER'} = ($self->{'prologue'} =~ tr/\n//) + 1;
+  $self->{'CURRENT_OFFSET'} = length($self->{'prologue'});
 
   $self->{'READ_BUFFER'} = '';
   $self->{'START_OF_EMAIL'} = 0;
   $self->{'END_OF_EMAIL'} = 0;
 
   $self->SUPER::reset();
-}
-
-#-------------------------------------------------------------------------------
-
-sub _IS_A_PIPE
-{
-  my $file_handle = shift;
-
-  return (-t $file_handle || -S $file_handle || -p $file_handle ||
-    !-f $file_handle || !(seek $file_handle, 0, 1));
 }
 
 #-------------------------------------------------------------------------------
@@ -305,13 +276,13 @@ Mail::Mbox::MessageParser::Perl - A Perl-based mbox folder reader
 
   #!/usr/bin/perl
 
-  use Mail::Mbox::MessageParser::Perl;
+  use Mail::Mbox::MessageParser;
 
   my $filename = 'mail/saved-mail';
   my $filehandle = new FileHandle($filename);
 
   my $folder_reader =
-    new Mail::Mbox::MessageParser::Perl( {
+    new Mail::Mbox::MessageParser( {
       'file_name' => $filename,
       'file_handle' => $filehandle,
     } );
@@ -331,10 +302,10 @@ Mail::Mbox::MessageParser::Perl - A Perl-based mbox folder reader
 
 =head1 DESCRIPTION
 
-This module implements a perl-based mbox folder reader. Users are encouraged
-to use Mail::Mbox::MessageParser instead. The base MessageParser module will
-automatically use a faster implementation is one is available. (Although you
-can just use this module if you don't want to use caching or GNU grep.)
+This module implements a Perl-based mbox folder reader.  Users must not
+instantiate this class directly--use Mail::Mbox::MessageParser instead. The
+base MessageParser module will automatically manage the use of faster
+implementations if they can be used.
 
 =head2 METHODS AND FUNCTIONS
 
@@ -356,6 +327,8 @@ is the opened file handle to the mailbox.
 
 Returns a reference to a Mail::Mbox::MessageParser object, or a string
 describing the error.
+
+=back
 
 
 =head1 BUGS

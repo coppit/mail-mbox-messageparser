@@ -9,9 +9,6 @@ use lib 't';
 use Test::Utils;
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Config;
-use Mail::Mbox::MessageParser::Cache;
-use Mail::Mbox::MessageParser::Grep;
-use Mail::Mbox::MessageParser::Perl;
 use File::Spec::Functions qw(:ALL);
 use FileHandle;
 
