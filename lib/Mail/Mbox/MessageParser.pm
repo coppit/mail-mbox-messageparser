@@ -221,7 +221,9 @@ sub _PREPARE_FILE_HANDLE
       return ($decompressed_file_handle,$file_type,0,"Not a mailbox",undef)
         if _GET_FILE_TYPE(\$decompressed_file_handle) ne 'mailbox';
 
-      return ($decompressed_file_handle,$file_type,0,undef,undef);
+      my $endline = _GET_ENDLINE(\$decompressed_file_handle);
+
+      return ($decompressed_file_handle,$file_type,0,undef,$endline);
     }
     else
     {
