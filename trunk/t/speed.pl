@@ -4,33 +4,49 @@
 # http://el.www.media.mit.edu/groups/el/projects/handy-board/mailarc.txt
 # and then broke into pieces
 
-# Any differences between the expected (timeresults/test#.real) and actual
-# (timeresults/test#.out) outputs are stored in test#.diff in the current
-# directory.
-
 use strict;
 use warnings 'all';
 
-use Benchmark qw( timethis cmpthese );
-use FileHandle;
+use lib 'lib';
+use Benchmark;
 
-my $TIME_ITERATIONS = 3;
-my $MAILBOX_SIZE = 1_000_000;
+my $MAILBOX_SIZE = 10_000_000;
 my $TEMP_MAILBOX = 't/temp/bigmailbox.txt';
+
+my @IMPLEMENTATIONS_TO_TEST = (
+'Perl',
+'Grep',
+'Cache Init',
+'Cache Use',
+);
 
 mkdir 't/temp';
 
-CreateInputFile($TEMP_MAILBOX);
+my @mailboxes = CreateInputFiles($TEMP_MAILBOX);
 
-my $data = CollectData($TEMP_MAILBOX);
+pop @mailboxes;
 
-print "=========================================\n";
+foreach my $mailbox (@mailboxes)
+{
+  print "\n";
 
-DoHeadToHeadComparison($data);
+  {
+    local $" = ", ";
+    print "Executing speed tests for @IMPLEMENTATIONS_TO_TEST on \"$mailbox\"\n\n";
+  }
 
-print "=========================================\n";
+  my $data = CollectData($mailbox);
 
-DoImplementationsComparison($data);
+  print "=========================================\n";
+
+  DoHeadToHeadComparison($data);
+
+  print "=========================================\n";
+
+  DoImplementationsComparison($data);
+
+  print "#########################################\n";
+}
 
 # make clean will take care of it
 #END
@@ -49,33 +65,83 @@ sub RemoveInputFile
 
 ################################################################################
 
-sub CreateInputFile
+sub CreateInputFiles
 {
   my $filename = shift;
 
-  return
-    if -e $filename && abs((-s $filename) - $MAILBOX_SIZE) <= 200_000;
+  my @mailboxes;
 
-  print "Making input file.\n";
-
-  my $data;
-
-  open FILE, 't/mailboxes/mailarc-1.txt';
-  local $/ = undef;
-  $data = <FILE>;
-  close FILE;
-
-  open FILE, ">$filename";
-
-  while (-s $filename < $MAILBOX_SIZE)
+  unless(-e $filename && abs((-s $filename) - $MAILBOX_SIZE) <= $MAILBOX_SIZE*.1)
   {
-    print FILE $data;
+    print "Making input file ($MAILBOX_SIZE bytes).\n";
+
+    open FILE, 't/mailboxes/mailarc-1.txt';
+    local $/ = undef;
+    my $data = <FILE>;
+    close FILE;
+
+    open FILE, ">$filename";
+
+    my $number = 0;
+
+    while (-s $filename < $MAILBOX_SIZE)
+    {
+      print FILE $data, "\n";
+
+      $number++;
+
+      # Also make an email with a 1MB attachment.
+      print FILE<<"EOF";
+From XXXXXXXX\@XXXXXXX.XXX.XXX.XXX Sat Apr 19 19:30:45 2003
+Received: from XXXXXX.XXX.XXX.XXX (XXXXXX.XXX.XXX.XXX [##.##.#.##]) by XXX.XXXXXXXX.XXX id h3JNTvkA009295 envelope-from XXXXXXXX\@XXXXXXX.XXX.XXX.XXX for <XXXXX XXXXXX.XXX>; Sat, 19 Apr 2003 19:29:57 -0400 (EDT)8f/81N9n7q
+        (envelope-from XXXXXXXX\@XXXXXXX.XXX.XXX.XXX)
+Date: Sat, 19 Apr 2003 19:29:50 -0400 (EDT)
+From: Xxxxxxx Xxxxxxxx <xxxxxxxx\@xxxxxx.xxx.xxx.xxx>
+To: "'Xxxxx Xxxxxx'" <xxxxx\@xxxxxx.xxx>
+Subject: RE: FW: Xxxxxx--xxxxxx xxxxxxxx xxxxx xxxxxxx (xxx)
+Message-ID: <Pine.LNX.4.44.0304191837520.30945-$number\@xxxxxxx.xxx.xxx.xxx>
+MIME-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="873612032-418625252-1050794990=:31078"
+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime\@docserver.cac.washington.edu for more info.
+
+--873612032-418625252-1050794990=:31078
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+
+I am not sure if the message below went through.  I accidentally
+attached too big a file with it.  Now it's nicely zipped.
+
+--873612032-418625252-1050794990=:31078
+Content-Type: APPLICATION/x-gzip; name="testera_dft_4_mchaff.tar.gz"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.44.0304191929500.3$number\@xxxxxxx.xxx.xxx.xxx>
+Content-Description:
+Content-Disposition: attachment; filename="foo.tar.gz"
+
+EOF
+
+      print FILE (('x' x 74 . "\n" ) x (1_000_000 / 74));
+
+      print FILE "--873612032-418625252-1050794990=:31078--\n\n";
+    }
+
+    close FILE;
   }
 
-  close FILE;
+  unlink "$filename.gz" if -e "$filename.gz";
+
+  print "Making compressed input file.\n";
+
+  system "gzip -c --force --best $filename > $filename.gz";
+
+  return ($filename, "$filename.gz");
 }
 
 ################################################################################
+
+my $test_program;
 
 sub CollectData
 {
@@ -83,52 +149,40 @@ sub CollectData
 
   print "Collecting data...\n\n";
 
-  local $/ = undef;
-
-  open TESTER, ">t/temp/test_speed.pl";
-  my $test_program = <DATA>;
-  $test_program =~ s/\$TIME_ITERATIONS/$TIME_ITERATIONS/eg;
-  print TESTER $test_program;
-  close TESTER;
-
-  # Warm the OS file cache
-  open MAILBOX, $filename;
-  <MAILBOX>;
-  close MAILBOX;
-
-  my ($new_data, $old_data);
-
+  unless (defined $test_program)
   {
-    use IPC::Open3;
-    use Symbol qw(gensym);
-    my $pid = open3(gensym, ">&STDOUT", \*RESULTS, "$^X t/temp/test_speed.pl lib");
-    my $results = <RESULTS>;
-    waitpid($pid, 0);
-    close RESULTS;
+    local $/ = undef;
+    $test_program = <DATA>;
+  }
+
+  # I couldn't get the module to reload right, so we'll create an external program
+  # to do the testing
+  {
+    local $" = "', '";
+    my $implementations_to_test = "'@IMPLEMENTATIONS_TO_TEST'";
+    my $modified_test_program = $test_program;
+    $modified_test_program =~ s/\@IMPLEMENTATIONS_TO_TEST/$implementations_to_test/;
+
+    open TESTER, ">t/temp/test_speed.pl";
+    print TESTER $modified_test_program;
+    close TESTER;
+  }
+
+  my %data;
+
+  foreach my $old_or_new qw(New Old)
+  {
+    my $results = `$^X t/temp/test_speed.pl $old_or_new`;
 
     die $results unless $results =~ /VAR1/;
 
-    $results =~ s/VAR1/new_data/;
+    my $VAR1;
     eval $results;
-  }
 
-  {
-    use IPC::Open3;
-    use Symbol qw(gensym);
-    my $pid = open3(gensym, ">&STDOUT", \*RESULTS, "$^X t/temp/test_speed.pl old");
-    my $results = <RESULTS>;
-    waitpid($pid, 0);
-    close RESULTS;
+    %data = (%data, %$VAR1);
+  } 
 
-    die $results unless $results =~ /VAR1/;
-
-    $results =~ s/VAR1/old_data/;
-    eval $results;
-  }
-
-  my %merged_data = (%$old_data, %$new_data);
-
-  return \%merged_data;
+  return \%data;
 }
 
 ################################################################################
@@ -139,28 +193,25 @@ sub DoHeadToHeadComparison
 
   print "HEAD TO HEAD COMPARISON\n\n";
 
-  my %simple = ('Old Simple' => $data->{'Old Simple'},
-    'New Simple' => $data->{'New Simple'});
-  Benchmark::cmpthese(\%simple);
+  my @labels = grep { s/New // } keys %$data;
 
-  print "-----------------------------------------\n";
+  my $first = 1;
 
-  my %grep = ('Old Grep' => $data->{'Old Grep'},
-    'New Grep' => $data->{'New Grep'});
-  Benchmark::cmpthese(\%grep);
+  foreach my $label (@labels)
+  {
+    next unless exists $data->{"Old $label"} && exists $data->{"New $label"};
 
-  print "-----------------------------------------\n";
+    print "-----------------------------------------\n"
+      unless $first;
 
-  my %cache_init = ('Old Cache Init' => $data->{'Old Cache Init'},
-    'New Cache Init' => $data->{'New Cache Init'});
-  Benchmark::cmpthese(\%cache_init);
+    my %head_to_head = ("Old $label" => $data->{"Old $label"},
+      "New $label" => $data->{"New $label"});
+    Benchmark::cmpthese(\%head_to_head);
 
-  print "-----------------------------------------\n";
-
-  my %cache_use = ('Old Cache Use' => $data->{'Old Cache Use'},
-    'New Cache Use' => $data->{'New Cache Use'});
-  Benchmark::cmpthese(\%cache_use);
+    $first = 0;
+  }
 }
+
 ################################################################################
 
 sub DoImplementationsComparison
@@ -169,23 +220,33 @@ sub DoImplementationsComparison
 
   print "IMPLEMENTATION COMPARISON\n\n";
 
-  my %old = (
-    'Old Simple' => $data->{'Old Simple'},
-    'Old Grep' => $data->{'Old Grep'},
-    'Old Cache Init' => $data->{'Old Cache Init'},
-    'Old Cache Use' => $data->{'Old Cache Use'},
-    );
-  Benchmark::cmpthese(\%old);
+  {
+    my @old_labels = grep { /Old / } keys %$data;
+
+    my %old;
+    
+    foreach my $label (@old_labels)
+    {
+      $old{$label} = $data->{$label};
+    }
+
+    Benchmark::cmpthese(\%old);
+  }
 
   print "-----------------------------------------\n";
 
-  my %new = (
-    'New Simple' => $data->{'New Simple'},
-    'New Grep' => $data->{'New Grep'},
-    'New Cache Init' => $data->{'New Cache Init'},
-    'New Cache Use' => $data->{'New Cache Use'},
-    );
-  Benchmark::cmpthese(\%new);
+  {
+    my @new_labels = grep { /New / } keys %$data;
+
+    my %new;
+    
+    foreach my $label (@new_labels)
+    {
+      $new{$label} = $data->{$label};
+    }
+
+    Benchmark::cmpthese(\%new);
+  }
 }
 
 ################################################################################
@@ -193,12 +254,16 @@ sub DoImplementationsComparison
 __DATA__
 
 use strict;
-use Benchmark qw( timethis cmpthese );
+use lib 'lib';
+use Benchmark;
+use Benchmark::Timer;
 use FileHandle;
 
 die unless @ARGV == 1;
 
-my $modpath = shift @ARGV;
+my $old_or_new = $ARGV[0];
+my $modpath = $old_or_new eq 'New' ? 'lib' : 'old';
+
 my $filename = 't/temp/bigmailbox.txt';
 
 my %data;
@@ -206,19 +271,55 @@ my %data;
 unshift @INC, $modpath;
 require Mail::Mbox::MessageParser;
 
-my $label = $modpath eq 'old' ? 'Old' : 'New';
+my %settings =
+(
+  'Perl' => [0,0],
+  'Grep' => [0,1],
+  'Cache Init' => [1,1],
+  'Cache Use' => [1,0],
+);
 
-$data{"$label Simple"} =
-  timethis(-$TIME_ITERATIONS, sub { ParseFile($filename,0,0) }, "    $label Simple");
-$data{"$label Grep"} =
-  timethis(-$TIME_ITERATIONS, sub { ParseFile($filename,1,0) }, "      $label Grep");
-$data{"$label Cache Init"} =
-  timethis(-$TIME_ITERATIONS, sub { InitializeCache($filename) }, "$label Cache Init");
-$data{"$label Cache Use"} =
-  timethis(-$TIME_ITERATIONS, sub { ParseFile($filename,0,1) }, " $label Cache Use");
+foreach my $file_type ('Filename', 'Filehandle')
+{
+  # Take this out soon
+  next if $old_or_new eq 'Old' && $file_type eq 'Filename';
+
+  foreach my $impl (@IMPLEMENTATIONS_TO_TEST)
+  {
+    my $label = "$old_or_new $impl $file_type";
+
+    my $t = new Benchmark::Timer(skip => 10, confidence => 98.5, error => 2);
+
+    while ($t->need_more_samples($label))
+    {
+      unlink 't/temp/cache' if $impl eq 'Cache Init';
+
+      if ($impl eq 'Cache Init')
+      {
+        $t->start($label);
+        InitializeCache($filename, $file_type);
+        $t->stop($label);
+      }
+      else
+      {
+        $t->start($label);
+        ParseFile($filename,$settings{$impl}[0],$settings{$impl}[1], $file_type);
+        $t->stop($label);
+      }
+    }
+
+    $t->report($label);
+
+    # Fake a benchmark object so we can compare later using Benchmark
+    $data{$label} = new Benchmark;
+    $data{$label}[5] = 1;
+    $data{$label}[1] = $t->result($label);
+    $data{$label}[2] = 0;
+  }
+}
 
 use Data::Dumper;
-print STDERR Dumper \%data;
+print Dumper \%data;
 
 exit;
 
@@ -227,11 +328,13 @@ exit;
 sub InitializeCache
 {
   my $filename = shift;
+  my $file_type = shift;
 
   Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => 't/temp/cache'});
   Mail::Mbox::MessageParser::CLEAR_CACHE();
 
-  my $filehandle = new FileHandle($filename);
+  my $filehandle;
+  $filehandle = new FileHandle($filename) if $file_type eq 'Filehandle';
 
   my $folder_reader =
       new Mail::Mbox::MessageParser( {
@@ -257,11 +360,12 @@ sub InitializeCache
 sub ParseFile
 {
   my $filename = shift;
-  my $enable_grep = shift;
   my $enable_cache = shift;
+  my $enable_grep = shift;
+  my $file_type = shift;
 
-  my $file_handle = new FileHandle;
-  $file_handle->open($filename) or die $!;
+  my $file_handle;
+  $file_handle = new FileHandle($filename) if $file_type eq 'Filehandle';
 
   Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => 't/temp/cache'})
     if $enable_cache;
@@ -279,7 +383,7 @@ sub ParseFile
     my $email_text = $folder_reader->read_next_email();
   }
 
-  close $file_handle;
+  close $file_handle if $file_type eq 'Filehandle';
 }
 
 ################################################################################
