@@ -17,13 +17,13 @@ use Mail::Mbox::MessageParser;
 use vars qw( %PROGRAMS );
 
 %PROGRAMS = (
- 'diff' => '/usr/bin/diff',
- 'grep' => '/bin/grep',
- 'tzip' => '/home/david/bin/tzip',
- 'gzip' => '/bin/gzip',
- 'compress' => '/bin/gzip',
- 'bzip' => '/usr/bin/bzip2',
- 'bzip2' => '/usr/bin/bzip2',
+ 'diff' => '/sw/bin/diff',
+ 'grep' => '/usr/bin/grep',
+ 'tzip' => undef,
+ 'gzip' => '/sw/bin/gzip',
+ 'compress' => '/sw/bin/gzip',
+ 'bzip' => '/sw/bin/bzip2',
+ 'bzip2' => '/sw/bin/bzip2',
 );
 
 sub CheckDiffs

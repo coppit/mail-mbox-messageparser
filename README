@@ -4,14 +4,22 @@ Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser. It uses
 the best of three strategies for parsing a mailbox: either using cached folder
 information, GNU grep, or highly optimized Perl.
 
-Version 1.20:
-- More robust use of GNU grep to find emails on DOS systems
-- Fixed an uninitialized value warning in Cache.pm
-- Made everything work with DOS-style line endings. Added endline() function
-  to return the detected line ending
+
+NEW IN THIS VERSION
+
+Version 1.21.0: Wed Sep 15 2004
+- Fixed missing file warnings from "make distcheck" resulting from a
+  workaround for a MakeMaker bug.
+- Dropped force_processing in M::M::Grep (all files treated as text), since
+  M::MessageParser detects file types. This fixes a Perl warning issued when
+  force_processing is false and M::MessageParser determines that the file is
+  text, but it contains a binary character. 
+- Updated Makefile.PL to use Module::Install
 
 
-DEPENDENCIES
+MODULE DEPENDENCIES
+
+To use this module, you will need to install:
 
 - FileHandle::Unget
 - Storable: required if you want to use caching
@@ -20,42 +28,39 @@ DEPENDENCIES
 - bzip(1): required if you want to use bzip support
 - tzip(1): required if you want to use tzip support
 
-The modules can be found here:
-
-Storable:                http://search.cpan.org/search?dist=Storable
-FileHandle::Unget:       http://search.cpan.org/search?dist=FileHandle-Unget
-
-Installation can also be done automatically using the CPAN module:
-
-  perl -MCPAN -e 'install Storable'
-  perl -MCPAN -e 'install FileHandle::Unget'
+You should be prompted to install modules automatically when you run "perl
+Makefile.PL".
 
 
 INSTALLATION
 
-=> On Non-Windows systems:
+To install this package, change to the directory where you unarchived this
+distribution and type the following:
 
-  % perl Makefile.PL
-  % make
-  % make test
-  % make install
+  perl Makefile.PL
+  make
+  make test
+  make install
 
-The "perl Makefile.PL" command will prompt you for an installation location if
-you run it interactively, and will use the default values if it is run
-non-iteractively. You will be asked to select the locations of certain
-external compression programs.
-
-You can force it to run non-interactively by specifying each of the following:
+You will be prompted for installation locations and program locations. You can
+suppress these prompts by specifying:
 
 - either "PREFIX=/installation/path" (for installation into a custom
   location), "INSTALLDIRS=site" (for installation into site-specific Perl
   directories), or "INSTALLDIRS=perl" (for installation into standard Perl
   directories).
-- the path to one or more external programs. For example,
-  "GREP=/gnu/bin/grep TZIP= GZIP=/gnu/bin/gzip BZIP=/bin/bzip2 BZIP2=/bin/bzip2"
-  would set values for all but one program. "TZIP=" disables compression
-  support and prevents interactive execution. (NOTE: These values are not
-  validated as they are in the interactive query.)
+- the path to one or more external programs. For example, "GREP=/gnu/bin/grep
+  TZIP= GZIP=/gnu/bin/gzip BZIP=/bin/bzip2 BZIP2=/bin/bzip2" would set values
+  for all but one program. "TZIP=" disables compression support and prevents
+  interactive execution. (NOTE: These values are not validated as they are in
+  the interactive query.)
+
+If you make the installation into your own directory, then remember that you
+must tell perl where to search for modules before trying to 'use' them. For
+example:
+
+  use lib '/home/userid/lib';
+  use CGI::Cache;
 
 If make test fails, please see the INSTALLATION PROBLEMS section below.
 
@@ -84,7 +89,8 @@ Mail::Mbox::MessageParser::Perl
 
 HOMEPAGE
 
-http://m-m-msgparser.sourceforge.net/
+Visit http://fh-unget.sourceforge.net/ for the latest version, mailing lists,
+discussion forums, CVS access, and more.
 
 
 REPORTING BUGS
@@ -97,14 +103,18 @@ comes with the distribution to remove any sensitive information, and attach
 the mailbox to the bug report.
 
 
-PRIMARY AUTHOR
+COPYRIGHT
 
-Written by David Coppit (david@coppit.org, http://coppit.org/), with the
-generous help of many kind people. See the file CHANGES for detailed
-information.
+Copyright (c) 1998-Sep 1 2000 Broc Seib. Copyright (c) Sep 1 2000-2004 David
+Coppit. All rights reserved, save those granted by the license.
 
 
 LICENSE
 
-This code is distributed under the GNU General Public License (GPL). See
+This code is distributed under the GNU General Public License (GPL).  See
 the file LICENSE included in the distribution.
+
+
+AUTHOR
+
+David Coppit <david@coppit.org>

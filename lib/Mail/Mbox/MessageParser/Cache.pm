@@ -11,7 +11,7 @@ use Mail::Mbox::MessageParser;
 use vars qw( $VERSION $DEBUG $CACHE %CACHE_OPTIONS $UPDATING_CACHE
   $CACHE_MODIFIED );
 
-$VERSION = '1.02';
+$VERSION = '1.2.0';
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *dprint = \&Mail::Mbox::MessageParser::dprint;

@@ -1,4 +1,4 @@
-SUBJECT: Mail::Mbox::MessageParser 1.00 released
+Mail::Mbox::MessageParser 1.00 released
 
 Description:
 - Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser. It

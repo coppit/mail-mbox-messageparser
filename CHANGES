@@ -1,3 +1,14 @@
+Version 1.21.0: Wed Sep 15 2004
+- Fixed missing file warnings from "make distcheck" resulting from a
+  workaround for a MakeMaker bug. (Thanks to Ed Avis <ed.avis@kbcfp.com> for
+  the bug report.)
+- Dropped force_processing in M::M::Grep (all files treated as text), since
+  M::MessageParser detects file types. This fixes a Perl warning issued when
+  force_processing is false and M::MessageParser determines that the file is
+  text, but it contains a binary character. (Thanks to Jason Brunette 
+  <jbrunette@users.sourceforge.net> for the bug report.)
+- Updated Makefile.PL to use Module::Install
+
 Version 1.20:
 - More robust use of GNU grep to find emails on DOS systems (Thanks to Martin
   Hosken <martin_hosken@sil.org> for the initial patch)

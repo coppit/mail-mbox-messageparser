@@ -9,7 +9,7 @@ use Mail::Mbox::MessageParser;
 
 use vars qw( $VERSION $DEBUG $FROM_PATTERN );
 
-$VERSION = '1.04';
+$VERSION = '1.4.0';
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *FROM_PATTERN = \$Mail::Mbox::MessageParser::FROM_PATTERN;
