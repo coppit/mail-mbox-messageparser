@@ -6,6 +6,7 @@ no strict;
 
 use strict;
 use warnings 'all';
+no warnings 'redefine';
 
 our $VERSION = '1.00';
 

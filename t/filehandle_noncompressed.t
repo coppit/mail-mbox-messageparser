@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
-# Test that every email read has the right length.
+# Test that we can process file handles for compressed and non-compressed
+# files.
 
 use strict;
 use warnings 'all';
@@ -13,19 +14,29 @@ use Mail::Mbox::MessageParser::Perl;
 use Test::Utils;
 use FileHandle;
 
-my @files = <t/mailboxes/*.txt>;
+my $installed = CheckInstalled();
+
+my @files = <t/mailboxes/mail*.txt>;
 
 mkdir 't/temp';
 
-plan (tests => 3 * scalar (@files));
+plan (tests => 4 * scalar (@files));
 
 foreach my $filename (@files) 
 {
+  skip('Skip bzip2 not available',1)
+    if $filename =~ /\.bz2$/ && !$installed->{'bzip'};
+  skip('Skip gzip not available',1)
+    if $filename =~ /\.gz$/ && !$installed->{'gzip'};
+  skip('Skip tzip not available',1)
+    if $filename =~ /\.tz$/ && !$installed->{'tzip'};
+
   InitializeCache($filename);
 
   TestImplementation($filename,0,0);
   TestImplementation($filename,1,0);
   TestImplementation($filename,0,1);
+  TestImplementation($filename,1,1);
 }
 
 # ---------------------------------------------------------------------------
@@ -40,7 +51,7 @@ sub TestImplementation
   $testname =~ s/.*\///;
   $testname =~ s/\.t//;
 
-  my ($folder_name) = $filename =~ /\/([^\/]*)\.txt$/;
+  my ($folder_name) = $filename =~ /\/([^\/]*)\.txt.*$/;
 
   my $output_filename =
     "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.testoutput";
@@ -60,20 +71,23 @@ sub TestImplementation
         'enable_grep' => $enable_grep,
       } );
 
+  my $prologue = $folder_reader->prologue;
+  print $output $prologue;
+
   # This is the main loop. It's executed once for each email
   while(!$folder_reader->end_of_file())
   {
-    $folder_reader->read_next_email();
+    my $email_text = $folder_reader->read_next_email();
 
-    print $output $folder_reader->length() . "\n";
+    print $output $$email_text;
   }
 
   $output->close();
 
-  my $compare_filename = 
-    "t/results/${testname}_${folder_name}.realoutput";
+  $filename =~ s/\.(tz|bz2|gz)$//;
 
-  CheckDiffs([$compare_filename,$output_filename]);
+  CheckDiffs([$filename,$output_filename]);
 }
 
 # ---------------------------------------------------------------------------
+

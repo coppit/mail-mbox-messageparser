@@ -6,11 +6,18 @@ no strict;
 
 use strict;
 use warnings 'all';
+no warnings 'redefine';
+use Carp;
+use FileHandle;
 
-our $VERSION = '1.00';
+our $VERSION = '1.10';
 our $DEBUG = 0;
 
 our $UPDATING_CACHE = 0;
+
+our $TZIP = 'tzip';
+our $GZIP = 'gzip';
+our $BZIP2 = 'bzip2';
 
 #-------------------------------------------------------------------------------
 
@@ -85,6 +92,43 @@ sub new
 
   $UPDATING_CACHE = 0;
 
+  my $need_to_close_filehandle = 0;
+
+  carp "You must provide either a file name or a file handle"
+    unless defined $options->{'file_name'} || defined $options->{'file_handle'};
+
+
+  if (!defined $options->{'file_handle'})
+  {
+    my ($file_handle,$error) = _OPEN_FILE_HANDLE($options->{'file_name'});
+
+    return $error unless defined $file_handle;
+
+    $need_to_close_filehandle = 1;
+    $options->{'file_handle'} = $file_handle;
+  }
+
+  return "Not a mailbox" if !$options->{'force_processing'} &&
+    _GET_FILE_TYPE($options->{'file_handle'}) =~ /^(unknown|non-mailbox)/;
+
+  my $file_type = _GET_FILE_TYPE($options->{'file_handle'});
+
+  # Do decompression if we need to
+  if ($file_type =~ /^(tzip|gzip|compress|bzip|bzip2)$/)
+  {
+    my ($file_handle,$error) =
+      _DO_DECOMPRESSION($options->{'file_handle'}, $file_type);
+    return $error unless defined $file_handle;
+
+    # Recheck for validity on the decompressed file handle
+    return "Not a mailbox"
+      if !$options->{'force_processing'} && _GET_FILE_TYPE($file_handle) ne 'mailbox';
+
+    $options->{'file_handle'} = $file_handle;
+    # Grep implementation doesn't support compression right now
+    $options->{'enable_grep'} = 0;
+  }
+
   if (defined $options->{'enable_cache'} && $options->{'enable_cache'})
   {
     if (eval 'require Mail::Mbox::MessageParser::Cache;')
@@ -124,7 +168,7 @@ sub new
     }
     else
     {
-      die "Couldn't load Mail::Mbox::MessageParser::Perl: $@";
+      carp "Couldn't load Mail::Mbox::MessageParser::Perl: $@";
     }
   }
 
@@ -135,7 +179,278 @@ sub new
 
   $self->_read_prologue();
 
+  $self->{'need_to_close_filehandle'} = $need_to_close_filehandle;
+
   return $self;
+}
+
+#-------------------------------------------------------------------------------
+
+sub DESTROY
+{
+  my $self = shift;
+
+  $self->{'file_handle'}->close() if $self->{'need_to_close_filehandle'};
+}
+
+#-------------------------------------------------------------------------------
+
+# This function does not analyze the file to determine if it is valid. It only
+# opens it using a suitable decompresson if necessary.
+sub _OPEN_FILE_HANDLE
+{
+  my $file_name = shift;
+
+  my $file_type = _GET_FILE_TYPE($file_name);
+
+  # Non-compressed file
+  if ($file_type !~ /^(tzip|gzip|compress|bzip|bzip2)$/)
+  {
+    my $file_handle = new FileHandle($file_name);
+    return (undef,"Can't open $file_name: $!") unless defined $file_handle;
+    return ($file_handle,undef);
+  }
+
+  # It must be a known compressed file type
+  my $filter_command;
+
+  if ($file_type eq 'tzip')
+  {
+    $filter_command = "$TZIP -cd '$file_name' |";
+  }
+  elsif ($file_type eq 'gzip' || $file_type eq 'compress')
+  {
+    $filter_command = "$GZIP -cd '$file_name' |";
+  }
+  elsif ($file_type eq 'bzip' || $file_type eq 'bzip2')
+  {
+    $filter_command = "$BZIP2 -cd '$file_name' |";
+  }
+  else
+  {
+    die 'Shouldn\'t ever get here';
+  }
+
+  dprint "Calling \"$filter_command\" to decompress file.";
+
+  use vars qw(*OLDSTDERR);
+  open OLDSTDERR,">&STDERR" or die "Can't save STDERR: $!\n";
+  open STDERR,">/dev/null"
+    or die "Can't redirect STDERR to /dev/null: $!\n";
+
+  my $file_handle = new FileHandle($filter_command);
+
+  open STDERR,">&OLDSTDERR" or die "Can't restore STDERR: $!\n";
+
+  return (undef,"Can't execute \"$filter_command\" for file \"$file_name\": $!")
+    unless defined $file_handle;
+
+  unless (_DATA_ON_FILE_HANDLE($file_handle))
+  {
+    $file_handle->close();
+    return (undef,"Can't execute \"$filter_command\" for file \"$file_name\"");
+  }
+
+  return ($file_handle, undef);
+}
+
+#-------------------------------------------------------------------------------
+
+# Returns: unknown, unknown binary, mailbox, non-mailbox ascii, tzip, bzip,
+# bzip2, gzip, compress
+sub _GET_FILE_TYPE
+{
+  my $file_name_or_handle = shift;
+
+  # Open the file if we need to
+  my $file_handle;
+  my $need_to_close_filehandle = 0;  
+
+  if (ref \$file_name_or_handle eq 'SCALAR')
+  {
+    $file_handle = new FileHandle($file_name_or_handle);
+    return 'unknown' unless defined $file_handle;
+
+    $need_to_close_filehandle = 1;
+  }
+  else
+  {
+    $file_handle = $file_name_or_handle;
+  }
+
+  
+  # Read test characters
+  my $testChars;
+
+  my $readResult = read($file_handle,$testChars,2000);
+
+  $file_handle->close() if $need_to_close_filehandle;
+
+  return 'unknown' unless defined $readResult && $readResult != 0;
+
+
+  _PUT_BACK_STRING($file_handle,$testChars) unless $need_to_close_filehandle;
+
+  # Do -B on the data stream
+  my $isBinary = 0;
+  {
+    my $data_length = CORE::length($testChars);
+    my $bin_length = $testChars =~ tr/[\t\n\x20-\x7e]//c;
+    my $non_bin_length = $data_length - $bin_length;
+    $isBinary = ($non_bin_length / $data_length) > .70 ? 0 : 1;
+  }
+
+  unless ($isBinary)
+  {
+    return 'mailbox' if _IS_MAILBOX($testChars);
+    return 'non-mailbox ascii';
+  }
+
+  # See "magic" on unix systems for details on how to identify file types
+  return 'tzip' if substr($testChars, 0, 2) eq 'TZ';
+  return 'bzip2' if substr($testChars, 0, 3) eq 'BZh';
+  return 'bzip' if substr($testChars, 0, 2) eq 'BZ';
+#  return 'zip' if substr($testChars, 0, 2) eq 'PK' &&
+#    ord(substr($testChars,3,1)) == 0003 && ord(substr($testChars,4,1)) == 0004;
+  return 'gzip' if
+    ord(substr($testChars,0,1)) == 0037 && ord(substr($testChars,1,1)) == 0213;
+  return 'compress' if
+    ord(substr($testChars,0,1)) == 0037 && ord(substr($testChars,1,1)) == 0235;
+
+  return 'unknown binary';
+}
+
+#-------------------------------------------------------------------------------
+
+sub _DO_DECOMPRESSION
+{
+  my $file_handle = shift;
+  my $file_type = shift;
+
+  my $filter_command;
+
+  if ($file_type eq 'tzip')
+  {
+    $filter_command = "$TZIP -cd";
+  }
+  elsif ($file_type eq 'gzip' || $file_type eq 'compress')
+  {
+    $filter_command = "$GZIP -cd";
+  }
+  elsif ($file_type eq 'bzip' || $file_type eq 'bzip2')
+  {
+    $filter_command = "$BZIP2 -cd";
+  }
+  else
+  {
+    die 'Shouldn\'t ever get here';
+  }
+
+
+  # Implicit fork
+  my $decompressed_file_handle = new FileHandle;
+  my $pid = $decompressed_file_handle->open('-|');
+
+  unless (defined($pid))
+  {
+    $file_handle->close();
+    die 'Can\'t fork to decompress file handle';
+  }
+
+  # In child. Write to the parent, giving it all the data to decompress.
+  # We have to do it this way because other methods (e.g. open2) require us
+  # to feed the filter as we use the filtered data. This method allows us to
+  # keep the remainder of the code the same for both compressed and
+  # uncompressed input.
+  unless ($pid)
+  {
+    open(FRONT_OF_PIPE, "|$filter_command 2>/dev/null")
+      or return (undef,"Can't execute \"$filter_command\" on file handle: $!");
+
+    print FRONT_OF_PIPE <$file_handle>;
+
+    $file_handle->close()
+      or return (undef,"Can't execute \"$filter_command\" on file handle: $!");
+
+    # We intentionally don't check for error here. This is because the
+    # parent may have aborted, in which case we let it take care of
+    # error messages. (e.g. Non-mailbox standard input.)
+    close FRONT_OF_PIPE;
+
+    exit;
+  }
+
+  # In parent
+  return ($decompressed_file_handle,undef);
+}
+
+#-------------------------------------------------------------------------------
+
+sub _OPEN_DECOMPRESSION_FILE_HANDLE
+{
+  my $command = shift;
+
+}
+
+#-------------------------------------------------------------------------------
+
+# Checks to see if there is data on a filehandle, without reading that data.
+
+sub _DATA_ON_FILE_HANDLE
+{
+  my $file_handle = shift;
+
+  my $buffer = <$file_handle>;
+
+  return 0 unless defined $buffer;
+
+  _PUT_BACK_STRING($file_handle,$buffer);
+
+  return $buffer ? 1 : 0;
+}
+
+#-------------------------------------------------------------------------------
+
+# Puts a string back on a file handle
+
+sub _PUT_BACK_STRING
+{
+  my $file_handle = shift;
+  my $string = shift;
+
+  # Try to just move the file pointer
+  seek($file_handle, 0, 0) and return;
+
+  for (my $char_position=CORE::length($string)-1;$char_position >=0; $char_position--)
+  {
+    $file_handle->ungetc(ord(substr($string,$char_position,1)));
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+# Detects whether an ASCII file is a mailbox, based on whether it has
+# a line whose prefix is 'From' or 'X-From-Line:' or 'X-Draft-From:',
+# and another line whose prefix is 'Received ', 'Date:', 'Subject:',
+# 'X-Status:', 'Status:', or 'To:'.
+
+sub _IS_MAILBOX
+{
+  my $test_characters = shift;
+
+  # X-From-Line is used by Gnus, and From is used by normal Unix
+  # format. Newer versions of Gnus use X-Draft-From
+#  if ($buffer =~ /^(X-Draft-From:|X-From-Line:|From)\s/im &&
+#      $buffer =~ /^(Date|Subject|X-Status|Status|To):\s/im)
+  if ($test_characters =~ /^(X-Draft-From:|X-From-Line:|From:?)\s/im &&
+      $test_characters =~ /^(Date|To|Bcc):\s/im)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -264,8 +579,8 @@ Mail::Mbox::MessageParser - A fast and simple mbox folder reader
 
   use Mail::Mbox::MessageParser;
 
-  my $filename = 'mail/saved-mail';
-  my $filehandle = new FileHandle($filename);
+  my $file_name = 'mail/saved-mail';
+  my $file_handle = new FileHandle($file_name);
 
   # Set up cache. (Not necessary if enable_cache is false.)
   Mail::Mbox::MessageParser::SETUP_CACHE(
@@ -273,8 +588,8 @@ Mail::Mbox::MessageParser - A fast and simple mbox folder reader
 
   my $folder_reader =
     new Mail::Mbox::MessageParser( {
-      'file_name' => $filename,
-      'file_handle' => $filehandle,
+      'file_name' => $file_name,
+      'file_handle' => $file_handle,
       'enable_cache' => 1,
       'enable_grep' => 1,
     } );
@@ -333,6 +648,7 @@ must provide the location to the cache file. There is no default value.
     'file_handle' => <mailbox file handle>,
     'enable_cache' => <1 or 0>,
     'enable_grep' => <1 or 0>,
+    'force_processing' => <1 or 0>,
     'debug' => <1 or 0>,
   } );
 
@@ -340,14 +656,31 @@ must provide the location to the cache file. There is no default value.
   <mailbox file handle> - the already opened file handle for the mailbox
   <enable_cache> - true to attempt to use the cache implementation
   <enable_grep> - true to attempt to use the grep implementation
+  <force_processing> - true to force processing of files that look invalid
   <debug> - true to print some debugging information to STDERR
 
-This constructor will attempt to load the Cache, Grep, and Perl implementations
-as necessary. For example, the first time you use caching, there will be no
-cache. In this case, the grep implementation can be used instead. The cache
-will be updated in memory as the grep implementation parses the mailbox, and
-the cache will be written after the program exits. The file name is optional,
-in which case I<enable_cache> and I<enable_grep> must both be false.
+The constructor takes either a file name or a file handle, or both. If the
+file handle is not defined, Mail::Mbox::MessageParser will attempt to open the
+file using the file name. You should always pass the file name if you have it, so
+that the parser can cache the mailbox information.
+
+This module will automatically decompress the mailbox as necessary. If a
+filename is available but the file handle is undef, the module will call
+either tzip, bzip2, or gzip to decompress the file in memory if the filename
+ends with .tz, .bz2, or .gz, respectively. If the file handle is defined, it
+will detect the type of compression and apply the correct decompression
+program.
+
+The Cache, Grep, or Perl implementation of the parser will be loaded,
+whichever is most appropriate. For example, the first time you use caching,
+there will be no cache. In this case, the grep implementation can be used
+instead. The cache will be updated in memory as the grep implementation parses
+the mailbox, and the cache will be written after the program exits. The file
+name is optional, in which case I<enable_cache> and I<enable_grep> must both
+be false.
+
+Returns a reference to a Mail::Mbox::MessageParser object on success, and a
+scalar desribing an error on failure. ("Not a mailbox", "Can't open <filename>: <system error>", "Can't execute <uncompress command> for file <filename>"
 
 
 =item reset()
