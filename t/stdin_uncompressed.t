@@ -50,7 +50,7 @@ sub TestImplementation
   my $mailbox = <MAILBOX>;
   close MAILBOX;
 
-  open PIPE, "|$^X -Iblib/lib t/temp/stdin.pl $output_filename";
+  open PIPE, "|$^X -Iblib/lib t/temp/stdin.pl '$output_filename'";
   local $SIG{PIPE} = sub { die "test program pipe broke" };
   print PIPE $mailbox;
   close PIPE;

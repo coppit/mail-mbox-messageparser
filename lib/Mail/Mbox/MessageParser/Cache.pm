@@ -5,6 +5,7 @@ no strict;
 @ISA = qw( Exporter Mail::Mbox::MessageParser );
 
 use strict;
+use Carp;
 use Mail::Mbox::MessageParser;
 
 use vars qw( $VERSION $DEBUG $CACHE %CACHE_OPTIONS $UPDATING_CACHE
@@ -67,7 +68,7 @@ sub SETUP_CACHE
 
   $CACHE_MODIFIED = 0;
 
-  return 1;
+  return 'ok';
 }
 
 #-------------------------------------------------------------------------------
@@ -106,7 +107,7 @@ sub WRITE_CACHE
 
   # The mail box cache may contain sensitive information, so protect it
   # from prying eyes.
-  my $oldmask=umask(077);
+  my $oldmask = umask(077);
 
   # Serialize using Storable
   store($CACHE, $CACHE_OPTIONS{'file_name'});
@@ -137,7 +138,7 @@ sub new
   my $self  = {};
   bless ($self, $class);
 
-  die "Call SETUP_CACHE() before calling new()"
+  carp "Call SETUP_CACHE() before calling new()"
     unless defined $CACHE_OPTIONS{'file_name'};
 
   # We need to write the cache if the user fully parsed a previous file before
@@ -146,8 +147,8 @@ sub new
   # for 99% of the cases.
   WRITE_CACHE() if $CACHE_MODIFIED && !$UPDATING_CACHE;
 
-  die "Need file_name option" unless defined $options->{'file_name'};
-  die "Need file_handle option" unless defined $options->{'file_handle'};
+  carp "Need file_name option" unless defined $options->{'file_name'};
+  carp "Need file_handle option" unless defined $options->{'file_handle'};
 
   $self->{'file_handle'} = undef;
   $self->{'file_handle'} = $options->{'file_handle'}
@@ -197,6 +198,8 @@ sub reset
   # If we're in the middle of parsing this file, we need to reset the cache
   if ($UPDATING_CACHE)
   {
+    dprint "Resetting cache\n";
+
     my @stat = stat $self->{'file_name'};
 
     my $size = $stat[7];
@@ -217,8 +220,6 @@ sub reset
 sub _read_prologue
 {
   my $self = shift;
-
-  dprint "Reading mailbox prologue using cache";
 
   my $prologue_length = $CACHE->{$self->{'file_name'}}{'offsets'}[0];
 
@@ -270,10 +271,14 @@ sub _validate_and_initialize_cache_entry
 
   if (exists $CACHE->{$self->{'file_name'}})
   {
+    dprint "Cache is valid";
+
     $UPDATING_CACHE = 0;
   }
   else
   {
+    dprint "Cache is invalid: \"$self->{'file_name'}\" has not been parsed";
+
     $CACHE->{$self->{'file_name'}}{'size'} = $size;
     $CACHE->{$self->{'file_name'}}{'time_stamp'} = $time_stamp;
     $CACHE->{$self->{'file_name'}}{'lengths'} = [];

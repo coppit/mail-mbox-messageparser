@@ -1,0 +1,23 @@
+Version 1.10:
+- Testing modules are no longer (accidentally) installed.
+- External programs are now queried during installation instead of just using
+  whatever is in your path (a security risk). (Thanks to David N.
+  Blank-Edelman <dnb@ccs.neu.edu> for the bug report.)
+- Changed testing to use PERLRUN instead of FULLPERLRUN, which is not
+  available with older versions of MakeMaker that ship with older versions of
+  Perl. (Thanks to Ed Avis <ed.avis@kbcfp.com> for catching this.)
+- Cache file permissions are now set to protect against prying eyes. (Patch by
+  Joey Hess <joey@kitenet.net>)
+- Improved speed testing.
+- Added support for opening of files, and decompressing files or filehandles.
+- Restructured test cases.
+- Fixed a bug in _PUT_BACK_STRING which would cause major failures on Solaris.
+- Fixed compatibility problems with perl 5.005_01
+- Fixed grep implementation for filenames with spaces in them. (Thanks to
+  Johan Ekenberg <johan@fsdata.se> for the bug report and patch.)
+- Added "force_processing" option to force processing of files even if they
+  look to be binary or non-mailboxes.
+
+Version 1.00:
+- Initial version, with caching and grep support. Code taken from version 5.00
+  of grepmail

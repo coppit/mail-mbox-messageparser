@@ -14,26 +14,36 @@ use Mail::Mbox::MessageParser::Perl;
 use Mail::Mbox::MessageParser::Grep;
 use Mail::Mbox::MessageParser::Cache;
 
-use vars qw( $VERSION $DEBUG $UPDATING_CACHE %PROGRAMS );
+use vars qw( $VERSION $DEBUG $FROM_PATTERN $UPDATING_CACHE %PROGRAMS );
 
 $VERSION = '1.10';
 $DEBUG = 0;
 
-$UPDATING_CACHE = 0;
-
 %PROGRAMS = (
- 'grep' => '/usr/cs/contrib/bin/grep',
- 'tzip' => undef,
- 'gzip' => '/usr/cs/contrib/bin/gzip',
- 'compress' => '/usr/cs/contrib/bin/gzip',
- 'bzip' => undef,
- 'bzip2' => undef,
+ 'grep' => '/bin/grep',
+ 'tzip' => '/home/david/bin/tzip',
+ 'gzip' => '/bin/gzip',
+ 'compress' => '/bin/gzip',
+ 'bzip' => '/usr/bin/bzip2',
+ 'bzip2' => '/usr/bin/bzip2',
 );
+
+$FROM_PATTERN = q/(?x)^
+    (X-Draft-From:\s.*|X-From-Line:\s.*|
+    From\s
+      # Skip names, months, days
+      (?> [^:]+ )
+      # Match time
+      (?: :\d\d){1,2}
+      # Match time zone (EST), hour shift (+0500), and-or year
+      (?: \s+ (?: [A-Z]{2,3} | [+-]?\d{4} ) ){1,3}
+      # smail compatibility
+      (\sremote\sfrom\s.*)?
+    )$/;
 
 #-------------------------------------------------------------------------------
 
-# Outputs debug messages if $DEBUG is true. Be sure to return 1 so code like
-# 'dprint "blah\n" and exit' works.
+# Outputs debug messages if $DEBUG is true. 
 
 sub dprint
 {
@@ -46,29 +56,16 @@ sub dprint
     warn "DEBUG (" . __PACKAGE__ . "): $line\n";
   }
 
+  # Be sure to return 1 so code like 'dprint "blah\n" and exit' works.
   return 1;
 }
 
 #-------------------------------------------------------------------------------
 
-sub SETUP_CACHE
-{
-  Mail::Mbox::MessageParser::Cache::SETUP_CACHE(@_);
-}
-
-#-------------------------------------------------------------------------------
-
-sub CLEAR_CACHE
-{
-  Mail::Mbox::MessageParser::Cache::CLEAR_CACHE(@_);
-}
-
-#-------------------------------------------------------------------------------
-
-sub WRITE_CACHE
-{
-  Mail::Mbox::MessageParser::Cache::WRITE_CACHE(@_);
-}
+*UPDATING_CACHE = \$Mail::Mbox::MessageParser::Cache::UPDATING_CACHE;
+*SETUP_CACHE = \&Mail::Mbox::MessageParser::Cache::SETUP_CACHE;
+*CLEAR_CACHE = \&Mail::Mbox::MessageParser::Cache::CLEAR_CACHE;
+*WRITE_CACHE = \&Mail::Mbox::MessageParser::Cache::WRITE_CACHE;
 
 #-------------------------------------------------------------------------------
 
@@ -77,10 +74,6 @@ sub new
   my ($proto, $options, $cache_options) = @_;
 
   my $class = ref($proto) || $proto;
-
-  my $self = undef;
-
-  $UPDATING_CACHE = 0;
 
   carp "You must provide either a file name or a file handle"
     unless defined $options->{'file_name'} || defined $options->{'file_handle'};
@@ -103,7 +96,12 @@ sub new
   # Grep implementation doesn't support compression right now
   $options->{'enable_grep'} = 0 if _IS_COMPRESSED_TYPE($file_type);
 
-  if (defined $options->{'enable_cache'} && $options->{'enable_cache'})
+  $options->{'enable_cache'} = 1 unless defined $options->{'enable_cache'};;
+  $options->{'enable_grep'} = 1 unless defined $options->{'enable_grep'};;
+
+  my $self = undef;
+
+  if ($options->{'enable_cache'})
   {
     $self = new Mail::Mbox::MessageParser::Cache($options, $cache_options);
 
@@ -113,21 +111,28 @@ sub new
       $self = undef;
     }
 
-    if ($Mail::Mbox::MessageParser::Cache::UPDATING_CACHE)
+    if ($UPDATING_CACHE)
     {
-      $UPDATING_CACHE = 1;
+      dprint "Couldn't instantiate Mail::Mbox::MessageParser::Cache: " .
+        "Updating cache";
       $self = undef;
     }
   }
 
-  if (!defined $self &&
-    defined $options->{'enable_grep'} && $options->{'enable_grep'})
+  if (!defined $self && $options->{'enable_grep'})
   {
     $self = new Mail::Mbox::MessageParser::Grep($options);
 
     unless (ref $self)
     {
-      warn "Couldn't instantiate Mail::Mbox::MessageParser::Grep: $self";
+      if ($self =~ /not installed/)
+      {
+        dprint "Couldn't instantiate Mail::Mbox::MessageParser::Grep: $self";
+      }
+      else
+      {
+        warn "Couldn't instantiate Mail::Mbox::MessageParser::Grep: $self";
+      }
       $self = undef;
     }
   }
@@ -136,11 +141,14 @@ sub new
   {
     $self = new Mail::Mbox::MessageParser::Perl($options);
 
-    unless (ref $self)
-    {
-      die "Couldn't instantiate Mail::Mbox::MessageParser::Perl: $self";
-    }
+    warn "Couldn't instantiate Mail::Mbox::MessageParser::Perl: $self"
+      unless ref $self;
   }
+
+  die "Couldn't instantiate any mailbox parser implementation"
+    unless defined $self;
+
+  dprint "Instantiate mailbox parser implementation: " . ref $self;
 
   $DEBUG = $options->{'debug'}
     if defined $options->{'debug'};
@@ -174,6 +182,7 @@ sub _PREPARE_FILE_HANDLE
   if (defined $file_handle)
   {
     my $file_type = _GET_FILE_TYPE($file_handle);
+    dprint "Filehandle file type: $file_type";
 
     # Do decompression if we need to
     if (_IS_COMPRESSED_TYPE($file_type))
@@ -191,6 +200,8 @@ sub _PREPARE_FILE_HANDLE
     }
     else
     {
+      dprint "Filehandle is not compressed";
+
       return ($file_handle,$file_type,0,"No data on filehandle")
         unless _DATA_ON_FILE_HANDLE($file_handle);
 
@@ -203,6 +214,7 @@ sub _PREPARE_FILE_HANDLE
   else
   {
     my $file_type = _GET_FILE_TYPE($file_name);
+    dprint "Filename \"$file_name\" file type: $file_type";
 
     my ($opened_file_handle,$error) =
       _OPEN_FILE_HANDLE($file_name, $file_type);
@@ -236,21 +248,26 @@ sub _OPEN_FILE_HANDLE
   my $file_name = shift;
   my $file_type = shift;
 
+  dprint "Opening file \"$file_name\"";
+
   # Non-compressed file
   unless (_IS_COMPRESSED_TYPE($file_type))
   {
     my $file_handle = new FileHandle($file_name);
     return (undef,"Can't open $file_name: $!") unless defined $file_handle;
+
+    dprint "File \"$file_name\" is not compressed";
+
     return ($file_handle,undef);
   }
 
+  # It must be a known compressed file type
   return (undef,"Can't decompress $file_name--no decompressor available")
     unless defined $PROGRAMS{$file_type};
 
-  # It must be a known compressed file type
   my $filter_command = "$PROGRAMS{$file_type} -cd '$file_name' |";
 
-  dprint "Calling \"$filter_command\" to decompress file.";
+  dprint "Calling \"$filter_command\" to decompress file. \"$file_name\"";
 
   use vars qw(*OLDSTDERR);
   open OLDSTDERR,">&STDERR" or die "Can't save STDERR: $!\n";
@@ -367,6 +384,8 @@ sub _DO_DECOMPRESSION
 
   my $filter_command = "$PROGRAMS{$file_type} -cd";
 
+  dprint "Calling \"$filter_command\" to decompress filehandle";
+
   # Implicit fork
   my $decompressed_file_handle = new FileHandle;
   my $pid = $decompressed_file_handle->open('-|');
@@ -402,14 +421,6 @@ sub _DO_DECOMPRESSION
 
   # In parent
   return ($decompressed_file_handle,undef);
-}
-
-#-------------------------------------------------------------------------------
-
-sub _OPEN_DECOMPRESSION_FILE_HANDLE
-{
-  my $command = shift;
-
 }
 
 #-------------------------------------------------------------------------------
@@ -457,9 +468,7 @@ sub _IS_MAILBOX
 
   # X-From-Line is used by Gnus, and From is used by normal Unix
   # format. Newer versions of Gnus use X-Draft-From
-#  if ($buffer =~ /^(X-Draft-From:|X-From-Line:|From)\s/im &&
-#      $buffer =~ /^(Date|Subject|X-Status|Status|To):\s/im)
-  if ($test_characters =~ /^(X-Draft-From:|X-From-Line:|From:?)\s/im &&
+  if ($test_characters =~ /$FROM_PATTERN/im &&
       $test_characters =~ /^Received:.*\bfrom\b.*\bby\b.*for\b/sm)
   {
     return 1;
@@ -495,7 +504,11 @@ sub _print_debug_information
   my $self = shift;
 
   dprint "Version: $VERSION";
-  dprint "Email file: $self->{'file_name'}";
+
+  foreach my $key ($self)
+  {
+    dprint "$key: $self->{$key}" if ref \$self->{$key} eq 'SCALAR';
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -678,8 +691,8 @@ must provide the location to the cache file. There is no default value.
 
 The constructor takes either a file name or a file handle, or both. If the
 file handle is not defined, Mail::Mbox::MessageParser will attempt to open the
-file using the file name. You should always pass the file name if you have it, so
-that the parser can cache the mailbox information.
+file using the file name. You should always pass the file name if you have it,
+so that the parser can cache the mailbox information.
 
 This module will automatically decompress the mailbox as necessary. If a
 filename is available but the file handle is undef, the module will call
@@ -695,6 +708,9 @@ instead. The cache will be updated in memory as the grep implementation parses
 the mailbox, and the cache will be written after the program exits. The file
 name is optional, in which case I<enable_cache> and I<enable_grep> must both
 be false.
+
+I<force_processing> will cause the module to process folders that look to be
+binary, or whose text data doesn't look like a mailbox.
 
 Returns a reference to a Mail::Mbox::MessageParser object on success, and a
 scalar desribing an error on failure. ("Not a mailbox", "Can't open <filename>: <system error>", "Can't execute <uncompress command> for file <filename>"

@@ -14,7 +14,8 @@ use Mail::Mbox::MessageParser::Perl;
 use Test::Utils;
 use FileHandle;
 
-my @files = <t/mailboxes/mail*.txt.*>;
+my @files = <t/mailboxes/*.txt.*>;
+@files = grep { !/non-mailbox/ } @files;
 
 mkdir 't/temp', 0700;
 
