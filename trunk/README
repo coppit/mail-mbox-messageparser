@@ -7,10 +7,10 @@ information, GNU grep, or highly optimized Perl.
 
 NEW IN THIS VERSION
 
-Version 1.21.1: Thu Sep 16 2004
-- Fixed broken dependency specification in Makefile.PL
-- Removed Module::Install extension dependency code from Makefile.PL. (Not
-  needed with fixed extensions.)
+Version 1.2130: Tue Dec 21 2004
+- Fixed version numbers, which were incompatible with some modules. (Thanks to
+  Tassilo von Parseval <tassilo.von.parseval@rwth-aachen.de> for the bug
+  report)
 
 
 MODULE DEPENDENCIES

@@ -105,9 +105,9 @@ t/results/reset_newlines_at_beginning.stdout
 # Module::Install extensions
 inc/Algorithm/Diff.pm
 inc/ExtUtils/AutoInstall.pm
-inc/File/Glob.pm
 inc/File/Spec.pm
 inc/File/Spec/Unix.pm
+inc/List/Util.pm
 inc/Module/Install/AutoInstall.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
