@@ -22,6 +22,8 @@ my $test_program = <DATA>;
 
 foreach my $filename (@files) 
 {
+  print "Testing filename: $filename\n";
+
   if ($filename =~ /\.bz2$/ && !defined $PROGRAMS{'bzip2'})
   {
     skip('Skip bzip2 not available',1);
@@ -73,6 +75,7 @@ sub TestImplementation
   close MAILBOX;
 
   open PIPE, "|$^X -Iblib/lib t/temp/stdin.pl '$output_filename'";
+  binmode PIPE;
   local $SIG{PIPE} = sub { die "test program pipe broke" };
   print PIPE $mailbox;
   close PIPE;
@@ -111,6 +114,7 @@ sub ParseFile
   $file_handle->open('-') or die $!;
 
   my $output_file_handle = new FileHandle(">$output_filename");
+  binmode $output_file_handle;
 
   my $folder_reader =
       new Mail::Mbox::MessageParser( {

@@ -22,6 +22,8 @@ plan (tests => 4 * scalar (@files));
 
 foreach my $filename (@files) 
 {
+  print "Testing filename: $filename\n";
+
   if ($filename =~ /\.bz2$/ && !defined $PROGRAMS{'bzip2'})
   {
     skip('Skip bzip2 not available',1);
@@ -90,6 +92,7 @@ sub TestImplementation
     "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout";
 
   my $output = new FileHandle(">$output_filename");
+  binmode $output;
 
   my $filehandle = new FileHandle($filename);
 

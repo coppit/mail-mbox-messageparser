@@ -4,36 +4,31 @@ Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser. It uses
 the best of three strategies for parsing a mailbox: either using cached folder
 information, GNU grep, or highly optimized Perl.
 
-Version 1.10:
-- Testing modules are no longer (accidentally) installed.
-- External programs are now queried during installation instead of just using
-  whatever is in your path (a security risk).
-- Changed testing to use PERLRUN instead of FULLPERLRUN, which is not
-  available with older versions of MakeMaker that ship with older versions of
-  Perl.
-- Cache file permissions are now set to protect against prying eyes.
-- Improved speed testing.
-- Added support for opening of files, and decompressing files or filehandles.
-- Restructured test cases.
-- Fixed a bug in _PUT_BACK_STRING which would cause major failures on Solaris.
-- Fixed compatibility problems with perl 5.005_01
-- Fixed grep implementation for filenames with spaces in them. 
-- Added "force_processing" option to force processing of files even if they
-  look to be binary or non-mailboxes.
+Version 1.11:
+- Added test cases with spaces in the mailbox names.
+- Fixed line ending bugs for MS-DOS/Windows (Tests now pass under cygwin)
+- Fixed mailbox detection problem with mailboxes whose first email is a
+  pseudo-email used to store mailbox state information.
+- Fixed a bug on freebsd where mailboxes of size less than 2000 bytes would be
+  incorrectly processed. (This fix is a less-than-optimal one which requires
+  IO::String. I may later get the gumption to do it right using PerlIO::var)
 
 
 DEPENDENCIES
 
 - Storable: required if you want to use caching
+- IO::String: required for now (may be removed later)
 - GNU grep(1): required if you want to use grep support
 
 The modules can be found here:
 
 Storable:                  http://search.cpan.org/search?dist=Storable
+IO::String:                http://search.cpan.org/search?dist=IO-String
 
 Installation can also be done automatically using the CPAN module:
 
   perl -MCPAN -e 'install Storable'
+  perl -MCPAN -e 'install IO::String'
 
 
 INSTALLATION

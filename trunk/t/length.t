@@ -21,6 +21,8 @@ plan (tests => 3 * scalar (@files));
 
 foreach my $filename (@files) 
 {
+  print "Testing filename: $filename\n";
+
   InitializeCache($filename);
 
   TestImplementation($filename,0,0);
@@ -54,6 +56,7 @@ sub TestImplementation
     "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout";
 
   my $output = new FileHandle(">$output_filename");
+  binmode $output;
 
   my $filehandle = new FileHandle($filename);
 
