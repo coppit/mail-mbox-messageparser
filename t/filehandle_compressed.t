@@ -8,6 +8,7 @@ use strict;
 use Test::More;
 use lib 't';
 use Mail::Mbox::MessageParser;
+use Mail::Mbox::MessageParser::Config;
 use Mail::Mbox::MessageParser::Cache;
 use Mail::Mbox::MessageParser::Grep;
 use Mail::Mbox::MessageParser::Perl;
@@ -31,13 +32,17 @@ foreach my $filename (@files)
   SKIP:
   {
     skip('bzip2 not available',4)
-      if $filename =~ /\.bz2$/ && !defined $PROGRAMS{'bzip2'};
+      if $filename =~ /\.bz2$/ &&
+        !defined $Mail::Mbox::MessageParser::Config{'programs'}{'bzip2'};
     skip('bzip not available',4)
-      if $filename =~ /\.bz$/ && !defined $PROGRAMS{'bzip'};
+      if $filename =~ /\.bz$/ &&
+        !defined $Mail::Mbox::MessageParser::Config{'programs'}{'bzip'};
     skip('gzip not available',4)
-      if $filename =~ /\.gz$/ && !defined $PROGRAMS{'gzip'};
+      if $filename =~ /\.gz$/ &&
+        !defined $Mail::Mbox::MessageParser::Config{'programs'}{'gzip'};
     skip('tzip not available',4)
-      if $filename =~ /\.tz$/ && !defined $PROGRAMS{'tzip'};
+      if $filename =~ /\.tz$/ &&
+        !defined $Mail::Mbox::MessageParser::Config{'programs'}{'tzip'};
 
     TestImplementation($filename,0,0);
 
@@ -49,7 +54,7 @@ foreach my $filename (@files)
     TestImplementation($filename,1,1);
 
     skip('GNU grep not available',1)
-      unless defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'};
+      unless defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'};
 
     TestImplementation($filename,0,1);
   }

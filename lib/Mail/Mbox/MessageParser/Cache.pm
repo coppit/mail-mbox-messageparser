@@ -6,12 +6,14 @@ no strict;
 
 use strict;
 use Carp;
+
 use Mail::Mbox::MessageParser;
+use Mail::Mbox::MessageParser::Config;
 
 use vars qw( $VERSION $DEBUG $CACHE %CACHE_OPTIONS $UPDATING_CACHE
   $CACHE_MODIFIED );
 
-$VERSION = '1.2.0';
+$VERSION = '1.2.1';
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *dprint = \&Mail::Mbox::MessageParser::dprint;

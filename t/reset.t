@@ -7,6 +7,7 @@ use strict;
 use Test::More;
 use lib 't';
 use Mail::Mbox::MessageParser;
+use Mail::Mbox::MessageParser::Config;
 use Mail::Mbox::MessageParser::Cache;
 use Mail::Mbox::MessageParser::Grep;
 use Mail::Mbox::MessageParser::Perl;
@@ -46,7 +47,7 @@ foreach my $filename (@files)
     print "Testing partial mailbox reset with Grep implementation\n";
 
     skip('GNU grep not available',1)
-      unless defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'};
+      unless defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'};
 
     TestPartialRead($filename,0,1);
   }
@@ -68,7 +69,7 @@ foreach my $filename (@files)
     print "Testing full mailbox reset with Grep implementation\n";
 
     skip('GNU grep not available',1)
-      unless defined $Mail::Mbox::MessageParser::PROGRAMS{'grep'};
+      unless defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'};
 
     TestFullRead($filename,0,1);
   }

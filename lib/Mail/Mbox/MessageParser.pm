@@ -7,43 +7,18 @@ use File::Spec;
 use File::Temp;
 sub dprint;
 
+use Mail::Mbox::MessageParser::Config;
+
 use Mail::Mbox::MessageParser::Perl;
 use Mail::Mbox::MessageParser::Grep;
 use Mail::Mbox::MessageParser::Cache;
 
-use vars qw( @ISA $VERSION $DEBUG $MAX_TESTCHAR_BUFFER_SIZE %PROGRAMS
-             $FROM_PATTERN $UPDATING_CACHE );
+use vars qw( @ISA $VERSION $DEBUG $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
 $VERSION = '1.21.2';
 $DEBUG = 0;
-
-$MAX_TESTCHAR_BUFFER_SIZE = 1048576;
-
-%PROGRAMS = (
- 'grep' => '/usr/bin/grep',
- 'tzip' => undef,
- 'gzip' => '/sw/bin/gzip',
- 'compress' => '/sw/bin/gzip',
- 'bzip' => '/sw/bin/bzip2',
- 'bzip2' => '/sw/bin/bzip2',
-);
-
-# X-From-Line is used by Gnus, and From is used by normal Unix
-# format. Newer versions of Gnus use X-Draft-From
-$FROM_PATTERN = q/(?x)^
-    (X-Draft-From:\s|X-From-Line:\s|
-    From\s
-      # Skip names, months, days
-      (?> [^:]+ )
-      # Match time
-      (?: :\d\d){1,2}
-      # Match time zone (EST), hour shift (+0500), and-or year
-      (?: \s+ (?: [A-Z]{2,3} | [+-]?\d{4} ) ){1,3}
-      # smail compatibility
-      (\sremote\sfrom\s.*)?
-    )/;
 
 #-------------------------------------------------------------------------------
 
@@ -296,9 +271,9 @@ sub _OPEN_FILE_HANDLE
 
   # It must be a known compressed file type
   return (undef,"Can't decompress $file_name--no decompressor available")
-    unless defined $PROGRAMS{$file_type};
+    unless defined $Mail::Mbox::MessageParser::Config{'programs'}{$file_type};
 
-  my $filter_command = "$PROGRAMS{$file_type} -cd '$file_name' |";
+  my $filter_command = "$Mail::Mbox::MessageParser::Config{'programs'}{$file_type} -cd '$file_name' |";
 
   dprint "Calling \"$filter_command\" to decompress file \"$file_name\".";
 
@@ -364,12 +339,13 @@ sub _GET_FILE_TYPE
 
     last if _IS_BINARY(\$test_chars);
 
-    if(CORE::length($test_chars) > $MAX_TESTCHAR_BUFFER_SIZE)
+    if(CORE::length($test_chars) >
+        $Mail::Mbox::MessageParser::Config{'max_testchar_buffer_size'})
     {
       if(index($test_chars,"\n\n") == -1 && index($test_chars,"\r\n\r\n") == -1)
       {
         dprint "Couldn't find end of first paragraph after " .
-          "$MAX_TESTCHAR_BUFFER_SIZE bytes."
+          "$Mail::Mbox::MessageParser::Config{'max_testchar_buffer_size'} bytes."
       }
 
       last;
@@ -447,12 +423,13 @@ sub _GET_ENDLINE
 
     last if _IS_BINARY(\$test_chars);
 
-    if(CORE::length($test_chars) > $MAX_TESTCHAR_BUFFER_SIZE)
+    if(CORE::length($test_chars) >
+        $Mail::Mbox::MessageParser::Config{'max_testchar_buffer_size'})
     {
       if(index($test_chars,"\n") == -1 && index($test_chars,"\r\n") == -1)
       {
         dprint "Couldn't find end of first line after " .
-          "$MAX_TESTCHAR_BUFFER_SIZE bytes."
+          "$Mail::Mbox::MessageParser::Config{'max_testchar_buffer_size'} bytes."
       }
 
       last;
@@ -491,7 +468,7 @@ sub _IS_COMPRESSED_TYPE
   
   local $" = '|';
 
-  my @types = keys %PROGRAMS;
+  my @types = qw( gzip tzip bzip bzip2 compress );
   my $file_type_pattern = "(@types)";
 
   return $file_type =~ /^$file_type_pattern$/;
@@ -532,9 +509,9 @@ sub _DO_WINDOWS_DECOMPRESSION
   my $file_type = shift;
 
   return (undef,"Can't decompress file handle--no decompressor available")
-    unless defined $PROGRAMS{$file_type};
+    unless defined $Mail::Mbox::MessageParser::Config{'programs'}{$file_type};
 
-  my $filter_command = "$PROGRAMS{$file_type} -cd";
+  my $filter_command = "$Mail::Mbox::MessageParser::Config{'programs'}{$file_type} -cd";
 
   my ($temp_file_handle, $temp_file_name) =
     File::Temp::tempfile('mail-mbox-messageparser-XXXXXX', SUFFIX => '.tmp', UNLINK => 1);
@@ -566,9 +543,9 @@ sub _DO_NONWINDOWS_DECOMPRESSION
   my $file_type = shift;
 
   return (undef,"Can't decompress file handle--no decompressor available")
-    unless defined $PROGRAMS{$file_type};
+    unless defined $Mail::Mbox::MessageParser::Config{'programs'}{$file_type};
 
-  my $filter_command = "$PROGRAMS{$file_type} -cd";
+  my $filter_command = "$Mail::Mbox::MessageParser::Config{'programs'}{$file_type} -cd";
 
   dprint "Calling \"$filter_command\" to decompress filehandle";
 
@@ -660,7 +637,7 @@ sub _IS_MAILBOX
 {
   my $test_characters = shift;
 
-  if ($$test_characters =~ /$FROM_PATTERN/im &&
+  if ($$test_characters =~ /$Mail::Mbox::MessageParser::Config{'from_pattern'}/im &&
       $$test_characters =~ /^(Received[ :]|Date:|Subject:|X-Status:|Status:|To:)/sm)
   {
     return 1;

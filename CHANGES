@@ -6,6 +6,7 @@ Version 1.21.2:
 - Fixed a bug where messages embedded in other messages as RFC 822 attachments
   would be treated as separate emails. (Thanks to Will Fiveash
   <william.fiveash@sun.com> for the bug report.)
+- Moved all configuration data to M::M::MP::Config
 
 Version 1.21.1: Thu Sep 16 2004
 - Fixed broken dependency specification in Makefile.PL

@@ -7,9 +7,10 @@ use Test::More;
 use lib 't';
 use File::Spec::Functions qw(:ALL);
 use Test::Utils;
+use Mail::Mbox::MessageParser::Config;
 use Mail::Mbox::MessageParser;
 
-my $TZIP = $PROGRAMS{'tzip'} || 'not installed';
+my $TZIP = $Mail::Mbox::MessageParser::Config{'programs'}{'tzip'} || 'not installed';
 
 my %tests = (
 "cat " . catfile('t','mailboxes','mailarc-2.txt.tz') . " | $TZIP -cd"
@@ -81,7 +82,7 @@ sub SetSkip
 
   my %skip;
 
-  unless (defined $PROGRAMS{'tzip'})
+  unless (defined $Mail::Mbox::MessageParser::Config{'programs'}{'tzip'})
   {
     $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.tz') . " | $TZIP -cd"}
       = 'tzip not available';

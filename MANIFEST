@@ -10,6 +10,7 @@ anonymize_mailbox
 
 # The module files
 lib/Mail/Mbox/MessageParser.pm
+lib/Mail/Mbox/MessageParser/Config.pm
 lib/Mail/Mbox/MessageParser/Cache.pm
 lib/Mail/Mbox/MessageParser/Grep.pm
 lib/Mail/Mbox/MessageParser/Perl.pm

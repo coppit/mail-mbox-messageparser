@@ -5,19 +5,17 @@ no strict;
 @ISA = qw( Exporter Mail::Mbox::MessageParser );
 
 use strict;
+
 use Mail::Mbox::MessageParser;
+use Mail::Mbox::MessageParser::Config;
 
-use vars qw( $VERSION $DEBUG $FROM_PATTERN );
+use vars qw( $VERSION $DEBUG );
 
-$VERSION = '1.4.1';
+$VERSION = '1.4.2';
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
-*FROM_PATTERN = \$Mail::Mbox::MessageParser::FROM_PATTERN;
 *dprint = \&Mail::Mbox::MessageParser::dprint;
 sub dprint;
-
-# Need this for a lookahead.
-my $READ_CHUNK_SIZE = 20000;
 
 #-------------------------------------------------------------------------------
 
@@ -38,7 +36,8 @@ sub new
   $self->{'file_name'} = $options->{'file_name'}
     if defined $options->{'file_name'};
 
-  $self->{'READ_CHUNK_SIZE'} = $READ_CHUNK_SIZE;
+  $self->{'READ_CHUNK_SIZE'} =
+    $Mail::Mbox::MessageParser::Config{'read_chunk_size'};
 
   $self->_print_debug_information();
 
@@ -112,7 +111,8 @@ sub _read_prologue
 
   # Look for the start of the next email
   LOOK_FOR_FIRST_HEADER:
-  if ($self->{'READ_BUFFER'} =~ m/$FROM_PATTERN/mg)
+  if ($self->{'READ_BUFFER'} =~
+      m/$Mail::Mbox::MessageParser::Config{'from_pattern'}/mg)
   {
     my $start_of_email = pos($self->{'READ_BUFFER'}) - length($1);
 
@@ -196,7 +196,8 @@ sub read_next_email
 
   # Look for the start of the next email
   LOOK_FOR_NEXT_HEADER:
-  while ($self->{'READ_BUFFER'} =~ m/$FROM_PATTERN/mg)
+  while ($self->{'READ_BUFFER'} =~
+      m/$Mail::Mbox::MessageParser::Config{'from_pattern'}/mg)
   {
     $self->{'END_OF_EMAIL'} = pos($self->{'READ_BUFFER'}) - length($1);
 
