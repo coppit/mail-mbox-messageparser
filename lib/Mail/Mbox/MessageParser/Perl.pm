@@ -9,7 +9,7 @@ use Mail::Mbox::MessageParser;
 
 use vars qw( $VERSION $DEBUG $FROM_PATTERN );
 
-$VERSION = '1.4.0';
+$VERSION = '1.4.1';
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *FROM_PATTERN = \$Mail::Mbox::MessageParser::FROM_PATTERN;
@@ -203,12 +203,25 @@ sub read_next_email
     # Don't stop on email header for the first email in the buffer
     next unless $self->{'END_OF_EMAIL'};
 
+    my $endline = $self->{'endline'};
+
     # Keep looking if the header we found is part of a "Begin Included
     # Message".
-    my $end_of_string = substr($self->{'READ_BUFFER'}, $self->{'END_OF_EMAIL'}-200, 200);
-    my $endline = $self->{'endline'};
+    my $end_of_string = '';
+    my $backup_amount = 100;
+    do
+    {
+      $backup_amount *= 2;
+      $end_of_string = substr($self->{'READ_BUFFER'},
+        $self->{'END_OF_EMAIL'}-$backup_amount, $backup_amount);
+    } while (index($end_of_string, "$endline$endline") == -1 &&
+      $backup_amount < $self->{'END_OF_EMAIL'});
+
     next if $end_of_string =~
         /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i;
+
+    next if $end_of_string =~
+      /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline$endline/i;
 
     # Found the next email!
     $self->{'email_length'} = $self->{'END_OF_EMAIL'}-$self->{'START_OF_EMAIL'};

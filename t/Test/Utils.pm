@@ -3,6 +3,7 @@ package Test::Utils;
 use strict;
 use Exporter;
 use Test::More;
+use Text::Diff;
 use FileHandle::Unget;
 use File::Spec::Functions qw(:ALL);
 
@@ -10,7 +11,7 @@ use vars qw( @EXPORT @ISA );
 use Mail::Mbox::MessageParser;
 
 @ISA = qw( Exporter );
-@EXPORT = qw( CheckDiffs DoDiff InitializeCache ModuleInstalled %PROGRAMS
+@EXPORT = qw( CheckDiffs InitializeCache ModuleInstalled %PROGRAMS
   Broken_Pipe No_such_file_or_directory
 );
 
@@ -26,88 +27,47 @@ use vars qw( %PROGRAMS );
  'bzip2' => '/sw/bin/bzip2',
 );
 
+# ---------------------------------------------------------------------------
+
 sub CheckDiffs
 {
   my @pairs = @_;
 
-  SKIP:
-  {
-    skip('diff not available',1) unless defined $PROGRAMS{'diff'};
+  local $Test::Builder::Level = 2;
 
-    foreach my $pair (@pairs)
+  foreach my $pair (@pairs)
+  {
+    my $filename = $pair->[0];
+    my $output_filename = $pair->[1];
+
+    print "Comparing $output_filename to $filename\n";
+
+    my @diffs;
+    diff $output_filename, $filename, { STYLE => 'OldStyle', OUTPUT => \@diffs };
+
+    my $numdiffs = grep { /^\d+[cd]\d+$/ } @diffs;
+
+    if ($numdiffs != 0)
     {
-      my $filename = $pair->[0];
-      my $output_filename = $pair->[1];
+      open DIFF_OUTPUT, ">$output_filename.diff";
+      print DIFF_OUTPUT "diff \"$output_filename\" \"$filename\"\n";
+      print DIFF_OUTPUT @diffs;
+      close DIFF_OUTPUT;
 
-      my ($diff,$result) = DoDiff($filename,$output_filename);
-
-      ok(0,"Running diff for $filename and $output_filename"), return
-        if $diff == 0;
-      ok(0,"Computing differences between $filename and $output_filename"), return
-        if $result == 0;
+      print "Failed, with $numdiffs differences.\n";
+      print "  See $output_filename.diff.\n";
+      ok(0,"Computing differences between $filename and $output_filename");
+      return;
     }
+    else
+    {
+      print "Output $output_filename looks good.\n";
 
-    ok(1,"Checking differences"), return;
-  }
-}
-
-# ---------------------------------------------------------------------------
-
-# Returns the results of the diff, and the results of the test.
-
-sub DoDiff
-{
-  my $filename = shift;
-  my $output_filename = shift;
-
-  my $diffstring = "$PROGRAMS{'diff'} \"$output_filename\" \"$filename\"";
-
-  system "echo $diffstring > \"$output_filename.diff\" ".
-    "2>\"$output_filename.diff.error\"";
-
-  system "$diffstring >> \"$output_filename.diff\" ".
-    "2>\"$output_filename.diff.error\"";
-
-  open DIFF_ERR, "$output_filename.diff.error";
-  my $diff_err = join '', <DIFF_ERR>;
-  close DIFF_ERR;
-
-  unlink "$output_filename.diff.error";
-
-  if ($? == 2)
-  {
-    print "Couldn't do diff on results.\n";
-    return (0,undef);
+      unlink $output_filename;
+    }
   }
 
-  if ($diff_err ne '')
-  {
-    print $diff_err;
-    return (0,undef);
-  }
-
-  local $/ = "\n";
-
-  my @diffs = `cat "$output_filename.diff"`;
-  shift @diffs;
-  my $numdiffs = ($#diffs + 1) / 2;
-
-  if ($numdiffs != 0)
-  {
-    print "Failed, with $numdiffs differences.\n";
-    print "  See $output_filename and " .
-      "$output_filename.diff.\n";
-    return (1,0);
-  }
-
-  if ($numdiffs == 0)
-  {
-    print "Output $output_filename looks good.\n";
-
-    unlink "$output_filename";
-    unlink "$output_filename.diff";
-    return (1,1);
-  }
+  ok(1,"Computing differences");
 }
 
 # ---------------------------------------------------------------------------
