@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 
 use strict;
-#use warnings 'all';
 
 use Test;
 use lib 'lib';

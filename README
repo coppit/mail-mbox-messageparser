@@ -4,13 +4,10 @@ Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser. It uses
 the best of three strategies for parsing a mailbox: either using cached folder
 information, GNU grep, or highly optimized Perl.
 
-Version 1.13:
-- Fixed portability issues for Windows. (It should now work under the normal
-  Windows command shell.) Note that this requires the use of a temporary file
-  for decompression of file handles on Windows--a minor security risk.
-- Makefile.PL version detection for GNU grep now works correctly for version
-  numbers which end with letters. 
-- Fixed typo bugs in a couple test cases.
+Version 1.14:
+- Fixed _print_debug_information so that it prints the values of options
+  correctly.
+- Fixed a file handle leak when processing non-mailbox files.
 
 
 DEPENDENCIES

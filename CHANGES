@@ -1,3 +1,10 @@
+Version 1.14:
+- Fixed _print_debug_information so that it prints the values of options
+  correctly. (Thanks to Jason Brunette <jbrunette@users.sourceforge.net> for
+  the great bug report.)
+- Fixed a file handle leak when processing non-mailbox files. (Thanks to Jason
+  Brunette <jbrunette@users.sourceforge.net> for the great bug report.)
+
 Version 1.13:
 - Fixed portability issues for Windows. (It should now work under the normal
   Windows command shell.) Note that this requires the use of a temporary file

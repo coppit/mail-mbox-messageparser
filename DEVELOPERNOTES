@@ -26,10 +26,6 @@ Checklist for a release:
   $ make test
 - Make sure the speed difference isn't too bad:
   $ make testspeed
-- Check in code:
-  $ export CVS_RSH=ssh
-  $ cvs -z3 -d:ext:coppit@cvs.m-m-msgparser.sourceforge.net:/cvsroot/m-m-msgparser ci
-  (use your userid instead of coppit)
 - Update CHANGES file, and copy to server:
   $ scp CHANGES coppit@m-m-msgparser.sourceforge.net:/home/groups/m/m-/m-m-msgparser/htdocs
   (Use your username instead of coppit)
@@ -52,5 +48,10 @@ Checklist for a release:
   $ cd devel
   $ rm -rf old
   $ cp -r lib old
+  $ rm -rf `find old -name CVS`
+- Check in code:
+  $ export CVS_RSH=ssh
+  $ cvs -z3 -d:ext:coppit@cvs.m-m-msgparser.sourceforge.net:/cvsroot/m-m-msgparser ci
+  (use your userid instead of coppit)
 - Tag the release for easy retrieval later
   $ cvs tag "v1_11"

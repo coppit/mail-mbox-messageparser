@@ -93,6 +93,7 @@ sub Configure
 
   Update_Code('lib/Mail/Mbox/MessageParser.pm', \%locations);
   Update_Code('lib/Test/Utils.pm', \%locations);
+  Update_Code('old/Mail/Mbox/MessageParser.pm', \%locations);
 
   return %locations;
 }
@@ -232,16 +233,42 @@ EOF
 
     $programs{$program} = undef, next if $choice eq 'none';
 
-    if (File::Spec->file_name_is_absolute($choice) &&
-      MM->maybe_command($choice))
+    if(File::Spec->file_name_is_absolute($choice))
     {
-      $programs{$program} = $choice;
-      next;
+      if (MM->maybe_command($choice))
+      {
+        $programs{$program} = $choice;
+        next;
+      }
+      else
+      {
+        print "\"$choice\" does not appear to be a valid executable\n";
+        redo;
+      }
     }
     else
     {
-      print "\"$choice\" does not appear to be a valid executable\n";
-      redo;
+      my $path_to_choice = undef;
+      foreach my $dir (split(/:/, $ENV{PATH}))
+      {
+        if (MM->maybe_command("$dir/$choice"))
+        {
+          $path_to_choice = $dir;
+          last;
+        }
+      }
+
+      print "WARNING: Avoid security risks by using absolute paths\n";
+
+      if (defined $path_to_choice)
+      {
+        print "\"$choice\" is currently in your path at \"$path_to_choice\"\n";
+        $programs{$program} = $choice;
+      }
+      else
+      {
+        print "Could not find \"$choice\" anywhere in your path!\n";
+      }
     }
   }
 
