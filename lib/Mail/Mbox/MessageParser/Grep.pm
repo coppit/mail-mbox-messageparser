@@ -10,7 +10,7 @@ use Carp;
 
 use vars qw( $VERSION $DEBUG $GREP_DATA );
 
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 $GREP_DATA = {};
 
@@ -105,11 +105,11 @@ sub _READ_GREP_DATA
     
     if ($force_processing)
     {
-      @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$" "$filename"`;
+      @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\r?\$" "$filename"`;
     }
     else
     {
-      @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$" "$filename"`;
+      @grep_results = `$Mail::Mbox::MessageParser::PROGRAMS{'grep'} --extended-regexp --line-number --byte-offset "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\r?\$" "$filename"`;
     }
 
     dprint "Read " . scalar(@grep_results) . " lines of grep data";
@@ -180,8 +180,9 @@ sub read_next_email
     # Keep looking if the header we found is part of a "Begin Included
     # Message".
     my $end_of_string = substr($email, -200);
+    my $endline = $self->{'endline'};
     if ($end_of_string =~
-        /\n-----(?: Begin Included Message |Original Message)-----\n[^\n]*\n*$/i)
+        /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i)
     {
       dprint "Incorrect start of email found--adjusting grep data";
 

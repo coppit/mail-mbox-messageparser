@@ -11,7 +11,7 @@ use Mail::Mbox::MessageParser;
 use vars qw( $VERSION $DEBUG $CACHE %CACHE_OPTIONS $UPDATING_CACHE
   $CACHE_MODIFIED );
 
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *dprint = \&Mail::Mbox::MessageParser::dprint;
@@ -260,7 +260,9 @@ sub _validate_and_initialize_cache_entry
   my $time_stamp = $stat[9];
 
   if (exists $CACHE->{$self->{'file_name'}} &&
-      ($CACHE->{$self->{'file_name'}}{'size'} != $size ||
+      (!defined $CACHE->{$self->{'file_name'}}{'size'} ||
+       !defined $CACHE->{$self->{'file_name'}}{'time_stamp'} ||
+       $CACHE->{$self->{'file_name'}}{'size'} != $size ||
        $CACHE->{$self->{'file_name'}}{'time_stamp'} != $time_stamp))
   {
     dprint "Size or time stamp has changed for file " .
