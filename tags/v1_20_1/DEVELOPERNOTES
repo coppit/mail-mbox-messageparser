@@ -1,0 +1,55 @@
+This file is not distributed with Mail::Mbox::MessageParser. It outlines some
+notes for developers readying a set of files for distribution.
+
+CVS CHECKOUT:
+$ export CVS_RSH=ssh
+$ cvs -z3 -d:ext:coppit@cvs.sourceforge.net:/cvsroot/m-m-msgparser co devel
+
+Checklist for a release:
+- Be sure to add new test cases for new features
+- Make sure version number increases.
+- Add version changes to README and CHANGES, anonymizing the notes in the README.
+- Add new module dependencies to Makefile.PL, and update README
+- Update MANIFEST and MANIFEST.SKIP if necessary.
+  $ make distcheck
+- Test your distribution:
+  $ make realclean
+  $ perl Makefile.PL
+  $ make
+  $ make test
+- Test the speed of the new code:
+  - make testspeed
+- After the tests have passed, make the distribution file:
+  $ make dist
+- Install the distribution file elsewhere to test it.
+  $ scp Mail-Mbox-MessageParser-X.XX.tar.gz coppit@linux.sourceforge.net:.
+  $ ssh -l coppit linux.sourceforge.net
+  $ tar xvfz Mail-Mbox-MessageParser-X.XX.tar.gz
+  $ cd Mail-Mbox-MessageParser-X.XX
+  $ perl Makefile.PL
+  $ make
+  $ make test
+- Update CHANGES file, and copy to server:
+  $ scp CHANGES coppit@m-m-msgparser.sourceforge.net:/home/groups/m/m-/m-m-msgparser/htdocs
+  (Use your username instead of coppit)
+- Make distribution file. (See above.)
+- Upload to CPAN:
+    http://pause.perl.org/pause/authenquery
+  or
+    cpan-upload Mail-Mbox-MessageParser-X.XX.tar.gz
+- Release file:
+  http://sourceforge.net/account/login.php
+  ncftpput upload.sf.net incoming Mail-Mbox-MessageParser-X.XX.tar.gz
+  http://sourceforge.net/project/admin/editpackages.php?group_id=87298
+- Announce any news on SourceForge:
+  http://sourceforge.net/news/submit.php?group_id=87298
+- Announce on freshmeat:
+  http://freshmeat.net/login/
+  [search for MessageParser, select add release]
+- Announce it to comp.lang.perl.announce.
+- Copy current code to old in devel
+  $ rm -rf old; rsync -r --cvs-exclude lib/* old
+- Check in code:
+  $ cvs ci
+- Tag the release for easy retrieval later
+  $ cvs tag "v1_11"
