@@ -9,7 +9,7 @@ use Mail::Mbox::MessageParser;
 
 use vars qw( $VERSION $DEBUG $FROM_PATTERN );
 
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *FROM_PATTERN = \$Mail::Mbox::MessageParser::FROM_PATTERN;
@@ -52,13 +52,29 @@ sub reset
 
   if (defined $self->{'prologue'})
   {
-    seek $self->{'file_handle'}, length($self->{'prologue'}), 0;
+    if (_IS_A_PIPE($self->{'file_handle'}))
+    {
+      dprint "Avoiding seek() on a pipe";
+    }
+    else
+    {
+      seek $self->{'file_handle'}, length($self->{'prologue'}), 0
+    }
+
     $self->{'CURRENT_LINE_NUMBER'} = ($self->{'prologue'} =~ tr/\n//) + 1;
     $self->{'CURRENT_OFFSET'} = length($self->{'prologue'});
   }
   else
   {
-    seek $self->{'file_handle'}, 0, 0;
+    if (_IS_A_PIPE($self->{'file_handle'}))
+    {
+      dprint "Avoiding seek() on a pipe";
+    }
+    else
+    {
+      seek $self->{'file_handle'}, 0, 0;
+    }
+
     $self->{'CURRENT_LINE_NUMBER'} = 1;
     $self->{'CURRENT_OFFSET'} = 0;
   }
@@ -77,6 +93,14 @@ sub reset
 
 #-------------------------------------------------------------------------------
 
+sub _IS_A_PIPE
+{
+  my $file_handle = shift;
+
+  return (-t $file_handle || -S $file_handle ||
+     -p $file_handle || !(seek $file_handle, 0, 1));
+}
+
 sub _read_prologue
 {
   my $self = shift;
@@ -85,18 +109,6 @@ sub _read_prologue
 
   # Look for the start of the next email
   LOOK_FOR_FIRST_HEADER:
-#  if ($self->{'READ_BUFFER'} =~ m/^
-#    (X-Draft-From:\s.*|X-From-Line:\s.*|
-#    From\s
-#      # Skip names, months, days
-#      (?> [^:]+ ) 
-#      # Match time
-#      (?: :\d\d){1,2}
-#      # Match time zone (EST), hour shift (+0500), and-or year
-#      (?: \s+ (?: [A-Z]{2,3} | [+-]?\d{4} ) ){1,3}
-#      # smail compatibility
-#      (\sremote\sfrom\s.*)?
-#    )$/xmg)
   if ($self->{'READ_BUFFER'} =~ m/$FROM_PATTERN/mg)
   {
     my $start_of_email = pos($self->{'READ_BUFFER'}) - length($1);

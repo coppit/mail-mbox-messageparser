@@ -16,6 +16,7 @@ use Mail::Mbox::MessageParser;
 use vars qw( %PROGRAMS );
 
 %PROGRAMS = (
+ 'diff' => '/usr/bin/diff',
  'grep' => '/bin/grep',
  'tzip' => '/home/david/bin/tzip',
  'gzip' => '/bin/gzip',
@@ -51,7 +52,7 @@ sub DoDiff
   my $filename = shift;
   my $output_filename = shift;
 
-  my $diffstring = "diff '$output_filename' '$filename'";
+  my $diffstring = "$PROGRAMS{'diff'} '$output_filename' '$filename'";
 
   system "echo $diffstring > '$output_filename.diff' ".
     "2>'$output_filename.diff.error'";

@@ -7,16 +7,16 @@ no strict;
 use strict;
 use Carp;
 use FileHandle;
-
 sub dprint;
 
 use Mail::Mbox::MessageParser::Perl;
 use Mail::Mbox::MessageParser::Grep;
 use Mail::Mbox::MessageParser::Cache;
+use IO::String;
 
 use vars qw( $VERSION $DEBUG $FROM_PATTERN $UPDATING_CACHE %PROGRAMS );
 
-$VERSION = '1.10';
+$VERSION = '1.11';
 $DEBUG = 0;
 
 %PROGRAMS = (
@@ -28,8 +28,10 @@ $DEBUG = 0;
  'bzip2' => '/usr/bin/bzip2',
 );
 
+# X-From-Line is used by Gnus, and From is used by normal Unix
+# format. Newer versions of Gnus use X-Draft-From
 $FROM_PATTERN = q/(?x)^
-    (X-Draft-From:\s.*|X-From-Line:\s.*|
+    (X-Draft-From:\s|X-From-Line:\s|
     From\s
       # Skip names, months, days
       (?> [^:]+ )
@@ -39,7 +41,7 @@ $FROM_PATTERN = q/(?x)^
       (?: \s+ (?: [A-Z]{2,3} | [+-]?\d{4} ) ){1,3}
       # smail compatibility
       (\sremote\sfrom\s.*)?
-    )$/;
+    )/;
 
 #-------------------------------------------------------------------------------
 
@@ -181,7 +183,9 @@ sub _PREPARE_FILE_HANDLE
 
   if (defined $file_handle)
   {
-    my $file_type = _GET_FILE_TYPE($file_handle);
+    binmode $file_handle;
+
+    my $file_type = _GET_FILE_TYPE(\$file_handle);
     dprint "Filehandle file type: $file_type";
 
     # Do decompression if we need to
@@ -194,7 +198,7 @@ sub _PREPARE_FILE_HANDLE
         unless defined $decompressed_file_handle;
 
       return ($decompressed_file_handle,$file_type,0,"Not a mailbox")
-        if _GET_FILE_TYPE($decompressed_file_handle) ne 'mailbox';
+        if _GET_FILE_TYPE(\$decompressed_file_handle) ne 'mailbox';
 
       return ($decompressed_file_handle,$file_type,0,undef);
     }
@@ -203,7 +207,7 @@ sub _PREPARE_FILE_HANDLE
       dprint "Filehandle is not compressed";
 
       return ($file_handle,$file_type,0,"No data on filehandle")
-        unless _DATA_ON_FILE_HANDLE($file_handle);
+        if eof($file_handle);
 
       return ($file_handle,$file_type,0,"Not a mailbox")
         if $file_type ne 'mailbox';
@@ -213,7 +217,7 @@ sub _PREPARE_FILE_HANDLE
   }
   else
   {
-    my $file_type = _GET_FILE_TYPE($file_name);
+    my $file_type = _GET_FILE_TYPE(\$file_name);
     dprint "Filename \"$file_name\" file type: $file_type";
 
     my ($opened_file_handle,$error) =
@@ -225,7 +229,7 @@ sub _PREPARE_FILE_HANDLE
     if (_IS_COMPRESSED_TYPE($file_type))
     {
       return ($opened_file_handle,$file_type,1,"Not a mailbox")
-        if _GET_FILE_TYPE($opened_file_handle) ne 'mailbox';
+        if _GET_FILE_TYPE(\$opened_file_handle) ne 'mailbox';
 
       return ($opened_file_handle,$file_type,1,undef);
     }
@@ -256,6 +260,8 @@ sub _OPEN_FILE_HANDLE
     my $file_handle = new FileHandle($file_name);
     return (undef,"Can't open $file_name: $!") unless defined $file_handle;
 
+    binmode $file_handle;
+
     dprint "File \"$file_name\" is not compressed";
 
     return ($file_handle,undef);
@@ -276,12 +282,14 @@ sub _OPEN_FILE_HANDLE
 
   my $file_handle = new FileHandle($filter_command);
 
+  binmode $file_handle;
+
   open STDERR,">&OLDSTDERR" or die "Can't restore STDERR: $!\n";
 
   return (undef,"Can't execute \"$filter_command\" for file \"$file_name\": $!")
     unless defined $file_handle;
 
-  unless (_DATA_ON_FILE_HANDLE($file_handle))
+  if (eof($file_handle))
   {
     $file_handle->close();
     return (undef,"Can't execute \"$filter_command\" for file \"$file_name\"");
@@ -296,38 +304,52 @@ sub _OPEN_FILE_HANDLE
 # bzip2, gzip, compress
 sub _GET_FILE_TYPE
 {
-  my $file_name_or_handle = shift;
+  my $file_name_or_handle_ref = shift;
 
   # Open the file if we need to
-  my $file_handle;
+  my $file_handle_ref;
   my $need_to_close_filehandle = 0;  
 
-  if (ref \$file_name_or_handle eq 'SCALAR')
+  if (ref $file_name_or_handle_ref eq 'SCALAR')
   {
-    $file_handle = new FileHandle($file_name_or_handle);
-    return 'unknown' unless defined $file_handle;
+    my $temp = new FileHandle($$file_name_or_handle_ref);
+    return 'unknown' unless defined $temp;
+    $file_handle_ref = \$temp;
 
     $need_to_close_filehandle = 1;
   }
   else
   {
-    $file_handle = $file_name_or_handle;
+    $file_handle_ref = $file_name_or_handle_ref;
   }
 
   
   # Read test characters
+  binmode $$file_handle_ref;
+
   my $testChars;
 
-  binmode $file_handle;
+  my $readResult = 1;
+  $readResult = read($$file_handle_ref,$testChars,2000)
+    unless defined $testChars;
 
-  my $readResult = read($file_handle,$testChars,2000);
-
-  $file_handle->close() if $need_to_close_filehandle;
+  $$file_handle_ref->close() if $need_to_close_filehandle;
 
   return 'unknown' unless defined $readResult && $readResult != 0;
 
 
-  _PUT_BACK_STRING($file_handle,$testChars) unless $need_to_close_filehandle;
+  # This is a stopgap measure until we can get a real putbackstring. (Our
+  # putbackstring implementation doesn't work on freebsd if we happen to read
+  # the EOF.)
+  if ($readResult < 2000)
+  {
+    $$file_handle_ref = new IO::String($testChars);
+  }
+  else
+  {
+    _PUT_BACK_STRING($$file_handle_ref,$testChars)
+      unless $need_to_close_filehandle;
+  }
 
   # Do -B on the data stream
   my $isBinary = 0;
@@ -406,10 +428,16 @@ sub _DO_DECOMPRESSION
     open(FRONT_OF_PIPE, "|$filter_command 2>/dev/null")
       or return (undef,"Can't execute \"$filter_command\" on file handle: $!");
 
+    binmode FRONT_OF_PIPE;
+
     print FRONT_OF_PIPE <$file_handle>;
 
-    $file_handle->close()
-      or return (undef,"Can't execute \"$filter_command\" on file handle: $!");
+    # Quell IO::String complaint about references still existing
+    {
+      local $^W = 0;
+      $file_handle->close()
+        or return (undef,"Can't execute \"$filter_command\" on file handle: $!");
+    }
 
     # We intentionally don't check for error here. This is because the
     # parent may have aborted, in which case we let it take care of
@@ -419,25 +447,10 @@ sub _DO_DECOMPRESSION
     exit;
   }
 
+  binmode $decompressed_file_handle;
+
   # In parent
   return ($decompressed_file_handle,undef);
-}
-
-#-------------------------------------------------------------------------------
-
-# Checks to see if there is data on a filehandle, without reading that data.
-
-sub _DATA_ON_FILE_HANDLE
-{
-  my $file_handle = shift;
-
-  my $buffer = <$file_handle>;
-
-  return 0 unless defined $buffer;
-
-  _PUT_BACK_STRING($file_handle,$buffer);
-
-  return $buffer ? 1 : 0;
 }
 
 #-------------------------------------------------------------------------------
@@ -466,10 +479,8 @@ sub _IS_MAILBOX
 {
   my $test_characters = shift;
 
-  # X-From-Line is used by Gnus, and From is used by normal Unix
-  # format. Newer versions of Gnus use X-Draft-From
   if ($test_characters =~ /$FROM_PATTERN/im &&
-      $test_characters =~ /^Received:.*\bfrom\b.*\bby\b.*for\b/sm)
+      $test_characters =~ /^(Received[ :]|Date:|Subject:|X-Status:|Status:|To:)/sm)
   {
     return 1;
   }

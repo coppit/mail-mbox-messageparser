@@ -21,6 +21,8 @@ plan (tests => 6 * scalar (@files));
 
 foreach my $filename (@files) 
 {
+  print "Testing filename: $filename\n";
+
   InitializeCache($filename);
 
   print "Testing partial mailbox reset with Perl implementation\n";
@@ -73,6 +75,7 @@ sub TestPartialRead
     "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout";
 
   my $output = new FileHandle(">$output_filename");
+  binmode $output;
 
   my $filehandle = new FileHandle($filename);
 
@@ -134,6 +137,7 @@ sub TestFullRead
     "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout";
 
   my $output = new FileHandle(">$output_filename");
+  binmode $output;
 
   my $filehandle = new FileHandle($filename);
 

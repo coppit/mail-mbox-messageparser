@@ -19,6 +19,8 @@ plan (tests => 1 * scalar (@files));
 
 foreach my $filename (@files) 
 {
+  print "Testing filename: $filename\n";
+
   TestImplementation($filename,0,0);
 }
 
@@ -40,6 +42,7 @@ sub TestImplementation
     "t/temp/${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout";
 
   my $output = new FileHandle(">$output_filename");
+  binmode $output;
 
   Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => 't/temp/cache'})
     if $enable_cache;

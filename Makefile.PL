@@ -9,8 +9,8 @@ use File::Spec;
 
 require 5.004;
 
-my @program_options = grep {/^(GREP|TZIP|GZIP|BZIP2?)=/} @ARGV;
-@ARGV = grep {!/^(GREP|TZIP|GZIP|BZIP2?)=/} @ARGV;
+my @program_options = grep {/^(DIFF|GREP|TZIP|GZIP|BZIP2?)=/} @ARGV;
+@ARGV = grep {!/^(DIFF|GREP|TZIP|GZIP|BZIP2?)=/} @ARGV;
 
 unless ((grep {/^PREFIX=/} @ARGV) || (grep {/^INSTALLDIRS=/} @ARGV))
 {
@@ -61,7 +61,12 @@ sub Compute_Makefile_Attributes
   my %makefile_attributes = (
     'NAME'  => 'Mail::Mbox::MessageParser',
     'VERSION_FROM' => 'lib/Mail/Mbox/MessageParser.pm',
-    'dist'  => { COMPRESS => 'gzip -9', SUFFIX => 'gz' },
+    'dist'  => {
+      COMPRESS => 'gzip -9',
+      SUFFIX => 'gz',
+      PREOP => q{$(CP) t/mailboxes/*\ * $(DISTVNAME)/t/mailboxes; $(CP) t/results/*\ * $(DISTVNAME)/t/results},
+    },
+
     'clean' => { FILES => 't/temp' },
     'PM' => {
       'lib/Mail/Mbox/MessageParser.pm' => '$(INST_LIB)/Mail/Mbox/MessageParser.pm',
@@ -69,7 +74,7 @@ sub Compute_Makefile_Attributes
       'lib/Mail/Mbox/MessageParser/Grep.pm' => '$(INST_LIB)/Mail/Mbox/MessageParser/Grep.pm',
       'lib/Mail/Mbox/MessageParser/Perl.pm' => '$(INST_LIB)/Mail/Mbox/MessageParser/Perl.pm',
     },
-    'PREREQ_PM' => { 'Storable' => 0 },
+    'PREREQ_PM' => { 'Storable' => 0, 'IO::String' => 0 },
     'DIR' => [ ],
   );
 
@@ -114,6 +119,7 @@ sub Update_Code
     my $original_programs = $1;
     my $new_programs = $original_programs;
 
+    $new_programs =~ s/('diff' *=> *).*?,/$1$locations{diff},/;
     $new_programs =~ s/('grep' *=> *).*?,/$1$locations{grep},/;
     $new_programs =~ s/('tzip' *=> *).*?,/$1$locations{tzip},/;
     $new_programs =~ s/('gzip' *=> *).*?,/$1$locations{gzip},/;
@@ -167,6 +173,7 @@ sub Get_Program_Locations
   my @args = @_;
 
   my %defaults = (
+      'diff'     => 'diff',
       'grep'     => 'grep',
       'tzip'     => 'tzip',
       'gzip'     => 'gzip',
@@ -175,6 +182,7 @@ sub Get_Program_Locations
   );
 
   my %programs = (
+      'diff'     => undef,
       'grep'     => undef,
       'tzip'     => undef,
       'gzip'     => undef,
@@ -186,6 +194,7 @@ sub Get_Program_Locations
   {
     my ($var,$value) = $arg =~ /^(.*?)=(.*)$/;
     $value = undef if $value eq '';
+    $programs{'diff'} = $value if $var eq 'DIFF';
     $programs{'grep'} = $value if $var eq 'GREP';
     $programs{'tzip'} = $value if $var eq 'TZIP';
     $programs{'bzip'} = $value if $var eq 'BZIP';
@@ -193,7 +202,7 @@ sub Get_Program_Locations
     $programs{'bzip2'} = $value if $var eq 'BZIP2';
   }
 
-  return %programs if grep {/^(GREP|TZIP|GZIP|BZIP2?)=/} @args;
+  return %programs if grep {/^(DIFF|GREP|TZIP|GZIP|BZIP2?)=/} @args;
 
   print<<EOF;
 You must now specify the location of external programs for decompressing

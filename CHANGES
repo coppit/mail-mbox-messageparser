@@ -1,3 +1,14 @@
+Version 1.11:
+- Added test cases with spaces in the mailbox names. (Thanks to Johan Ekenberg
+  <johan@fsdata.se> for finding the bug and submitting a partial patch.)
+- Fixed line ending bugs for MS-DOS/Windows (Tests now pass under cygwin)
+- Fixed mailbox detection problem with mailboxes whose first email is a
+  pseudo-email used to store mailbox state information. (Thanks to Johan
+  Ekenberg <johan@fsdata.se> for the bug report.)
+- Fixed a bug on freebsd where mailboxes of size less than 2000 bytes would be
+  incorrectly processed. (This fix is a less-than-optimal one which requires
+  IO::String. I may later get the gumption to do it right using PerlIO::var)
+
 Version 1.10:
 - Testing modules are no longer (accidentally) installed.
 - External programs are now queried during installation instead of just using
