@@ -1,3 +1,10 @@
+Version 1.20:
+- More robust use of GNU grep to find emails on DOS systems (Thanks to Martin
+  Hosken <martin_hosken@sil.org> for the initial patch)
+- Fixed an uninitialized value warning in Cache.pm
+- Made everything work with DOS-style line endings. Added endline() function
+  to return the detected line ending
+
 Version 1.15:
 - Now keeps reading the first paragraph until a maximum number of bytes have
   been read. This should help people who use MUAs that add a lot of extra

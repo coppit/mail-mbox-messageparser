@@ -16,7 +16,7 @@ use vars qw( @ISA $VERSION $DEBUG $MAX_TESTCHAR_BUFFER_SIZE %PROGRAMS
 
 @ISA = qw(Exporter);
 
-$VERSION = '1.15';
+$VERSION = '1.20';
 $DEBUG = 0;
 
 $MAX_TESTCHAR_BUFFER_SIZE = 1048576;
@@ -89,12 +89,12 @@ sub new
     $options->{'enable_grep'} = 0;
   }
 
-  my ($file_type, $need_to_close_filehandle, $error);
-
   $DEBUG = $options->{'debug'}
     if defined $options->{'debug'};
 
-  ($options->{'file_handle'}, $file_type, $need_to_close_filehandle, $error) =
+  my ($file_type, $need_to_close_filehandle, $error, $endline);
+
+  ($options->{'file_handle'}, $file_type, $need_to_close_filehandle, $error, $endline) =
     _PREPARE_FILE_HANDLE($options->{'file_name'}, $options->{'file_handle'});
 
   if (defined $error &&
@@ -169,6 +169,8 @@ sub new
 
   $self->{'need_to_close_filehandle'} = $need_to_close_filehandle;
 
+  $self->{'endline'} = $endline;
+
   return $self;
 }
 
@@ -183,7 +185,12 @@ sub DESTROY
 
 #-------------------------------------------------------------------------------
 
-# Returns a file handle to the decompressed mailbox.
+# Returns:
+# - a file handle to the decompressed mailbox
+# - the file type (see _GET_FILE_TYPE)
+# - a boolean indicating whether the caller needs to close the file handle
+# - an error message (or undef)
+# - the endline: "\n", "\r\n", or undef
 sub _PREPARE_FILE_HANDLE
 {
   my $file_name = shift;
@@ -208,25 +215,27 @@ sub _PREPARE_FILE_HANDLE
       my ($decompressed_file_handle,$error) =
         _DO_DECOMPRESSION($file_handle, $file_type);
 
-      return ($file_handle,$file_type,0,$error)
+      return ($file_handle,$file_type,0,$error,undef)
         unless defined $decompressed_file_handle;
 
-      return ($decompressed_file_handle,$file_type,0,"Not a mailbox")
+      return ($decompressed_file_handle,$file_type,0,"Not a mailbox",undef)
         if _GET_FILE_TYPE(\$decompressed_file_handle) ne 'mailbox';
 
-      return ($decompressed_file_handle,$file_type,0,undef);
+      return ($decompressed_file_handle,$file_type,0,undef,undef);
     }
     else
     {
       dprint "Filehandle is not compressed";
 
-      return ($file_handle,$file_type,0,"No data on filehandle")
+      return ($file_handle,$file_type,0,"No data on filehandle",undef)
         if eof($file_handle);
 
-      return ($file_handle,$file_type,0,"Not a mailbox")
+      my $endline = _GET_ENDLINE(\$file_handle);
+
+      return ($file_handle,$file_type,0,"Not a mailbox",$endline)
         if $file_type ne 'mailbox';
 
-      return ($file_handle,$file_type,0,undef);
+      return ($file_handle,$file_type,0,undef,$endline);
     }
   }
   else
@@ -237,22 +246,24 @@ sub _PREPARE_FILE_HANDLE
     my ($opened_file_handle,$error) =
       _OPEN_FILE_HANDLE($file_name, $file_type);
 
-    return ($file_handle,$file_type,0,$error)
+    return ($file_handle,$file_type,0,$error,undef)
       unless defined $opened_file_handle;
+
+    my $endline = _GET_ENDLINE(\$opened_file_handle);
 
     if (_IS_COMPRESSED_TYPE($file_type))
     {
-      return ($opened_file_handle,$file_type,1,"Not a mailbox")
+      return ($opened_file_handle,$file_type,1,"Not a mailbox",$endline)
         if _GET_FILE_TYPE(\$opened_file_handle) ne 'mailbox';
 
-      return ($opened_file_handle,$file_type,1,undef);
+      return ($opened_file_handle,$file_type,1,undef,$endline);
     }
     else
     {
-      return ($opened_file_handle,$file_type,1,"Not a mailbox")
+      return ($opened_file_handle,$file_type,1,"Not a mailbox",$endline)
         if $file_type ne 'mailbox';
 
-      return ($opened_file_handle,$file_type,1,undef);
+      return ($opened_file_handle,$file_type,1,undef,$endline);
     }
   }
 }
@@ -342,7 +353,7 @@ sub _GET_FILE_TYPE
   my $test_chars = '';
   my $readResult;
 
-  while(index($test_chars,"\n\n") == -1)
+  while(index($test_chars,"\n\n") == -1 && index($test_chars,"\r\n\r\n") == -1)
   {
     $readResult =
       read($$file_handle_ref,$test_chars,4000,CORE::length($test_chars));
@@ -353,7 +364,7 @@ sub _GET_FILE_TYPE
 
     if(CORE::length($test_chars) > $MAX_TESTCHAR_BUFFER_SIZE)
     {
-      if(index($test_chars,"\n\n") == -1)
+      if(index($test_chars,"\n\n") == -1 && index($test_chars,"\r\n\r\n") == -1)
       {
         dprint "Couldn't find end of first paragraph after " .
           "$MAX_TESTCHAR_BUFFER_SIZE bytes."
@@ -394,6 +405,80 @@ sub _GET_FILE_TYPE
     ord(substr($test_chars,0,1)) == 0037 && ord(substr($test_chars,1,1)) == 0235;
 
   return 'unknown binary';
+}
+
+#-------------------------------------------------------------------------------
+
+# Returns: undef, "\r\n", "\n"
+sub _GET_ENDLINE
+{
+  my $file_name_or_handle_ref = shift;
+
+  # Open the file if we need to
+  my $file_handle_ref;
+  my $need_to_close_filehandle = 0;  
+
+  if (ref $file_name_or_handle_ref eq 'SCALAR')
+  {
+    my $temp = new FileHandle::Unget($$file_name_or_handle_ref);
+    return 'unknown' unless defined $temp;
+    $file_handle_ref = \$temp;
+
+    $need_to_close_filehandle = 1;
+  }
+  else
+  {
+    $file_handle_ref = $file_name_or_handle_ref;
+  }
+
+  
+  # Read test characters
+  my $test_chars = '';
+  my $readResult;
+
+  while(index($test_chars,"\n") == -1 && index($test_chars,"\r\n") == -1)
+  {
+    $readResult =
+      read($$file_handle_ref,$test_chars,4000,CORE::length($test_chars));
+
+    last unless defined $readResult && $readResult != 0;
+
+    last if _IS_BINARY(\$test_chars);
+
+    if(CORE::length($test_chars) > $MAX_TESTCHAR_BUFFER_SIZE)
+    {
+      if(index($test_chars,"\n") == -1 && index($test_chars,"\r\n") == -1)
+      {
+        dprint "Couldn't find end of first line after " .
+          "$MAX_TESTCHAR_BUFFER_SIZE bytes."
+      }
+
+      last;
+    }
+  }
+
+
+  if($need_to_close_filehandle)
+  {
+    $$file_handle_ref->close();
+  }
+  else
+  {
+    $$file_handle_ref->ungets($test_chars);
+  }
+
+  return undef unless defined $readResult && $readResult != 0;
+
+  return undef if _IS_BINARY(\$test_chars);
+
+  if(index($test_chars,"\r\n") != -1)
+  {
+    return "\r\n";
+  }
+  else
+  {
+    return "\n";
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -589,6 +674,15 @@ sub _IS_MAILBOX
 sub reset
 {
   die "Derived class must provide an implementation";
+}
+
+#-------------------------------------------------------------------------------
+
+sub endline
+{
+  my $self = shift;
+
+  return $self->{'endline'};
 }
 
 #-------------------------------------------------------------------------------
@@ -837,6 +931,11 @@ Reset the filehandle and all internal state. Note that this will not work with
 filehandles which are streams. If there is enough demand, I may add the
 ability to store the previously read stream data internally so that I<reset()>
 will work correctly.
+
+
+=item endline()
+
+Returns "\n" or "\r\n", depending on the file format.
 
 
 =item prologue()
