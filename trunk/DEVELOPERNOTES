@@ -45,10 +45,8 @@ Checklist for a release:
   [search for MessageParser, select add release]
 - Announce it to comp.lang.perl.announce.
 - Copy current code to old in devel
-  $ cd devel
-  $ rm -rf old
-  $ cp -r lib old
-  $ rm -rf `find old -name CVS`
+  $ cd devel/lib
+  $ for n in `find . -type f | grep -v CVS`;do echo cp $n ../old/$n;done
 - Check in code:
   $ export CVS_RSH=ssh
   $ cvs -z3 -d:ext:coppit@cvs.sourceforge.net:/cvsroot/m-m-msgparser ci

@@ -4,10 +4,11 @@ Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser. It uses
 the best of three strategies for parsing a mailbox: either using cached folder
 information, GNU grep, or highly optimized Perl.
 
-Version 1.15:
-- Now keeps reading the first paragraph until a maximum number of bytes have
-  been read. This should help people who use MUAs that add a lot of extra
-  header information to the first email in a mailbox.
+Version 1.20:
+- More robust use of GNU grep to find emails on DOS systems
+- Fixed an uninitialized value warning in Cache.pm
+- Made everything work with DOS-style line endings. Added endline() function
+  to return the detected line ending
 
 
 DEPENDENCIES
