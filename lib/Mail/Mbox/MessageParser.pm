@@ -11,12 +11,15 @@ use Mail::Mbox::MessageParser::Perl;
 use Mail::Mbox::MessageParser::Grep;
 use Mail::Mbox::MessageParser::Cache;
 
-use vars qw( @ISA $VERSION $DEBUG $FROM_PATTERN $UPDATING_CACHE %PROGRAMS );
+use vars qw( @ISA $VERSION $DEBUG $MAX_TESTCHAR_BUFFER_SIZE %PROGRAMS
+             $FROM_PATTERN $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
-$VERSION = '1.14';
+$VERSION = '1.15';
 $DEBUG = 0;
+
+$MAX_TESTCHAR_BUFFER_SIZE = 1048576;
 
 %PROGRAMS = (
  'grep' => '/bin/grep',
@@ -44,6 +47,13 @@ $FROM_PATTERN = q/(?x)^
 
 #-------------------------------------------------------------------------------
 
+*UPDATING_CACHE = \$Mail::Mbox::MessageParser::Cache::UPDATING_CACHE;
+*SETUP_CACHE = \&Mail::Mbox::MessageParser::Cache::SETUP_CACHE;
+*CLEAR_CACHE = \&Mail::Mbox::MessageParser::Cache::CLEAR_CACHE;
+*WRITE_CACHE = \&Mail::Mbox::MessageParser::Cache::WRITE_CACHE;
+
+#-------------------------------------------------------------------------------
+
 # Outputs debug messages if $DEBUG is true. 
 
 sub dprint
@@ -60,13 +70,6 @@ sub dprint
   # Be sure to return 1 so code like 'dprint "blah\n" and exit' works.
   return 1;
 }
-
-#-------------------------------------------------------------------------------
-
-*UPDATING_CACHE = \$Mail::Mbox::MessageParser::Cache::UPDATING_CACHE;
-*SETUP_CACHE = \&Mail::Mbox::MessageParser::Cache::SETUP_CACHE;
-*CLEAR_CACHE = \&Mail::Mbox::MessageParser::Cache::CLEAR_CACHE;
-*WRITE_CACHE = \&Mail::Mbox::MessageParser::Cache::WRITE_CACHE;
 
 #-------------------------------------------------------------------------------
 
@@ -336,10 +339,30 @@ sub _GET_FILE_TYPE
 
   
   # Read test characters
-  my $testChars;
+  my $test_chars = '';
+  my $readResult;
 
-  my $readResult = 1;
-  $readResult = read($$file_handle_ref,$testChars,2000);
+  while(index($test_chars,"\n\n") == -1)
+  {
+    $readResult =
+      read($$file_handle_ref,$test_chars,4000,CORE::length($test_chars));
+
+    last unless defined $readResult && $readResult != 0;
+
+    last if _IS_BINARY(\$test_chars);
+
+    if(CORE::length($test_chars) > $MAX_TESTCHAR_BUFFER_SIZE)
+    {
+      if(index($test_chars,"\n\n") == -1)
+      {
+        dprint "Couldn't find end of first paragraph after " .
+          "$MAX_TESTCHAR_BUFFER_SIZE bytes."
+      }
+
+      last;
+    }
+  }
+
 
   if($need_to_close_filehandle)
   {
@@ -347,37 +370,28 @@ sub _GET_FILE_TYPE
   }
   else
   {
-    $$file_handle_ref->ungets($testChars);
+    $$file_handle_ref->ungets($test_chars);
   }
 
   return 'unknown' unless defined $readResult && $readResult != 0;
 
 
-  # Do -B on the data stream
-  my $isBinary = 0;
+  unless (_IS_BINARY(\$test_chars))
   {
-    my $data_length = CORE::length($testChars);
-    my $bin_length = $testChars =~ tr/[\t\n\x20-\x7e]//c;
-    my $non_bin_length = $data_length - $bin_length;
-    $isBinary = ($non_bin_length / $data_length) > .70 ? 0 : 1;
-  }
-
-  unless ($isBinary)
-  {
-    return 'mailbox' if _IS_MAILBOX($testChars);
+    return 'mailbox' if _IS_MAILBOX(\$test_chars);
     return 'non-mailbox ascii';
   }
 
   # See "magic" on unix systems for details on how to identify file types
-  return 'tzip' if substr($testChars, 0, 2) eq 'TZ';
-  return 'bzip2' if substr($testChars, 0, 3) eq 'BZh';
-  return 'bzip' if substr($testChars, 0, 2) eq 'BZ';
-#  return 'zip' if substr($testChars, 0, 2) eq 'PK' &&
-#    ord(substr($testChars,3,1)) == 0003 && ord(substr($testChars,4,1)) == 0004;
+  return 'tzip' if substr($test_chars, 0, 2) eq 'TZ';
+  return 'bzip2' if substr($test_chars, 0, 3) eq 'BZh';
+  return 'bzip' if substr($test_chars, 0, 2) eq 'BZ';
+#  return 'zip' if substr($test_chars, 0, 2) eq 'PK' &&
+#    ord(substr($test_chars,3,1)) == 0003 && ord(substr($test_chars,4,1)) == 0004;
   return 'gzip' if
-    ord(substr($testChars,0,1)) == 0037 && ord(substr($testChars,1,1)) == 0213;
+    ord(substr($test_chars,0,1)) == 0037 && ord(substr($test_chars,1,1)) == 0213;
   return 'compress' if
-    ord(substr($testChars,0,1)) == 0037 && ord(substr($testChars,1,1)) == 0235;
+    ord(substr($test_chars,0,1)) == 0037 && ord(substr($test_chars,1,1)) == 0235;
 
   return 'unknown binary';
 }
@@ -531,6 +545,25 @@ sub _DO_DECOMPRESSION
 
 #-------------------------------------------------------------------------------
 
+# Simulates -B, which consumes data on a stream.
+sub _IS_BINARY
+{
+  my $data_length = CORE::length(${$_[0]});
+  my $bin_length = ${$_[0]} =~ tr/[\t\n\x20-\x7e]//c;
+  my $non_bin_length = $data_length - $bin_length;
+
+  if (($non_bin_length / $data_length) > .70)
+  {
+    return 0;
+  }
+  else
+  {
+    return 1;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
 # Detects whether an ASCII file is a mailbox, based on whether it has
 # a line whose prefix is 'From' or 'X-From-Line:' or 'X-Draft-From:',
 # and another line whose prefix is 'Received ', 'Date:', 'Subject:',
@@ -540,8 +573,8 @@ sub _IS_MAILBOX
 {
   my $test_characters = shift;
 
-  if ($test_characters =~ /$FROM_PATTERN/im &&
-      $test_characters =~ /^(Received[ :]|Date:|Subject:|X-Status:|Status:|To:)/sm)
+  if ($$test_characters =~ /$FROM_PATTERN/im &&
+      $$test_characters =~ /^(Received[ :]|Date:|Subject:|X-Status:|Status:|To:)/sm)
   {
     return 1;
   }

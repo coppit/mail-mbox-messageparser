@@ -17,6 +17,7 @@ use FileHandle;
 eval 'require Storable;';
 
 my @files = <t/mailboxes/*.txt>;
+@files = grep { $_ ne 't/mailboxes/vm-emacs.txt' } @files;
 
 mkdir catfile('t','temp'), 0700;
 

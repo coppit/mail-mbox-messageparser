@@ -51,7 +51,7 @@ Checklist for a release:
   $ rm -rf `find old -name CVS`
 - Check in code:
   $ export CVS_RSH=ssh
-  $ cvs -z3 -d:ext:coppit@cvs.m-m-msgparser.sourceforge.net:/cvsroot/m-m-msgparser ci
+  $ cvs -z3 -d:ext:coppit@cvs.sourceforge.net:/cvsroot/m-m-msgparser ci
   (use your userid instead of coppit)
 - Tag the release for easy retrieval later
   $ cvs tag "v1_11"
