@@ -1,3 +1,8 @@
+Version 1.21.1: Thu Sep 16 2004
+- Fixed broken dependency specification in Makefile.PL
+- Removed Module::Install extension dependency code from Makefile.PL. (Not
+  needed with fixed extensions.)
+
 Version 1.21.0: Wed Sep 15 2004
 - Fixed missing file warnings from "make distcheck" resulting from a
   workaround for a MakeMaker bug. (Thanks to Ed Avis <ed.avis@kbcfp.com> for
