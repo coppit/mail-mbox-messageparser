@@ -7,10 +7,26 @@ information, GNU grep, or highly optimized Perl.
 
 NEW IN THIS VERSION
 
-Version 1.2130: Tue Dec 21 2004
-- Fixed version numbers, which were incompatible with some modules. (Thanks to
-  Tassilo von Parseval <tassilo.von.parseval@rwth-aachen.de> for the bug
-  report)
+Version 1.3000: Mon Mar 14 2005
+- Merged the internal caches used by the different mailbox parser
+  implementations. This allows sharing of caching information. NOTE: Tighter
+  integration of the classes means that you can no longer instantiate any of
+  the implementations directly; you must use Mail::Mbox::MessageParser only.
+- Fixed goofy version dependency for Benchmark::Timer.
+- Fixed improper identification of mailboxes whose first email has a body
+  containing a large number of foreign characters.
+- Fixed a spurious warning in a test case.
+- Fixed a test code bug that would cause some failed tests to incorrectly
+  pass.
+- Fixed a bug where emails with attachments would cause the mailbox parser to
+  enter an infinite loop.
+- Fixed a bug where the cache would not be saved to disk when the file was
+  finished being read.
+- Fixed a bug in the test cases where some differences in test output would
+  not be detected.
+- Fixed a bug in Mbox::Mail::MessageParser::Grep that would cause it to
+  improperly identify separate emails in a mailbox if the "From " line looked
+  like "From klopp Mon Jan  5 08:50:15 +0100 2004".
 
 
 MODULE DEPENDENCIES
@@ -86,8 +102,8 @@ Mail::Mbox::MessageParser::Perl
 
 HOMEPAGE
 
-Visit http://fh-unget.sourceforge.net/ for the latest version, mailing lists,
-discussion forums, CVS access, and more.
+Visit http://sourceforge.net/projects/m-m-msgparser/ for the latest version,
+mailing lists, discussion forums, CVS access, and more.
 
 
 REPORTING BUGS

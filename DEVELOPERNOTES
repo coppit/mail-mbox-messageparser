@@ -44,7 +44,7 @@ Checklist for a release:
   http://sourceforge.net/news/submit.php?group_id=87298
 - Announce on freshmeat:
   http://freshmeat.net/login/
-  [search for MessageParser, select add release]
+  http://freshmeat.net/projects/m-m-msgparser/
 - Announce it to comp.lang.perl.announce.
 - Copy current code to old in devel
   $ rm -rf old2; rsync -r --cvs-exclude * old2

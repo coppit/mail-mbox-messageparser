@@ -335,7 +335,7 @@ sub InitializeCache
   my $file_type = shift;
 
   Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => 't/temp/cache'});
-  Mail::Mbox::MessageParser::CLEAR_CACHE();
+  Mail::Mbox::MessageParser::MetaInfo::CLEAR_CACHE();
 
   my $filehandle;
   $filehandle = new FileHandle($filename) if $file_type eq 'Filehandle';
@@ -356,7 +356,7 @@ sub InitializeCache
     $folder_reader->read_next_email();
   }
 
-  Mail::Mbox::MessageParser::WRITE_CACHE();
+  Mail::Mbox::MessageParser::MetaInfo::WRITE_CACHE();
 }
 
 ################################################################################

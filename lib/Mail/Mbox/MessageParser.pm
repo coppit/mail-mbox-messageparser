@@ -19,7 +19,7 @@ use vars qw( $CACHE $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
-$VERSION = sprintf "%d.%02d%02d", q/1.22.0/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.30.0/ =~ /(\d+)/g;
 $DEBUG = 0;
 
 #-------------------------------------------------------------------------------
@@ -161,6 +161,10 @@ sub _init
 {
   my $self = shift;
 
+  $self->{'email_line_number'} = 0;
+  $self->{'email_offset'} = 0;
+  $self->{'email_length'} = 0;
+  $self->{'email_number'} = 0;
 }
 
 #-------------------------------------------------------------------------------
@@ -818,6 +822,16 @@ sub read_next_email
       1;
 
     $CACHE->{$self->{'file_name'}}{'modified'} = 1;
+
+    if ($self->{'end_of_file'})
+    {
+      $UPDATING_CACHE = 0;
+
+      # Last one is always validated
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'} =
+        1;
+    }
+
   }
 }
 

@@ -60,21 +60,21 @@ sub Configure_Programs
   my %info = (
       'diff'     => { default => 'diff', argname => 'DIFF' },
       'grep'     => { default => 'grep', argname => 'GREP',
-                      versions => {
-                        'GNU' => { fetch => \&Get_GNU_Grep_Version,
+                      types => {
+                        'GNU' => { fetch => \&Get_GNU_Version,
                                    numbers => '[2.1,)', },
                       },
                     },
       'tzip'     => { default => 'tzip', argname => 'TZIP' },
       'gzip'     => { default => 'gzip', argname => 'GZIP' },
       'bzip'     => { default => 'bzip2', argname => 'BZIP',
-                      versions => {
+                      types => {
                         'bzip2' => { fetch => \&Get_Bzip2_Version,
                                      numbers => '[1.0,)', },
                       },
                     },
       'bzip2'    => { default => 'bzip2', argname => 'BZIP2',
-                      versions => {
+                      types => {
                         'bzip2' => { fetch => \&Get_Bzip2_Version,
                                      numbers => '[1.0,)', },
                       },
@@ -99,13 +99,13 @@ sub Update_Config
 
   foreach my $program (keys %locations)
   {
-    if (defined $locations{$program})
+    if (defined $locations{$program}{'path'})
     {
-      $locations{$program} = "\'$locations{$program}\'";
+      $locations{$program}{'path'} = "\'$locations{$program}{'path'}\'";
     }
     else
     {
-      $locations{$program} = "undef";
+      $locations{$program}{'path'} = "undef";
     }
   }
 
@@ -116,7 +116,7 @@ sub Update_Config
 
     foreach my $program (sort keys %locations)
     {
-      $new_programs .= "    '$program' => $locations{$program},\n";
+      $new_programs .= "    '$program' => $locations{$program}{'path'},\n";
     }
 
     $code =~ s/\Q$original_programs\E/$new_programs/;

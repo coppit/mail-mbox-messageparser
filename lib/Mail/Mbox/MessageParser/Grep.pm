@@ -80,8 +80,8 @@ sub _READ_GREP_DATA
 
   {
     my @grep_results;
-    
-    @grep_results = `$Mail::Mbox::MessageParser::Config{'programs'}{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\r?\$" "$filename"`;
+
+    @grep_results = `$Mail::Mbox::MessageParser::Config{'programs'}{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2}(  *([A-Z]{2,3}|[+-]?[0-9]{4})){1,3}( remote from .*)?)\r?\$" "$filename"`;
 
     dprint "Read " . scalar(@grep_results) . " lines of grep data";
 
@@ -186,7 +186,7 @@ sub read_next_email
     if ($end_of_string =~
         /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i ||
         $end_of_string =~
-          /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline$endline/i)
+          /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline(?:$endline)+$/i)
     {
       dprint "Incorrect start of email found--adjusting cache data";
 

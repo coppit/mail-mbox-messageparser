@@ -1,4 +1,4 @@
-Version 1.3000:
+Version 1.3000: Mon Mar 14 2005
 - Merged the internal caches used by the different mailbox parser
   implementations. This allows sharing of caching information. NOTE: Tighter
   integration of the classes means that you can no longer instantiate any of
@@ -11,6 +11,17 @@ Version 1.3000:
   <njh@bandsman.co.uk> for the bug report.)
 - Fixed a test code bug that would cause some failed tests to incorrectly
   pass.
+- Fixed a bug where emails with attachments would cause the mailbox parser to
+  enter an infinite loop. (Thanks once again to Joey Hess <joey@kitenet.net>
+  for the excellent bug report.)
+- Fixed a bug where the cache would not be saved to disk when the file was
+  finished being read.
+- Fixed a bug in the test cases where some differences in test output would
+  not be detected.
+- Fixed a bug in Mbox::Mail::MessageParser::Grep that would cause it to
+  improperly identify separate emails in a mailbox if the "From " line looked
+  like "From klopp Mon Jan  5 08:50:15 +0100 2004". (Thanks to Frederic Klopp
+  <klopp@math.univ-paris13.fr>" for the bug report and sample mailbox.)
 
 Version 1.2130: Tue Dec 21 2004
 - Fixed version numbers, which were incompatible with some modules. (Thanks to
