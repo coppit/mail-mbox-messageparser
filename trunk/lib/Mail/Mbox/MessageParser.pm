@@ -4,6 +4,7 @@ use strict;
 use Carp;
 use FileHandle::Unget;
 use File::Spec;
+use File::Temp;
 sub dprint;
 
 use Mail::Mbox::MessageParser::Perl;
@@ -14,7 +15,7 @@ use vars qw( @ISA $VERSION $DEBUG $FROM_PATTERN $UPDATING_CACHE %PROGRAMS );
 
 @ISA = qw(Exporter);
 
-$VERSION = '1.12';
+$VERSION = '1.13';
 $DEBUG = 0;
 
 %PROGRAMS = (
@@ -277,7 +278,7 @@ sub _OPEN_FILE_HANDLE
 
   my $filter_command = "$PROGRAMS{$file_type} -cd '$file_name' |";
 
-  dprint "Calling \"$filter_command\" to decompress file. \"$file_name\"";
+  dprint "Calling \"$filter_command\" to decompress file \"$file_name\".";
 
   use vars qw(*OLDSTDERR);
   open OLDSTDERR,">&STDERR" or die "Can't save STDERR: $!\n";
@@ -286,12 +287,12 @@ sub _OPEN_FILE_HANDLE
 
   my $file_handle = new FileHandle::Unget($filter_command);
 
+  return (undef,"Can't execute \"$filter_command\" for file \"$file_name\": $!")
+    unless defined $file_handle;
+
   binmode $file_handle;
 
   open STDERR,">&OLDSTDERR" or die "Can't restore STDERR: $!\n";
-
-  return (undef,"Can't execute \"$filter_command\" for file \"$file_name\": $!")
-    unless defined $file_handle;
 
   if (eof($file_handle))
   {
@@ -329,20 +330,22 @@ sub _GET_FILE_TYPE
 
   
   # Read test characters
-  binmode $$file_handle_ref;
-
   my $testChars;
 
   my $readResult = 1;
-  $readResult = read($$file_handle_ref,$testChars,2000)
-    unless defined $testChars;
+  $readResult = read($$file_handle_ref,$testChars,2000);
 
-  $$file_handle_ref->close() if $need_to_close_filehandle;
+  if($need_to_close_filehandle)
+  {
+    $$file_handle_ref->close();
+  }
+  else
+  {
+    $$file_handle_ref->ungets($testChars);
+  }
 
   return 'unknown' unless defined $readResult && $readResult != 0;
 
-  $$file_handle_ref->ungets($testChars)
-    unless $need_to_close_filehandle;
 
   # Do -B on the data stream
   my $isBinary = 0;
@@ -416,7 +419,41 @@ sub pipe_from_fork ($)
 
 #-------------------------------------------------------------------------------
 
-sub _DO_DECOMPRESSION
+sub _DO_WINDOWS_DECOMPRESSION
+{
+  my $file_handle = shift;
+  my $file_type = shift;
+
+  return (undef,"Can't decompress file handle--no decompressor available")
+    unless defined $PROGRAMS{$file_type};
+
+  my $filter_command = "$PROGRAMS{$file_type} -cd";
+
+  my ($temp_file_handle, $temp_file_name) =
+    File::Temp::tempfile('mail-mbox-messageparser-XXXXXX', SUFFIX => '.tmp', UNLINK => 1);
+
+  while(my $line = <$file_handle>)
+  {
+    print $temp_file_handle $line;
+  }
+
+  close $file_handle;
+  # So that it won't be deleted until the program is complete
+  # close $temp_file_handle;
+
+  dprint "Calling \"$filter_command\" to decompress filehandle";
+
+  my $decompressed_file_handle =
+    new FileHandle::Unget("$filter_command $temp_file_name |");
+
+  binmode $decompressed_file_handle;
+
+  return ($decompressed_file_handle,undef);
+}
+
+#-------------------------------------------------------------------------------
+
+sub _DO_NONWINDOWS_DECOMPRESSION
 {
   my $file_handle = shift;
   my $file_type = shift;
@@ -467,6 +504,23 @@ sub _DO_DECOMPRESSION
 
   # In parent
   return ($decompressed_file_handle,undef);
+}
+
+#-------------------------------------------------------------------------------
+
+sub _DO_DECOMPRESSION
+{
+  my $file_handle = shift;
+  my $file_type = shift;
+
+  if ($^O eq 'MSWin32')
+  {
+    return _DO_WINDOWS_DECOMPRESSION($file_handle,$file_type);
+  }
+  else
+  {
+    return _DO_NONWINDOWS_DECOMPRESSION($file_handle,$file_type);
+  }
 }
 
 #-------------------------------------------------------------------------------
