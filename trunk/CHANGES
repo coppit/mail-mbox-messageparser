@@ -1,3 +1,10 @@
+Version 1.3001: Mon Jun 6 2005
+- Changed the testing code to use a more aggressive technique for clearing any
+  existing cache, even if it is not readable.
+- Fixed a problem with the grep implementation where locale settings (LC_ALL,
+  LC_COLLATE, LANG, LC_CTYPE, LC_MESSAGES) would cause it to fail. (Thanks to
+  Joey Hess <joey@kitenet.net> for the bug report.)
+
 Version 1.3000: Mon Mar 14 2005
 - Merged the internal caches used by the different mailbox parser
   implementations. This allows sharing of caching information. NOTE: Tighter
