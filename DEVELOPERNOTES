@@ -8,7 +8,7 @@ $ cvs -z3 -d:ext:coppit@cvs.sourceforge.net:/cvsroot/m-m-msgparser co devel
 Checklist for a release:
 - Be sure to add new test cases for new features
 - Make sure version number increases.
-- Add version changes to README and CHANGES, anonymizing the notes in the README.
+- Add version changes to README and CHANGES, ***ANONYMIZING THE NOTES IN THE README.***
 - Add new module dependencies to Makefile.PL, and update README
 - Update MANIFEST and MANIFEST.SKIP if necessary.
   $ make distcheck

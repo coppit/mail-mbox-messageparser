@@ -5,6 +5,7 @@ use Exporter;
 use Test::More;
 use Text::Diff;
 use FileHandle::Unget;
+use File::Path;
 use File::Spec::Functions qw(:ALL);
 
 use vars qw( @EXPORT @ISA );
@@ -67,8 +68,9 @@ sub InitializeCache
 
   my $cache_file = catfile('t','temp','cache');
 
+  rmtree $cache_file;
+
   Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache_file});
-  Mail::Mbox::MessageParser::MetaInfo::CLEAR_CACHE();
 
   my $filehandle = new FileHandle::Unget($filename);
 
