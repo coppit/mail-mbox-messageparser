@@ -19,7 +19,7 @@ use vars qw( $CACHE $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
-$VERSION = sprintf "%d.%02d%02d", q/1.30.1/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.40.0/ =~ /(\d+)/g;
 $DEBUG = 0;
 
 #-------------------------------------------------------------------------------
@@ -645,10 +645,9 @@ sub _IS_BINARY_MAILBOX
 
 #-------------------------------------------------------------------------------
 
-# Detects whether an ASCII file is a mailbox, based on whether it has
-# a line whose prefix is 'From' or 'X-From-Line:' or 'X-Draft-From:',
-# and another line whose prefix is 'Received ', 'Date:', 'Subject:',
-# 'X-Status:', 'Status:', or 'To:'.
+# Detects whether an ASCII file is a mailbox, based on whether it has a line
+# whose prefix is 'From' and another line whose prefix is 'Received ',
+# 'Date:', 'Subject:', 'X-Status:', 'Status:', or 'To:'.
 
 sub _IS_MAILBOX
 {

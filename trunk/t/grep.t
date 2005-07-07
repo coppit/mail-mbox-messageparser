@@ -11,16 +11,14 @@ use Test::Utils;
 my $GREP = $Mail::Mbox::MessageParser::Config{'programs'}{'grep'} || 'grep';
 
 my %tests = (
-"$GREP --extended-regexp --line-number --byte-offset \"^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$\" " . catfile('t','mailboxes','mailarc-1.txt')
+"$GREP --extended-regexp --line-number --byte-offset \"^From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?\$\" " . catfile('t','mailboxes','mailarc-1.txt')
   => ['grep_1','none'],
-"$GREP --extended-regexp --line-number --byte-offset \"^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$\" " . catfile('t','mailboxes','mailarc-2.txt')
+"$GREP --extended-regexp --line-number --byte-offset \"^From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?\$\" " . catfile('t','mailboxes','mailarc-2.txt')
   => ['grep_2','none'],
-"$GREP --extended-regexp --line-number --byte-offset \"^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$\" " . catfile('t','mailboxes','mailarc-3.txt')
+"$GREP --extended-regexp --line-number --byte-offset \"^From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?\$\" " . catfile('t','mailboxes','mailarc-3.txt')
   => ['grep_3','none'],
-"$GREP --extended-regexp --line-number --byte-offset \"^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$\" " . catfile('t','mailboxes','mailseparators.txt')
+"$GREP --extended-regexp --line-number --byte-offset \"^From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?\$\" " . catfile('t','mailboxes','mailseparators.txt')
   => ['grep_4','none'],
-"$GREP --extended-regexp --line-number --byte-offset \"^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$\" " . catfile('t','mailboxes','gnus.txt')
-  => ['grep_5','none'],
 );
 
 my %expected_errors = (
@@ -92,19 +90,16 @@ sub SetSkip
 
   unless (defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'})
   {
-    $skip{"$GREP --extended-regexp --line-number --byte-offset '^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$' " . catfile('t','mailboxes','mailarc-1.txt')}
+    $skip{"$GREP --extended-regexp --line-number --byte-offset '^From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?\$' " . catfile('t','mailboxes','mailarc-1.txt')}
     = 1;
 
-    $skip{"$GREP --extended-regexp --line-number --byte-offset '^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$' " . catfile('t','mailboxes','mailarc-2.txt')}
+    $skip{"$GREP --extended-regexp --line-number --byte-offset '^From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?\$' " . catfile('t','mailboxes','mailarc-2.txt')}
     = 1;
 
-    $skip{"$GREP --extended-regexp --line-number --byte-offset '^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$' " . catfile('t','mailboxes','mailarc-3.txt')}
+    $skip{"$GREP --extended-regexp --line-number --byte-offset '^From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?\$' " . catfile('t','mailboxes','mailarc-3.txt')}
     = 1;
 
-    $skip{"$GREP --extended-regexp --line-number --byte-offset '^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$' " . catfile('t','mailboxes','mailseparators.txt')}
-    = 1;
-
-    $skip{"$GREP --extended-regexp --line-number --byte-offset '^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?)\$' " . catfile('t','mailboxes','gnus.txt')}
+    $skip{"$GREP --extended-regexp --line-number --byte-offset '^From [^:]+(:[0-9][0-9]){1,2} ([A-Z]{2,3} [0-9]{4}|[0-9]{4} [+-][0-9]{4}|[0-9]{4})( remote from .*)?\$' " . catfile('t','mailboxes','mailseparators.txt')}
     = 1;
   }
 

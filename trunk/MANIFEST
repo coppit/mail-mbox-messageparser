@@ -40,7 +40,6 @@ t/stdin_compressed.t
 t/stdin_uncompressed.t
 t/speed.pl
 t/mailboxes/binary_body.txt
-t/mailboxes/gnus.txt
 t/mailboxes/hessbug.txt
 t/mailboxes/mailarc-1.txt
 t/mailboxes/mailarc-1-dos.txt
@@ -64,7 +63,6 @@ t/results/grep_4
 t/results/grep_5
 t/results/none
 t/results/length_binary_body.stdout
-t/results/length_gnus.stdout
 t/results/length_hessbug.stdout
 t/results/length_mailarc-1.stdout
 t/results/length_mailarc-1-dos.stdout
@@ -73,7 +71,6 @@ t/results/length_mailarc-3.stdout
 t/results/length_mailseparators.stdout
 t/results/length_newlines_at_beginning.stdout
 t/results/line_number_binary_body.stdout
-t/results/line_number_gnus.stdout
 t/results/line_number_hessbug.stdout
 t/results/line_number_mailarc-1.stdout
 t/results/line_number_mailarc-1-dos.stdout
@@ -82,7 +79,6 @@ t/results/line_number_mailarc-3.stdout
 t/results/line_number_mailseparators.stdout
 t/results/line_number_newlines_at_beginning.stdout
 t/results/number_binary_body.stdout
-t/results/number_gnus.stdout
 t/results/number_hessbug.stdout
 t/results/number_mailarc-1.stdout
 t/results/number_mailarc-1-dos.stdout
@@ -91,7 +87,6 @@ t/results/number_mailarc-3.stdout
 t/results/number_mailseparators.stdout
 t/results/number_newlines_at_beginning.stdout
 t/results/offset_binary_body.stdout
-t/results/offset_gnus.stdout
 t/results/offset_hessbug.stdout
 t/results/offset_mailarc-1.stdout
 t/results/offset_mailarc-1-dos.stdout
@@ -100,7 +95,6 @@ t/results/offset_mailarc-3.stdout
 t/results/offset_mailseparators.stdout
 t/results/offset_newlines_at_beginning.stdout
 t/results/reset_binary_body.stdout
-t/results/reset_gnus.stdout
 t/results/reset_hessbug.stdout
 t/results/reset_mailarc-1.stdout
 t/results/reset_mailarc-1-dos.stdout
