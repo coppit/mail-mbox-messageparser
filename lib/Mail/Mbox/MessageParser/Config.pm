@@ -20,20 +20,17 @@ $VERSION = 0.01;
 
   'read_chunk_size' => 20000,
 
-  # X-From-Line is used by Gnus, and From is used by normal Unix
-  # format. Newer versions of Gnus use X-Draft-From
   'from_pattern' => q/(?x)^
-      (X-Draft-From:\s|X-From-Line:\s|
-      From\s
-        # Skip names, months, days
-        (?> [^:]+ )
-        # Match time
-        (?: :\d\d){1,2}
-        # Match time zone (EST), hour shift (+0500), and-or year
-        (?: \s+ (?: [A-Z]{2,3} | [+-]?\d{4} ) ){1,3}
-        # smail compatibility
-        (\sremote\sfrom\s.*)?
-      )/,
+    (From\s
+      # Skip names, months, days
+      (?> [^:]+ )
+      # Match time
+      (?: :\d\d){1,2}
+      # Match time zone (EST), hour shift (+0500), and-or year
+      (?: \s+ (?: [A-Z]{2,3} | [+-]?\d{4} ) ){1,3}
+      # smail compatibility
+      (\sremote\sfrom\s.*)?
+    )/,
 );
 
 1;

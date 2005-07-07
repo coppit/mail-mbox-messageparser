@@ -13,7 +13,7 @@ use Mail::Mbox::MessageParser::Config;
 use vars qw( $VERSION $DEBUG );
 use vars qw( $CACHE );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.60.1/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.70.0/ =~ /(\d+)/g;
 
 *CACHE = \$Mail::Mbox::MessageParser::MetaInfo::CACHE;
 
@@ -81,7 +81,7 @@ sub _READ_GREP_DATA
   {
     my @grep_results;
 
-    @grep_results = `unset LC_ALL LC_COLLATE LANG LC_CTYPE LC_MESSAGES; $Mail::Mbox::MessageParser::Config{'programs'}{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^(X-Draft-From: .*|X-From-Line: .*|From [^:]+(:[0-9][0-9]){1,2}(  *([A-Z]{2,3}|[+-]?[0-9]{4})){1,3}( remote from .*)?)\r?\$" "$filename"`;
+    @grep_results = `unset LC_ALL LC_COLLATE LANG LC_CTYPE LC_MESSAGES; $Mail::Mbox::MessageParser::Config{'programs'}{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^From [^:]+(:[0-9][0-9]){1,2}(  *([A-Z]{2,3}|[+-]?[0-9]{4})){1,3}( remote from .*)?\r?\$" "$filename"`;
 
     dprint "Read " . scalar(@grep_results) . " lines of grep data";
 
@@ -145,16 +145,20 @@ sub read_next_email
 {
   my $self = shift;
 
-  $self->{'email_line_number'} =
-    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'line_number'};
-  $self->{'email_offset'} =
-    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'offset'};
+  my $last_email_index = $#{$CACHE->{$self->{'file_name'}}{'emails'}};
+
+  if ($self->{'email_number'} <= $last_email_index)
+  {
+    $self->{'email_line_number'} =
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'line_number'};
+    $self->{'email_offset'} =
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'offset'};
+  }
 
   my $email = '';
 
   LOOK_FOR_NEXT_EMAIL:
-  while ($self->{'email_number'} <=
-      $#{$CACHE->{$self->{'file_name'}}{'emails'}})
+  while ($self->{'email_number'} <= $last_email_index)
   {
     $self->{'email_length'} =
       $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
@@ -170,6 +174,12 @@ sub read_next_email
     last LOOK_FOR_NEXT_EMAIL
       if $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'};
 
+    if ($self->{'email_number'} == $last_email_index)
+    {
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'} = 1;
+      last LOOK_FOR_NEXT_EMAIL;
+    }
+
     my $endline = $self->{'endline'};
 
     # Keep looking if the header we found is part of a "Begin Included
@@ -183,17 +193,16 @@ sub read_next_email
     } while (index($end_of_string, "$endline$endline") == -1 &&
       $backup_amount < $self->{'email_length'});
 
-    if ($end_of_string =~
+    if ($end_of_string !~ /$endline$endline$/ ||
+        $end_of_string =~
         /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i ||
         $end_of_string =~
-          /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline(?:$endline)+$/i)
+          /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline(?:[^\r\n]+:[^\r\n]+$endline)*$endline$/i)
     {
       dprint "Incorrect start of email found--adjusting cache data";
 
       $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'} +=
         $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}+1]{'length'};
-
-      my $last_email_index = $#{$CACHE->{$self->{'file_name'}}{'emails'}};
 
       if($self->{'email_number'}+2 <= $last_email_index)
       {
@@ -204,6 +213,7 @@ sub read_next_email
       }
 
       pop @{$CACHE->{$self->{'file_name'}}{'emails'}};
+      $last_email_index--;
     }
     else
     {

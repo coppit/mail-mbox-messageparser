@@ -12,7 +12,7 @@ use Mail::Mbox::MessageParser::Config;
 
 use vars qw( $VERSION $DEBUG );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.50.0/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.60.0/ =~ /(\d+)/g;
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *dprint = \&Mail::Mbox::MessageParser::dprint;
@@ -187,7 +187,9 @@ sub read_next_email
         /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i;
 
     next if $end_of_string =~
-      /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline(?:$endline)+$/i;
+      /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline(?:[^\r\n]+:[^\r\n]+$endline)*$endline$/i;
+
+    next unless $end_of_string =~ /$endline$endline$/;
 
     # Found the next email!
     $self->{'email_length'} = $self->{'END_OF_EMAIL'}-$self->{'START_OF_EMAIL'};

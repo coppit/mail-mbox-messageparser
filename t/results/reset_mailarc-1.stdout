@@ -799,7 +799,7 @@ interrupt_code_exit:
 number: 3
 line: 791
 offset: 24172
-bytes: 1570
+bytes: 2781
 From aarone@sirius.com  Wed Jul  1 02:44:06 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
 	id AA22669; Wed, 1 Jul 1998 02:44:06 -0400
@@ -834,10 +834,6 @@ Why might this be?  Is there any way to check for an error situation?
 
 Thanks for any help,
 		Aaron
-number: 4
-line: 825
-offset: 25742
-bytes: 1211
 From cmcmanis@freegate.com  Thu Jul 16 03:13:49 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
 	id AA23518; Thu, 16 Jul 1998 03:13:49 -0400
@@ -866,10 +862,10 @@ handyboard library from their site.
 
 --Chuck
 
-number: 5
+number: 4
 line: 853
 offset: 26953
-bytes: 2273
+bytes: 4446
 From Scott.Seaton@Aus.Sun.COM  Thu Jul 16 03:42:38 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
 	id AA24945; Thu, 16 Jul 1998 03:42:38 -0400
@@ -918,10 +914,6 @@ Scott
 Content-Type: MESSAGE/rfc822; name=Mailbox
 Content-Description: Mailbox
 
-number: 6
-line: 901
-offset: 29226
-bytes: 2173
 From dakott@alpha.delta.edu  Wed Jul  1 05:33:51 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
 	id AA20653; Wed, 1 Jul 1998 05:33:51 -0400
@@ -977,7 +969,7 @@ Free the Source.  Free your Computer... http://www.FreeBSD.org
                                           http://www.NetBSD.org
                                             http://www.OpenBSD.org
 
-number: 7
+number: 5
 line: 956
 offset: 31399
 bytes: 7686
@@ -1125,7 +1117,7 @@ KCk7DSAgICAgICAgICBiZWVwKCk7IA0gICAgICAgICAgYmVlcCgpOw0gDSAg
 ICB9DQ0gICB9DX0N
 ---559023410-1804928587-890546857=:21628--
 
-number: 8
+number: 6
 line: 1100
 offset: 39085
 bytes: 3116
@@ -1188,7 +1180,7 @@ the dominant organism contrived its own self-destruction"
                                         Carl Sagan
 
 
-number: 9
+number: 7
 line: 1159
 offset: 42201
 bytes: 3288
@@ -1265,7 +1257,7 @@ On Mon, 3 Aug 1998, Alf Kuchenbuch wrote:
 > 
 
 
-number: 10
+number: 8
 line: 1232
 offset: 45489
 bytes: 1926
@@ -1311,7 +1303,7 @@ the dominant organism contrived its own self-distruction"
 			Carl Sagan
 
 
-number: 11
+number: 9
 line: 1274
 offset: 47415
 bytes: 1470
@@ -1360,7 +1352,7 @@ Subject: output to file
 
 
 
-number: 12
+number: 10
 line: 1319
 offset: 48885
 bytes: 2258
@@ -1422,10 +1414,10 @@ Subject: serial library for C++
 > Carl Sagan
 >
 
-number: 13
+number: 11
 line: 1377
 offset: 51143
-bytes: 2273
+bytes: 4121
 From Scott.Seaton@Aus.Sun.COM  Thu Jul 16 03:42:38 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
 	id AA24945; Thu, 16 Jul 1998 03:42:38 -0400
@@ -1474,10 +1466,6 @@ Scott
 Content-Type: MESSAGE/rfc822; name=Mailbox
 Content-Description: Mailbox
 
-number: 14
-line: 1425
-offset: 53416
-bytes: 1848
 From someone@imagecraft.com  Fri Jul 10 18:59:26 1998
 Return-Path: <icc11-list-errors@lists.best.com>
 Received: from Aus.Sun.COM by war.Aus.Sun.COM (SMI-8.6/SMI-SVR4)
@@ -1520,7 +1508,7 @@ someone@imagecraft.com http://www.imagecraft.com
 
 --Troop_of_Baboons_752_000--
 
-number: 15
+number: 12
 line: 1467
 offset: 55264
 bytes: 7754

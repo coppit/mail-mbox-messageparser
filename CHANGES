@@ -1,3 +1,14 @@
+Version 1.4000: Thu Jul 7 2005
+- Fixed a long-standing bug in the parsing of mail messages containing mail
+  attachments. (Thanks to Brian May <bam@debian.org> for the bug report.)
+- Dropped X-From-Line support for two reasons: (1) it seems to have
+  disappeared from newer versions of Gnus, and (2) this module is for mbox
+  format. (Thanks to Brian May <bam@debian.org> for prompting this.)
+- Changed the mail parsing so that a blank line *must* separate mail messages,
+  as per mail(5) (http://www.qmail.org/man/man5/mbox.html). Lack of a blank
+  line will cause the second email to be considered to be part of the
+  preceding email.
+
 Version 1.3001: Mon Jun 6 2005
 - Changed the testing code to use a more aggressive technique for clearing any
   existing cache, even if it is not readable.
