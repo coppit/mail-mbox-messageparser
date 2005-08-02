@@ -81,7 +81,7 @@ sub _READ_GREP_DATA
   {
     my @grep_results;
 
-    @grep_results = `unset LC_ALL LC_COLLATE LANG LC_CTYPE LC_MESSAGES; $Mail::Mbox::MessageParser::Config{'programs'}{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^From [^:]+(:[0-9][0-9]){1,2}(  *([A-Z]{2,3}|[+-]?[0-9]{4})){1,3}( remote from .*)?\r?\$" "$filename"`;
+    @grep_results = `unset LC_ALL LC_COLLATE LANG LC_CTYPE LC_MESSAGES; $Mail::Mbox::MessageParser::Config{'programs'}{'grep'} --extended-regexp --line-number --byte-offset --binary-files=text "^From [^:]+(:[0-9][0-9]){1,2}(  *([A-Z]{2,6}|[+-]?[0-9]{4})){1,3}( remote from .*)?\r?\$" "$filename"`;
 
     dprint "Read " . scalar(@grep_results) . " lines of grep data";
 

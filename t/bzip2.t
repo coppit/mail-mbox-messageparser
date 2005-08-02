@@ -9,8 +9,11 @@ use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Config;
 use File::Spec::Functions qw( :ALL );
 
+# To prevent undef warnings
+my $BZIP2 = $Mail::Mbox::MessageParser::Config{'programs'}{'bzip2'} || 'bzip2';
+
 my %tests = (
-"cat " . catfile('t','mailboxes','mailarc-2.txt.bz2') . " | $Mail::Mbox::MessageParser::Config{'programs'}{'bzip2'} -cd"
+"cat " . catfile('t','mailboxes','mailarc-2.txt.bz2') . " | $BZIP2 -cd"
   => ['mailarc-2.txt','none'],
 );
 
@@ -81,7 +84,7 @@ sub SetSkip
 
   unless (defined $Mail::Mbox::MessageParser::Config{'programs'}{'bzip2'})
   {
-    $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.bz2') . " | $Mail::Mbox::MessageParser::Config{'programs'}{'bzip2'} -cd"}
+    $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.bz2') . " | $BZIP2 -cd"}
       = 'bzip2 not available';
   }
 
