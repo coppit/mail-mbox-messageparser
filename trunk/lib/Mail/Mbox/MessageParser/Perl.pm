@@ -159,6 +159,88 @@ sub read_next_email
 
   $self->{'START_OF_EMAIL'} = $self->{'END_OF_EMAIL'};
 
+  my $endline = $self->{'endline'};
+
+  # Look for the end of the header
+  LOOK_FOR_END_OF_HEADER:
+  while ($self->{'READ_BUFFER'} !~ m/$endline$endline/mg)
+  {
+    # Start looking at the end of the buffer, but back up some in case the edge
+    # of the newly read buffer contains the remainder of the newlines.
+    my $search_position = length($self->{'READ_BUFFER'}) - 4;
+    $search_position = 0 if $search_position < 0;
+
+    if ($self->_read_chunk())
+    {
+      pos($self->{'READ_BUFFER'}) = $search_position;
+      goto LOOK_FOR_END_OF_HEADER;
+    }
+    else
+    {
+      $self->{'email_length'} =
+        length($self->{'READ_BUFFER'})-$self->{'START_OF_EMAIL'};
+      my $email = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
+        $self->{'email_length'});
+      $self->{'CURRENT_LINE_NUMBER'} += ($email =~ tr/\n//);
+      $self->{'CURRENT_OFFSET'} += $self->{'email_length'};
+
+      $self->{'email_number'}++;
+
+      $self->SUPER::read_next_email();
+
+      return \$email;
+    }
+  }
+
+  $self->{'START_OF_BODY'} = pos($self->{'READ_BUFFER'});
+
+  if (substr($self->{'READ_BUFFER'},$self->{'START_OF_EMAIL'},$self->{'START_OF_BODY'}-$self->{'START_OF_EMAIL'}) =~ /^(content-type: *multipart[^\n\r]*$endline( [^\n\r]*$endline)*)/im)
+  {
+    my $content_type_header = $1;
+    $content_type_header =~ s/$endline//g;
+
+    # Are nonquoted parameter values allowed to have spaces? I assume not.
+    if ($content_type_header =~ /boundary *= *"([^"]*)"/i ||
+        $content_type_header =~ /boundary *= *\b(\S+)\b/i)
+    {
+      my $boundary = $1;
+
+      # Now read until we see the ending boundary
+      LOOK_FOR_ENDING_BOUNDARY:
+      while ($self->{'READ_BUFFER'} !~ m/^--\Q$boundary\E--$endline/mg)
+      {
+        # Start looking at the end of the buffer, but back up some in case the
+        # edge of the newly read buffer contains the remainder of the
+        # boundary. RFC 1521 says the boundary can be no longer than 70
+        # characters.
+        my $search_position = length($self->{'READ_BUFFER'}) - 76;
+        $search_position = 0 if $search_position < 0;
+
+        if ($self->_read_chunk())
+        {
+          pos($self->{'READ_BUFFER'}) = $search_position;
+          goto LOOK_FOR_ENDING_BOUNDARY;
+        }
+        else
+        {
+          $self->{'email_length'} =
+            length($self->{'READ_BUFFER'})-$self->{'START_OF_EMAIL'};
+          my $email = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
+            $self->{'email_length'});
+          $self->{'CURRENT_LINE_NUMBER'} += ($email =~ tr/\n//);
+          $self->{'CURRENT_OFFSET'} += $self->{'email_length'};
+
+          $self->{'email_number'}++;
+
+          $self->SUPER::read_next_email();
+
+          return \$email;
+        }
+      }
+    }
+  }
+
+
   # Look for the start of the next email
   LOOK_FOR_NEXT_HEADER:
   while ($self->{'READ_BUFFER'} =~
@@ -217,6 +299,34 @@ sub read_next_email
   my $search_position = length($self->{'READ_BUFFER'}) - 90;
   $search_position = 0 if $search_position < 0;
 
+  if ($self->_read_chunk())
+  {
+    pos($self->{'READ_BUFFER'}) = $search_position;
+    goto LOOK_FOR_NEXT_HEADER;
+  }
+  else
+  {
+    $self->{'email_length'} =
+      length($self->{'READ_BUFFER'})-$self->{'START_OF_EMAIL'};
+    my $email = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
+      $self->{'email_length'});
+    $self->{'CURRENT_LINE_NUMBER'} += ($email =~ tr/\n//);
+    $self->{'CURRENT_OFFSET'} += $self->{'email_length'};
+
+    $self->{'email_number'}++;
+
+    $self->SUPER::read_next_email();
+
+    return \$email;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub _read_chunk()
+{
+  my $self = shift;
+
   # Can't use sysread because it doesn't work with ungetc
   if ($self->{'READ_CHUNK_SIZE'} == 0)
   {
@@ -225,20 +335,13 @@ sub read_next_email
     if (eof $self->{'file_handle'})
     {
       $self->{'end_of_file'} = 1;
-
-      $self->{'email_length'} = length($self->{'READ_BUFFER'});
-      $self->{'email_number'}++;
-
-      $self->SUPER::read_next_email();
-
-      return \$self->{'READ_BUFFER'};
+      return 0;
     }
     else
     {
       # < $self->{'file_handle'} > doesn't work, so we use readline
       $self->{'READ_BUFFER'} = readline($self->{'file_handle'});
-      pos($self->{'READ_BUFFER'}) = $search_position;
-      goto LOOK_FOR_NEXT_HEADER;
+      return 1;
     }
   }
   else
@@ -246,20 +349,13 @@ sub read_next_email
     if (read($self->{'file_handle'}, $self->{'READ_BUFFER'},
       $self->{'READ_CHUNK_SIZE'}, length($self->{'READ_BUFFER'})))
     {
-      pos($self->{'READ_BUFFER'}) = $search_position;
       $self->{'READ_CHUNK_SIZE'} *= 2;
-      goto LOOK_FOR_NEXT_HEADER;
+      return 1;
     }
     else
     {
       $self->{'end_of_file'} = 1;
-
-      $self->{'email_length'} = length($self->{'READ_BUFFER'});
-      $self->{'email_number'}++;
-
-      $self->SUPER::read_next_email();
-
-      return \$self->{'READ_BUFFER'};
+      return 0;
     }
   }
 }

@@ -865,7 +865,7 @@ handyboard library from their site.
 number: 4
 line: 853
 offset: 27805
-bytes: 4549
+bytes: 4211
 From Scott.Seaton@Aus.Sun.COM  Thu Jul 16 03:42:38 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
 	id AA24945; Thu, 16 Jul 1998 03:42:38 -0400
@@ -914,6 +914,52 @@ Scott
 Content-Type: MESSAGE/rfc822; name=Mailbox
 Content-Description: Mailbox
 
+From someone@imagecraft.com  Fri Jul 10 18:59:26 1998
+Return-Path: <icc11-list-errors@lists.best.com>
+Received: from Aus.Sun.COM by war.Aus.Sun.COM (SMI-8.6/SMI-SVR4)
+	id SAA14426; Fri, 10 Jul 1998 18:59:26 +1000
+Received: from earth.sun.com by Aus.Sun.COM id SAA24238
+	(SMI-8.6/SMI-4.1 for <<scott.seaton@aus.sun.com>>); Fri, 10 Jul 1998 18:59:48 +1000
+Received: from iisesun.iise.CSIRO.AU (iisesun.iise.csiro.au [130.155.5.44])
+	by earth.sun.com (8.8.8/8.8.8) with SMTP id BAA18609
+	for <scott.seaton@aus.sun.com>; Fri, 10 Jul 1998 01:59:44 -0700 (PDT)
+Received: from lists1.best.com (lists1.best.com [206.86.8.15]) by iisesun.iise.CSIRO.AU (SMI-8.6/8.6.12-IISE-SWA) with ESMTP id SAA25847 for <sseaton@iise.csiro.au>; Fri, 10 Jul 1998 18:49:31 +1000
+Received: (from daemon@localhost) by lists1.best.com (8.9.0/8.8.BEST) id BAA15320 for icc11-list-errors@lists.best.com; Fri, 10 Jul 1998 01:04:34 -0700 (PDT)
+Message-Id: <199807100804.BAA15320@lists1.best.com>
+From: Christina Willrich & Richard Man <someone@imagecraft.com>
+Subject: icc11 Handyboard library available
+Date: Fri, 10 Jul 1998 00:58:49 -0700
+BestServHost: lists.best.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Sender: icc11-list-errors@lists.best.com
+Errors-To: icc11-list-errors@lists.best.com
+Reply-To: icc11-list@lists.best.com
+To: icc11-list@lists.best.com
+content-length: 399
+Status: RO
+X-Status: $$$$
+X-UID: 0000000001
+
+At long last, I dusted off Chuck McManis Handyboard library and ported it
+to V5. No reason why it can't work with V4.5 either ;-) Anyway, to try it
+out, point your browser to
+
+ftp://ftp.imagecraft.com/pub/libhb.zip
+
+Chuck really did a great job with the LCD. There are commands to scroll,
+move etc. Make sure you try the lcdtest2.c test.
+
+// richard
+someone@imagecraft.com http://www.imagecraft.com
+
+
+--Troop_of_Baboons_752_000--
+
+number: 5
+line: 943
+offset: 32016
+bytes: 2228
 From dakott@alpha.delta.edu  Wed Jul  1 05:33:51 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
 	id AA20653; Wed, 1 Jul 1998 05:33:51 -0400
@@ -969,9 +1015,9 @@ Free the Source.  Free your Computer... http://www.FreeBSD.org
                                           http://www.NetBSD.org
                                             http://www.OpenBSD.org
 
-number: 5
-line: 956
-offset: 32354
+number: 6
+line: 998
+offset: 34244
 bytes: 7830
 From rshirk@sfgate.com  Sun Mar 22 01:52:45 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1117,9 +1163,9 @@ KCk7DSAgICAgICAgICBiZWVwKCk7IA0gICAgICAgICAgYmVlcCgpOw0gDSAg
 ICB9DQ0gICB9DX0N
 ---559023410-1804928587-890546857=:21628--
 
-number: 6
-line: 1100
-offset: 40184
+number: 7
+line: 1142
+offset: 42074
 bytes: 3175
 From wallace@theory.phys.vt.edu  Mon Jul 27 18:34:05 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1180,9 +1226,9 @@ the dominant organism contrived its own self-destruction"
                                         Carl Sagan
 
 
-number: 7
-line: 1159
-offset: 43359
+number: 8
+line: 1201
+offset: 45249
 bytes: 3361
 From mwallace@sps1.phys.vt.edu  Mon Aug  3 12:05:51 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1257,9 +1303,9 @@ On Mon, 3 Aug 1998, Alf Kuchenbuch wrote:
 > 
 
 
-number: 8
-line: 1232
-offset: 46720
+number: 9
+line: 1274
+offset: 48610
 bytes: 1968
 From mawalla3@vt.edu  Wed Aug 12 13:10:06 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1303,9 +1349,9 @@ the dominant organism contrived its own self-distruction"
 			Carl Sagan
 
 
-number: 9
-line: 1274
-offset: 48688
+number: 10
+line: 1316
+offset: 50578
 bytes: 1515
 From aarone@sirius.com  Wed Sep 30 12:35:05 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v4.0/1.1/06Jun95-8.2MPM)
@@ -1352,9 +1398,9 @@ Subject: output to file
 
 
 
-number: 10
-line: 1319
-offset: 50203
+number: 11
+line: 1361
+offset: 52093
 bytes: 2316
 From aarone@sirius.com  Wed Aug 12 13:42:19 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1414,9 +1460,9 @@ Subject: serial library for C++
 > Carl Sagan
 >
 
-number: 11
-line: 1377
-offset: 52519
+number: 12
+line: 1419
+offset: 54409
 bytes: 4211
 From Scott.Seaton@Aus.Sun.COM  Thu Jul 16 03:42:38 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1508,10 +1554,10 @@ someone@imagecraft.com http://www.imagecraft.com
 
 --Troop_of_Baboons_752_000--
 
-number: 12
-line: 1467
-offset: 56730
-bytes: 7891
+number: 13
+line: 1509
+offset: 58620
+bytes: 7889
 From brian-c@technologist.com  Mon Jul  6 11:54:19 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
 	id AA03667; Mon,  6 Jul 1998 11:54:19 -0400
@@ -1648,4 +1694,3 @@ Ow0KDQp9ICAgICAgICAgICAgICAgICAgICAgICAgICAgICANCg0K
 
 
 --0-0-0-0-0-0-0-0-____====$%&--
-

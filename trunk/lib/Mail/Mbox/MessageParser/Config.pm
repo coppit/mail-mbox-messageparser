@@ -27,7 +27,7 @@ $VERSION = 0.01;
       # Match time
       (?: :\d\d){1,2}
       # Match time zone (EST), hour shift (+0500), and-or year
-      (?: \s+ (?: [A-Z]{2,3} | [+-]?\d{4} ) ){1,3}
+      (?: \s+ (?: [A-Z]{2,6} | [+-]?\d{4} ) ){1,3}
       # smail compatibility
       (\sremote\sfrom\s.*)?
     )/,

@@ -10,7 +10,8 @@ use Test::Utils;
 use Mail::Mbox::MessageParser::Config;
 use Mail::Mbox::MessageParser;
 
-my $TZIP = $Mail::Mbox::MessageParser::Config{'programs'}{'tzip'} || 'not installed';
+# To prevent undef warnings
+my $TZIP = $Mail::Mbox::MessageParser::Config{'programs'}{'tzip'} || 'tzip';
 
 my %tests = (
 "cat " . catfile('t','mailboxes','mailarc-2.txt.tz') . " | $TZIP -cd"
