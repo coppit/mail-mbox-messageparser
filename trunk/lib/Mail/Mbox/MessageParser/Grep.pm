@@ -13,7 +13,7 @@ use Mail::Mbox::MessageParser::Config;
 use vars qw( $VERSION $DEBUG );
 use vars qw( $CACHE );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.70.0/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.70.1/ =~ /(\d+)/g;
 
 *CACHE = \$Mail::Mbox::MessageParser::MetaInfo::CACHE;
 
@@ -145,41 +145,46 @@ sub read_next_email
 {
   my $self = shift;
 
-  my $last_email_index = $#{$CACHE->{$self->{'file_name'}}{'emails'}};
+  $self->{'READ_BUFFER'} = '';
 
-  if ($self->{'email_number'} <= $last_email_index)
+  $self->{'email_line_number'} =
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'line_number'};
+  $self->{'email_offset'} =
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'offset'};
+
+
+  # Slurp in an entire multipart email
+  unless ($self->_read_header())
   {
-    $self->{'email_line_number'} =
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'line_number'};
-    $self->{'email_offset'} =
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'offset'};
+    return $self->_extract_email_and_finalize();
   }
 
-  my $email = '';
+  my $boundary = $self->_multipart_boundary();
 
-  LOOK_FOR_NEXT_EMAIL:
-  while ($self->{'email_number'} <= $last_email_index)
+  if (defined $boundary)
   {
-    $self->{'email_length'} =
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
-
+    unless ($self->_read_multipart_email($boundary))
     {
-      my $bytes_read = length($email);
-      do {
-        $bytes_read += read($self->{'file_handle'},
-          $email, $self->{'email_length'}-$bytes_read, $bytes_read);
-      } while ($bytes_read != $self->{'email_length'});
+      return $self->_extract_email_and_finalize();
     }
+  }
 
-    last LOOK_FOR_NEXT_EMAIL
-      if $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'};
+  $self->_read_rest_of_email();
 
-    if ($self->{'email_number'} == $last_email_index)
-    {
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'} = 1;
-      last LOOK_FOR_NEXT_EMAIL;
-    }
+  return $self->_extract_email_and_finalize();
+}
 
+#-------------------------------------------------------------------------------
+
+sub _read_rest_of_email
+{
+  my $self = shift;
+
+  return
+    if $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'};
+
+  while (1)
+  {
     my $endline = $self->{'endline'};
 
     # Keep looking if the header we found is part of a "Begin Included
@@ -189,46 +194,183 @@ sub read_next_email
     do
     {
       $backup_amount *= 2;
-      $end_of_string = substr($email, -$backup_amount);
+      $end_of_string = substr($self->{'READ_BUFFER'}, -$backup_amount);
     } while (index($end_of_string, "$endline$endline") == -1 &&
       $backup_amount < $self->{'email_length'});
 
-    if ($end_of_string !~ /$endline$endline$/ ||
+    return unless ($end_of_string !~ /$endline$endline$/ ||
         $end_of_string =~
-        /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i ||
-        $end_of_string =~
-          /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline(?:[^\r\n]+:[^\r\n]+$endline)*$endline$/i)
+        /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i);
+
+    # Start looking at the end of the buffer, but back up some in case the
+    # edge of the newly read buffer contains the start of a new header. I
+    # believe the RFC says header lines can be at most 90 characters long.
+    my $search_position = length($self->{'READ_BUFFER'}) - 90;
+    $search_position = 0 if $search_position < 0;
+
+    if ($self->_read_chunk())
     {
-      dprint "Incorrect start of email found--adjusting cache data";
-
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'} +=
-        $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}+1]{'length'};
-
-      if($self->{'email_number'}+2 <= $last_email_index)
-      {
-        @{$CACHE->{$self->{'file_name'}}{'emails'}}
-          [$self->{'email_number'}+1..$last_email_index-1] =
-            @{$CACHE->{$self->{'file_name'}}{'emails'}}
-            [$self->{'email_number'}+2..$last_email_index];
-      }
-
-      pop @{$CACHE->{$self->{'file_name'}}{'emails'}};
-      $last_email_index--;
+      pos($self->{'READ_BUFFER'}) = $search_position;
     }
     else
     {
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'} = 1;
-      last LOOK_FOR_NEXT_EMAIL;
+      return;
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub _multipart_boundary
+{   
+  my $self = shift;
+  
+  my $endline = $self->{'endline'};
+    
+  if (substr($self->{'READ_BUFFER'},0,$self->{'START_OF_BODY'}) =~ /^(content-type: *multipart[^\n\r]*$endline( [^\n\r]*$endline)*)/im)
+  {
+    my $content_type_header = $1;
+    $content_type_header =~ s/$endline//g;
+  
+    # Are nonquoted parameter values allowed to have spaces? I assume not.
+    if ($content_type_header =~ /boundary *= *"([^"]*)"/i ||
+        $content_type_header =~ /boundary *= *\b(\S+)\b/i)
+    {
+      return $1
+    }
+  }
+      
+  return undef;
+} 
+
+#-------------------------------------------------------------------------------
+  
+sub _read_multipart_email
+{ 
+  my $self = shift;
+  my $boundary = shift;
+
+  my $endline = $self->{'endline'};
+
+  # Now read until we see the ending boundary
+  while ($self->{'READ_BUFFER'} !~ m/^--\Q$boundary\E--$endline/mg)
+  {
+    # Start looking at the end of the buffer, but back up some in case the
+    # edge of the newly read buffer contains the remainder of the
+    # boundary. RFC 1521 says the boundary can be no longer than 70
+    # characters.
+    my $search_position = length($self->{'READ_BUFFER'}) - 76;
+    $search_position = 0 if $search_position < 0;
+
+    if ($self->_read_chunk())
+    {
+      pos($self->{'READ_BUFFER'}) = $search_position;
+    }
+    else
+    {
+      return 0;
     }
   }
 
-  $self->{'end_of_file'} = 1 if eof $self->{'file_handle'};
+  return 1;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _extract_email_and_finalize
+{
+  my $self = shift;
+
+  $self->{'email_length'} =
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
+
+  $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'} = 1;
 
   $self->{'email_number'}++;
 
   $self->SUPER::read_next_email();
 
-  return \$email;
+  return \$self->{'READ_BUFFER'};
+}
+
+#-------------------------------------------------------------------------------
+
+sub _read_header
+{
+  my $self = shift;
+
+  # Look for the end of the header
+  while ($self->{'READ_BUFFER'} !~ m/$self->{'endline'}$self->{'endline'}/mg)
+  {
+    # Start looking at the end of the buffer, but back up some in case the edge
+    # of the newly read buffer contains the remainder of the newlines.
+    my $search_position = length($self->{'READ_BUFFER'}) - 4;
+    $search_position = 0 if $search_position < 0;
+
+    unless ($self->_read_chunk())
+    {
+      return 0;
+    }
+
+    pos($self->{'READ_BUFFER'}) = $search_position;
+  }
+
+  $self->{'START_OF_BODY'} = pos($self->{'READ_BUFFER'});
+
+  return 1;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _read_chunk
+{
+  my $self = shift;
+
+  my $last_email_index = $#{$CACHE->{$self->{'file_name'}}{'emails'}};
+
+  if ($self->{'email_number'} == $last_email_index)
+  {
+    $self->{'end_of_file'} = 1;
+  }
+
+  my $length_to_read =
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
+  my $bytes_read = length($self->{'READ_BUFFER'});
+
+  # Need to join next email entry
+  if ($length_to_read == $bytes_read)
+  {
+    dprint "Incorrect start of email found--adjusting cache data";
+
+    if ($self->{'email_number'} == $last_email_index)
+    {
+      $self->{'end_of_file'} = 1;
+      return 0;
+    }
+
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'} +=
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}+1]{'length'};
+
+    if($self->{'email_number'}+2 <= $last_email_index)
+    {
+      @{$CACHE->{$self->{'file_name'}}{'emails'}}
+        [$self->{'email_number'}+1..$last_email_index-1] =
+          @{$CACHE->{$self->{'file_name'}}{'emails'}}
+          [$self->{'email_number'}+2..$last_email_index];
+    }
+
+    pop @{$CACHE->{$self->{'file_name'}}{'emails'}};
+
+    $length_to_read =
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
+  }
+
+  do {
+    $bytes_read += read($self->{'file_handle'},
+      $self->{'READ_BUFFER'}, $length_to_read-$bytes_read, $bytes_read);
+  } while ($bytes_read != $length_to_read);
+
+  return 1;
 }
 
 1;

@@ -159,40 +159,101 @@ sub read_next_email
 
   $self->{'START_OF_EMAIL'} = $self->{'END_OF_EMAIL'};
 
-  my $endline = $self->{'endline'};
 
-  # Look for the end of the header
-  LOOK_FOR_END_OF_HEADER:
-  while ($self->{'READ_BUFFER'} !~ m/$endline$endline/mg)
+  # Slurp in an entire multipart email (but continue looking for the next
+  # header so that we can get any following newlines as well)
+  unless ($self->_read_header())
   {
-    # Start looking at the end of the buffer, but back up some in case the edge
-    # of the newly read buffer contains the remainder of the newlines.
-    my $search_position = length($self->{'READ_BUFFER'}) - 4;
+    $self->{'END_OF_EMAIL'} = length($self->{'READ_BUFFER'});
+    return $self->_extract_email_and_finalize();
+  }
+
+  my $boundary = $self->_multipart_boundary();
+
+  if (defined $boundary)
+  {
+    unless ($self->_read_multipart_email($boundary))
+    {
+      $self->{'END_OF_EMAIL'} = length($self->{'READ_BUFFER'});
+      return $self->_extract_email_and_finalize();
+    }
+  }
+
+  unless ($self->_read_rest_of_email())
+  {
+    $self->{'END_OF_EMAIL'} = length($self->{'READ_BUFFER'});
+  }
+
+  return $self->_extract_email_and_finalize();
+}
+
+#-------------------------------------------------------------------------------
+
+sub _read_rest_of_email
+{
+  my $self = shift;
+
+  # Look for the start of the next email
+  while(1)
+  {
+    while ($self->{'READ_BUFFER'} =~
+        m/$Mail::Mbox::MessageParser::Config{'from_pattern'}/mg)
+    {
+      $self->{'END_OF_EMAIL'} = pos($self->{'READ_BUFFER'}) - length($1);
+
+      my $endline = $self->{'endline'};
+
+      # Keep looking if the header we found is part of a "Begin Included
+      # Message".
+      my $end_of_string = '';
+      my $backup_amount = 100;
+      do
+      {
+        $backup_amount *= 2;
+        $end_of_string = substr($self->{'READ_BUFFER'},
+          $self->{'END_OF_EMAIL'}-$backup_amount, $backup_amount);
+      } while (index($end_of_string, "$endline$endline") == -1 &&
+        $backup_amount < $self->{'END_OF_EMAIL'});
+
+      next if $end_of_string =~
+          /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i;
+
+      next unless $end_of_string =~ /$endline$endline$/;
+
+      # Found the next email!
+      return 1;
+    }
+
+    # Didn't find next email in current buffer. Most likely we need to read some
+    # more of the mailbox. Shift the current email to the front of the buffer
+    # unless we've already done so.
+    substr($self->{'READ_BUFFER'},0,$self->{'START_OF_EMAIL'}) = '';
+    $self->{'START_OF_EMAIL'} = 0;
+
+    # Start looking at the end of the buffer, but back up some in case the
+    # edge of the newly read buffer contains the start of a new header. I
+    # believe the RFC says header lines can be at most 90 characters long.
+    my $search_position = length($self->{'READ_BUFFER'}) - 90;
     $search_position = 0 if $search_position < 0;
 
     if ($self->_read_chunk())
     {
       pos($self->{'READ_BUFFER'}) = $search_position;
-      goto LOOK_FOR_END_OF_HEADER;
     }
     else
     {
-      $self->{'email_length'} =
-        length($self->{'READ_BUFFER'})-$self->{'START_OF_EMAIL'};
-      my $email = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
-        $self->{'email_length'});
-      $self->{'CURRENT_LINE_NUMBER'} += ($email =~ tr/\n//);
-      $self->{'CURRENT_OFFSET'} += $self->{'email_length'};
-
-      $self->{'email_number'}++;
-
-      $self->SUPER::read_next_email();
-
-      return \$email;
+      return 0;
     }
   }
+}
 
-  $self->{'START_OF_BODY'} = pos($self->{'READ_BUFFER'});
+#-------------------------------------------------------------------------------
+
+sub _multipart_boundary
+{
+  my $self = shift;
+
+  my $endline = $self->{'endline'};
 
   if (substr($self->{'READ_BUFFER'},$self->{'START_OF_EMAIL'},$self->{'START_OF_BODY'}-$self->{'START_OF_EMAIL'}) =~ /^(content-type: *multipart[^\n\r]*$endline( [^\n\r]*$endline)*)/im)
   {
@@ -203,127 +264,96 @@ sub read_next_email
     if ($content_type_header =~ /boundary *= *"([^"]*)"/i ||
         $content_type_header =~ /boundary *= *\b(\S+)\b/i)
     {
-      my $boundary = $1;
-
-      # Now read until we see the ending boundary
-      LOOK_FOR_ENDING_BOUNDARY:
-      while ($self->{'READ_BUFFER'} !~ m/^--\Q$boundary\E--$endline/mg)
-      {
-        # Start looking at the end of the buffer, but back up some in case the
-        # edge of the newly read buffer contains the remainder of the
-        # boundary. RFC 1521 says the boundary can be no longer than 70
-        # characters.
-        my $search_position = length($self->{'READ_BUFFER'}) - 76;
-        $search_position = 0 if $search_position < 0;
-
-        if ($self->_read_chunk())
-        {
-          pos($self->{'READ_BUFFER'}) = $search_position;
-          goto LOOK_FOR_ENDING_BOUNDARY;
-        }
-        else
-        {
-          $self->{'email_length'} =
-            length($self->{'READ_BUFFER'})-$self->{'START_OF_EMAIL'};
-          my $email = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
-            $self->{'email_length'});
-          $self->{'CURRENT_LINE_NUMBER'} += ($email =~ tr/\n//);
-          $self->{'CURRENT_OFFSET'} += $self->{'email_length'};
-
-          $self->{'email_number'}++;
-
-          $self->SUPER::read_next_email();
-
-          return \$email;
-        }
-      }
+      return $1
     }
   }
 
-
-  # Look for the start of the next email
-  LOOK_FOR_NEXT_HEADER:
-  while ($self->{'READ_BUFFER'} =~
-      m/$Mail::Mbox::MessageParser::Config{'from_pattern'}/mg)
-  {
-    $self->{'END_OF_EMAIL'} = pos($self->{'READ_BUFFER'}) - length($1);
-
-    # Don't stop on email header for the first email in the buffer
-    next unless $self->{'END_OF_EMAIL'};
-
-    my $endline = $self->{'endline'};
-
-    # Keep looking if the header we found is part of a "Begin Included
-    # Message".
-    my $end_of_string = '';
-    my $backup_amount = 100;
-    do
-    {
-      $backup_amount *= 2;
-      $end_of_string = substr($self->{'READ_BUFFER'},
-        $self->{'END_OF_EMAIL'}-$backup_amount, $backup_amount);
-    } while (index($end_of_string, "$endline$endline") == -1 &&
-      $backup_amount < $self->{'END_OF_EMAIL'});
-
-    next if $end_of_string =~
-        /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i;
-
-    next if $end_of_string =~
-      /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline(?:[^\r\n]+:[^\r\n]+$endline)*$endline$/i;
-
-    next unless $end_of_string =~ /$endline$endline$/;
-
-    # Found the next email!
-    $self->{'email_length'} = $self->{'END_OF_EMAIL'}-$self->{'START_OF_EMAIL'};
-    my $email = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
-      $self->{'email_length'});
-    $self->{'CURRENT_LINE_NUMBER'} += ($email =~ tr/\n//);
-    $self->{'CURRENT_OFFSET'} += $self->{'email_length'};
-
-    $self->{'email_number'}++;
-
-    $self->SUPER::read_next_email();
-
-    return \$email;
-  }
-
-  # Didn't find next email in current buffer. Most likely we need to read some
-  # more of the mailbox. Shift the current email to the front of the buffer
-  # unless we've already done so.
-  substr($self->{'READ_BUFFER'},0,$self->{'START_OF_EMAIL'}) = '';
-  $self->{'START_OF_EMAIL'} = 0;
-
-  # Start looking at the end of the buffer, but back up some in case the edge
-  # of the newly read buffer contains the start of a new header. I believe the
-  # RFC says header lines can be at most 90 characters long.
-  my $search_position = length($self->{'READ_BUFFER'}) - 90;
-  $search_position = 0 if $search_position < 0;
-
-  if ($self->_read_chunk())
-  {
-    pos($self->{'READ_BUFFER'}) = $search_position;
-    goto LOOK_FOR_NEXT_HEADER;
-  }
-  else
-  {
-    $self->{'email_length'} =
-      length($self->{'READ_BUFFER'})-$self->{'START_OF_EMAIL'};
-    my $email = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
-      $self->{'email_length'});
-    $self->{'CURRENT_LINE_NUMBER'} += ($email =~ tr/\n//);
-    $self->{'CURRENT_OFFSET'} += $self->{'email_length'};
-
-    $self->{'email_number'}++;
-
-    $self->SUPER::read_next_email();
-
-    return \$email;
-  }
+  return undef;
 }
 
 #-------------------------------------------------------------------------------
 
-sub _read_chunk()
+sub _read_multipart_email
+{
+  my $self = shift;
+  my $boundary = shift;
+
+  my $endline = $self->{'endline'};
+
+  # Now read until we see the ending boundary
+  while ($self->{'READ_BUFFER'} !~ m/^--\Q$boundary\E--$endline/mg)
+  {
+    # Start looking at the end of the buffer, but back up some in case the
+    # edge of the newly read buffer contains the remainder of the
+    # boundary. RFC 1521 says the boundary can be no longer than 70
+    # characters.
+    my $search_position = length($self->{'READ_BUFFER'}) - 76;
+    $search_position = 0 if $search_position < 0;
+
+    if ($self->_read_chunk())
+    {
+      pos($self->{'READ_BUFFER'}) = $search_position;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _extract_email_and_finalize
+{
+  my $self = shift;
+
+  $self->{'email_length'} = $self->{'END_OF_EMAIL'}-$self->{'START_OF_EMAIL'};
+
+  my $email = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
+    $self->{'email_length'});
+
+  $self->{'CURRENT_LINE_NUMBER'} += ($email =~ tr/\n//);
+  $self->{'CURRENT_OFFSET'} += $self->{'email_length'};
+
+  $self->{'email_number'}++;
+
+  $self->SUPER::read_next_email();
+
+  return \$email;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _read_header
+{
+  my $self = shift;
+
+  # Look for the end of the header
+  while ($self->{'READ_BUFFER'} !~ m/$self->{'endline'}$self->{'endline'}/mg)
+  {
+    # Start looking at the end of the buffer, but back up some in case the edge
+    # of the newly read buffer contains the remainder of the newlines.
+    my $search_position = length($self->{'READ_BUFFER'}) - 4;
+    $search_position = 0 if $search_position < 0;
+
+    unless ($self->_read_chunk())
+    {
+      return 0;
+    }
+
+    pos($self->{'READ_BUFFER'}) = $search_position;
+  }
+
+  $self->{'START_OF_BODY'} = pos($self->{'READ_BUFFER'});
+
+  return 1;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _read_chunk
 {
   my $self = shift;
 

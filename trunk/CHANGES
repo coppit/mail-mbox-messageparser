@@ -1,8 +1,10 @@
-Version 1.4001:
+Version 1.4001: Tue Aug 2 2005
 - Fixed a bug where emails involving time zones of length more than 3
   characters (e.g. "WETDST") would not be processed correctly.  (Thanks to
   Hans F. Nordhaug <Hans.F.Nordhaug@hiMolde.no> for the bug report.)
 - Fixed some undefined value warnings for some test cases.
+- Fixed a bug where mailboxes having emails with rfc822 attachments would not
+  be parsed correctly
 
 Version 1.4000: Thu Jul 7 2005
 - Fixed a long-standing bug in the parsing of mail messages containing mail

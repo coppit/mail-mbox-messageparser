@@ -861,7 +861,7 @@ handyboard library from their site.
 number: 4
 line: 849
 offset: 26782
-bytes: 4069
+bytes: 5890
 From Scott.Seaton@Aus.Sun.COM  Thu Jul 16 03:42:38 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
 	id AA24945; Thu, 16 Jul 1998 03:42:38 -0400
@@ -948,12 +948,51 @@ move etc. Make sure you try the lcdtest2.c test.
 // richard
 someone@imagecraft.com http://www.imagecraft.com
 
+From someone2@imagecraft.com  Fri Jul 10 18:59:26 1998
+Return-Path: <icc11-list-errors@lists.best.com>
+Received: from Aus.Sun.COM by war.Aus.Sun.COM (SMI-8.6/SMI-SVR4)
+	id SAA14426; Fri, 10 Jul 1998 18:59:26 +1000
+Received: from earth.sun.com by Aus.Sun.COM id SAA24238
+	(SMI-8.6/SMI-4.1 for <<scott.seaton@aus.sun.com>>); Fri, 10 Jul 1998 18:59:48 +1000
+Received: from iisesun.iise.CSIRO.AU (iisesun.iise.csiro.au [130.155.5.44])
+	by earth.sun.com (8.8.8/8.8.8) with SMTP id BAA18609
+	for <scott.seaton@aus.sun.com>; Fri, 10 Jul 1998 01:59:44 -0700 (PDT)
+Received: from lists1.best.com (lists1.best.com [206.86.8.15]) by iisesun.iise.CSIRO.AU (SMI-8.6/8.6.12-IISE-SWA) with ESMTP id SAA25847 for <sseaton@iise.csiro.au>; Fri, 10 Jul 1998 18:49:31 +1000
+Received: (from daemon@localhost) by lists1.best.com (8.9.0/8.8.BEST) id BAA15320 for icc11-list-errors@lists.best.com; Fri, 10 Jul 1998 01:04:34 -0700 (PDT)
+Message-Id: <199807100804.BAA15320@lists1.best.com2>
+From: Christina Willrich & Richard Man <someone@imagecraft.com>
+Subject: icc11 Handyboard library available 2
+Date: Fri, 10 Jul 1998 00:58:49 -0700
+BestServHost: lists.best.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Sender: icc11-list-errors@lists.best.com
+Errors-To: icc11-list-errors@lists.best.com
+Reply-To: icc11-list@lists.best.com
+To: icc11-list@lists.best.com
+content-length: 399
+Status: RO
+X-Status: $$$$
+X-UID: 0000000001
+
+At long last, I dusted off Chuck McManis Handyboard library and ported it
+to V5. No reason why it can't work with V4.5 either ;-) Anyway, to try it
+out, point your browser to
+
+ftp://ftp.imagecraft.com/pub/libhb.zip
+
+Chuck really did a great job with the LCD. There are commands to scroll,
+move etc. Make sure you try the lcdtest2.c test.
+
+// richard
+someone@imagecraft.com http://www.imagecraft.com
+
 
 --Troop_of_Baboons_752_000--
 
 number: 5
-line: 938
-offset: 30851
+line: 977
+offset: 32672
 bytes: 2103
 From dakott@alpha.delta.edu  Wed Jul  1 05:33:51 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1010,8 +1049,8 @@ Free the Source.  Free your Computer... http://www.FreeBSD.org
                                             http://www.OpenBSD.org
 
 number: 6
-line: 992
-offset: 32954
+line: 1031
+offset: 34775
 bytes: 7625
 From rshirk@sfgate.com  Sun Mar 22 01:52:45 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1157,8 +1196,8 @@ ICB9DQ0gICB9DX0N
 ---559023410-1804928587-890546857=:21628--
 
 number: 7
-line: 1135
-offset: 40579
+line: 1174
+offset: 42400
 bytes: 3044
 From wallace@theory.phys.vt.edu  Mon Jul 27 18:34:05 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1219,8 +1258,8 @@ the dominant organism contrived its own self-destruction"
 
 
 number: 8
-line: 1193
-offset: 43623
+line: 1232
+offset: 45444
 bytes: 3216
 From mwallace@sps1.phys.vt.edu  Mon Aug  3 12:05:51 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1295,8 +1334,8 @@ On Mon, 3 Aug 1998, Alf Kuchenbuch wrote:
 
 
 number: 9
-line: 1265
-offset: 46839
+line: 1304
+offset: 48660
 bytes: 1867
 From mawalla3@vt.edu  Wed Aug 12 13:10:06 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1340,8 +1379,8 @@ the dominant organism contrived its own self-distruction"
 
 
 number: 10
-line: 1306
-offset: 48706
+line: 1345
+offset: 50527
 bytes: 1407
 From aarone@sirius.com  Wed Sep 30 12:35:05 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v4.0/1.1/06Jun95-8.2MPM)
@@ -1388,8 +1427,8 @@ Subject: output to file
 
 
 number: 11
-line: 1350
-offset: 50113
+line: 1389
+offset: 51934
 bytes: 2195
 From aarone@sirius.com  Wed Aug 12 13:42:19 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1449,8 +1488,8 @@ Subject: serial library for C++
 >
 
 number: 12
-line: 1407
-offset: 52308
+line: 1446
+offset: 54129
 bytes: 4017
 From Scott.Seaton@Aus.Sun.COM  Thu Jul 16 03:42:38 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
@@ -1541,8 +1580,8 @@ someone@imagecraft.com http://www.imagecraft.com
 --Troop_of_Baboons_752_000--
 
 number: 13
-line: 1495
-offset: 56325
+line: 1534
+offset: 58146
 bytes: 7697
 From brian-c@technologist.com  Mon Jul  6 11:54:19 1998
 Received: from aleve.media.mit.edu by hub.media.mit.edu; (5.65v3.2/1.1/06Jun95-8.2MPM)
