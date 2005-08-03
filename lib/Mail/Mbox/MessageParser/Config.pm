@@ -31,6 +31,7 @@ $VERSION = 0.01;
       # smail compatibility
       (\sremote\sfrom\s.*)?
     )/,
+
 );
 
 1;
