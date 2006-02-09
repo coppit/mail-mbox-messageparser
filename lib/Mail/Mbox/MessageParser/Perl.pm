@@ -186,7 +186,7 @@ sub _read_rest_of_email
   my $already_read_a_chunk = 0;
 
   # Look for the start of the next email
-  while(1)
+  while (1)
   {
     while ($self->{'READ_BUFFER'} =~
         m/$Mail::Mbox::MessageParser::Config{'from_pattern'}/mg)
@@ -335,49 +335,61 @@ sub _read_until_match
     $self->{'READ_CHUNK_SIZE'} *= 2 if $already_read_a_chunk;
     $already_read_a_chunk = 1;
 
-    # Can't use sysread because it doesn't work with ungetc
-    if ($self->{'READ_CHUNK_SIZE'} == 0)
-    {
-      local $/ = undef;
-
-      if (eof $self->{'file_handle'})
-      {
-        $self->{'end_of_file'} = 1;
-        return 0;
-      }
-      else
-      {
-        # < $self->{'file_handle'} > doesn't work, so we use readline
-        $self->{'READ_BUFFER'} = readline($self->{'file_handle'});
-      }
-    }
-    else
-    {
-      my $total_amount_read = 0;
-      my $amount_read = 0;
-
-      while ($total_amount_read < $self->{'READ_CHUNK_SIZE'})
-      {
-        $amount_read = read($self->{'file_handle'}, $self->{'READ_BUFFER'},
-          $self->{'READ_CHUNK_SIZE'} - $total_amount_read,
-          length($self->{'READ_BUFFER'}));
-
-        if ($amount_read == 0)
-        {
-          last unless $total_amount_read == 0;
-
-          $self->{'end_of_file'} = 1;
-          return 0;
-        }
-
-        $total_amount_read += $amount_read;
-      }
-    }
+    return 0 unless $self->_read_chunk();
 
     pos($self->{'READ_BUFFER'}) = $search_position;
   }
 
   return 1;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _read_chunk
+{
+  my $self = shift;
+
+  # Can't use sysread because it doesn't work with ungetc
+  if ($self->{'READ_CHUNK_SIZE'} == 0)
+  {
+    local $/ = undef;
+
+    if (eof $self->{'file_handle'})
+    {
+      $self->{'end_of_file'} = 1;
+      return 0;
+    }
+    else
+    {
+      # < $self->{'file_handle'} > doesn't work, so we use readline
+      $self->{'READ_BUFFER'} = readline($self->{'file_handle'});
+	  return 1;
+    }
+  }
+  else
+  {
+    my $total_amount_read = 0;
+    my $amount_read = 0;
+
+    while ($total_amount_read < $self->{'READ_CHUNK_SIZE'})
+    {
+      $amount_read = read($self->{'file_handle'}, $self->{'READ_BUFFER'},
+        $self->{'READ_CHUNK_SIZE'} - $total_amount_read,
+        length($self->{'READ_BUFFER'}));
+
+      if ($amount_read == 0)
+      {
+        return 1 unless $total_amount_read == 0;
+
+        $self->{'end_of_file'} = 1;
+        return 0;
+      }
+
+      $total_amount_read += $amount_read;
+    }
+
+	return 1;
+  }
 }
 
 #-------------------------------------------------------------------------------

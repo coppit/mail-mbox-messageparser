@@ -88,20 +88,6 @@ sub _read_prologue
 
 #-------------------------------------------------------------------------------
 
-sub _print_debug_information
-{
-  return unless $DEBUG;
-
-  my $self = shift;
-
-  $self->SUPER::_print_debug_information();
-
-  dprint "Valid cache entry exists: " .
-    ($#{ $CACHE->{$self->{'file_name'}}{'emails'} } != -1 ? "Yes" : "No");
-}
-
-#-------------------------------------------------------------------------------
-
 sub read_next_email
 {
   my $self = shift;
@@ -180,6 +166,20 @@ sub read_next_email
   $self->SUPER::read_next_email();
 
   return \$email;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _print_debug_information
+{
+  return unless $DEBUG;
+
+  my $self = shift;
+
+  $self->SUPER::_print_debug_information();
+
+  dprint "Valid cache entry exists: " .
+    ($#{ $CACHE->{$self->{'file_name'}}{'emails'} } != -1 ? "Yes" : "No");
 }
 
 1;
