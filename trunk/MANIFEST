@@ -45,7 +45,6 @@ t/mailboxes/mailarc-1-dos.txt
 t/mailboxes/mailarc-2.txt
 t/mailboxes/mailarc-2.txt.gz
 t/mailboxes/mailarc-2.txt.bz2
-t/mailboxes/mailarc-2.txt.tz
 t/mailboxes/mailarc-3.txt
 t/mailboxes/mailseparators.txt
 t/mailboxes/separators1.sep
@@ -127,6 +126,7 @@ inc/Module/Install.pm
 inc/Scalar/Util.pm
 inc/Sort/Versions.pm
 inc/Test/Builder.pm
+inc/Test/Builder/Module.pm
 inc/Test/More.pm
 inc/Text/Diff.pm
 
