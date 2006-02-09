@@ -320,7 +320,7 @@ sub _OPEN_FILE_HANDLE
 
 #-------------------------------------------------------------------------------
 
-# Returns: unknown, unknown binary, mailbox, non-mailbox ascii, tzip, bzip,
+# Returns: unknown, unknown binary, mailbox, non-mailbox ascii, bzip,
 # bzip2, gzip, compress
 sub _GET_FILE_TYPE
 {
@@ -390,7 +390,6 @@ sub _GET_FILE_TYPE
   }
 
   # See "magic" on unix systems for details on how to identify file types
-  return 'tzip' if substr($test_chars, 0, 2) eq 'TZ';
   return 'bzip2' if substr($test_chars, 0, 3) eq 'BZh';
   return 'bzip' if substr($test_chars, 0, 2) eq 'BZ';
 #  return 'zip' if substr($test_chars, 0, 2) eq 'PK' &&
@@ -486,7 +485,7 @@ sub _IS_COMPRESSED_TYPE
   
   local $" = '|';
 
-  my @types = qw( gzip tzip bzip bzip2 compress );
+  my @types = qw( gzip bzip bzip2 compress );
   my $file_type_pattern = "(@types)";
 
   return $file_type =~ /^$file_type_pattern$/;
@@ -939,7 +938,7 @@ so that the parser can cache the mailbox information.
 
 This module will automatically decompress the mailbox as necessary. If a
 filename is available but the file handle is undef, the module will call
-either tzip, bzip2, or gzip to decompress the file in memory if the filename
+either bzip2, or gzip to decompress the file in memory if the filename
 ends with .tz, .bz2, or .gz, respectively. If the file handle is defined, it
 will detect the type of compression and apply the correct decompression
 program.

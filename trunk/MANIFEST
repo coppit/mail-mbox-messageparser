@@ -24,7 +24,6 @@ t/endline.t
 t/grep.t
 t/bzip2.t
 t/gzip.t
-t/tzip.t
 t/length.t
 t/line_number.t
 t/filehandle_compressed.t

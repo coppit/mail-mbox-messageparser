@@ -65,7 +65,6 @@ sub Configure_Programs
                                    numbers => '[2.1,)', },
                       },
                     },
-      'tzip'     => { default => 'tzip', argname => 'TZIP' },
       'gzip'     => { default => 'gzip', argname => 'GZIP' },
       'bzip'     => { default => 'bzip2', argname => 'BZIP',
                       types => {

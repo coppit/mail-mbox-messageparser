@@ -37,9 +37,6 @@ foreach my $filename (@files)
     skip('gzip not available',4)
       if $filename =~ /\.gz$/ &&
         !defined $Mail::Mbox::MessageParser::Config{'programs'}{'gzip'};
-    skip('tzip not available',4)
-      if $filename =~ /\.tz$/ &&
-        !defined $Mail::Mbox::MessageParser::Config{'programs'}{'tzip'};
 
     TestImplementation($filename,0,0);
 

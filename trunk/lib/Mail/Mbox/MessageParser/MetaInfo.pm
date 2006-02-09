@@ -12,7 +12,7 @@ use Mail::Mbox::MessageParser;
 use vars qw( $VERSION $DEBUG );
 use vars qw( $CACHE %CACHE_OPTIONS $UPDATING_CACHE );
 
-$VERSION = sprintf "%d.%02d%02d", q/0.1.0/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/0.1.1/ =~ /(\d+)/g;
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *dprint = \&Mail::Mbox::MessageParser::dprint;
@@ -94,6 +94,7 @@ sub INITIALIZE_ENTRY
   my $size = $stat[7];
   my $time_stamp = $stat[9];
 
+
   if (exists $CACHE->{$file_name} &&
       (defined $CACHE->{$file_name}{'size'} &&
        defined $CACHE->{$file_name}{'time_stamp'} &&
@@ -106,31 +107,25 @@ sub INITIALIZE_ENTRY
     # can use partial cache information.
     if ($UPDATING_CACHE)
     {
-      dprint "Resetting cache\n";
+      dprint "Resetting cache entry for \"$file_name\"\n";
 
       # Reset the cache entry for this file
       $CACHE->{$file_name}{'size'} = $size;
       $CACHE->{$file_name}{'time_stamp'} = $time_stamp;
       $CACHE->{$file_name}{'emails'} = [];
       $CACHE->{$file_name}{'modified'} = 0;
-
-      $UPDATING_CACHE = 1;
-    }
-    else
-    {
-      $UPDATING_CACHE = 0;
     }
   }
   else
   {
     if (exists $CACHE->{$file_name})
     {
-      dprint "Size or time stamp has changed for file " .
-        $file_name . ". Invalidating cache entry";
+      dprint "Size or time stamp has changed for file \"" .
+        $file_name . "\". Invalidating cache entry";
     }
     else
     {
-      dprint "Cache is invalid: \"$file_name\" has not been parsed";
+      dprint "Cache is invalid: \"$file_name\" has not yet been parsed";
     }
 
     $CACHE->{$file_name}{'size'} = $size;
@@ -153,9 +148,16 @@ sub _READ_CACHE
   dprint "Reading cache";
 
   # Unserialize using Storable
-  $CACHE = retrieve($CACHE_OPTIONS{'file_name'});
+  local $@;
 
-  $CACHE->{$CACHE_OPTIONS{'file_name'}}{'modified'} = 0;
+  eval { $CACHE = retrieve($CACHE_OPTIONS{'file_name'}) };
+
+  if ($@)
+  {
+    $CACHE = {};
+    dprint "Invalid cache detected, and will be ignored.";
+    dprint "Message from Storable module: \"$@\"";
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -177,12 +179,15 @@ sub WRITE_CACHE
     if ($CACHE->{$file_name}{'modified'})
     {
       $cache_modified = 1;
-      last;
+      $CACHE->{$file_name}{'modified'} = 0;
     }
   }
 
-  dprint "Cache not modified, so no writing is necessary", return
-    unless $cache_modified;
+  unless ($cache_modified)
+  {
+    dprint "Cache not modified, so no writing is necessary";
+    return;
+  }
 
   dprint "Cache was modified, so writing is necessary";
 

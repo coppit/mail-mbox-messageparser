@@ -24,7 +24,6 @@ To use this module, you will need to install:
 - GNU grep(1): required if you want to use grep support
 - bzip2(1): required if you want to use bzip and bzip2 support
 - bzip(1): required if you want to use bzip support
-- tzip(1): required if you want to use tzip support
 
 You should be prompted to install modules automatically when you run "perl
 Makefile.PL".
@@ -49,10 +48,10 @@ the following to the "perl Makefile.PL" command:
 
 You will be prompted for program locations. You can suppress these prompts by
 appending the path to one or more external programs to the "perl Makefile.PL"
-command. For example, "GREP=/gnu/bin/grep TZIP= GZIP=/gnu/bin/gzip
-BZIP=/bin/bzip2 BZIP2=/bin/bzip2" would set values for all but one program.
-"TZIP=" disables compression support and prevents interactive execution.
-(NOTE: These values are not validated as they are in the interactive query.)
+command. For example, "GREP=/gnu/bin/grep GZIP=/gnu/bin/gzip BZIP=
+BZIP2=/bin/bzip2" would set values for all but one program.  "BZIP=" disables
+compression support and prevents interactive execution.  (NOTE: These values
+are not validated as they are in the interactive query.)
 
 If you make the installation into your own directory, then remember that you
 must tell perl where to search for modules before trying to 'use' them. For

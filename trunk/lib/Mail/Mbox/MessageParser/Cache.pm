@@ -75,7 +75,7 @@ sub _read_prologue
 {
   my $self = shift;
 
-  dprint "Reading mailbox prologue using grep";
+  dprint "Reading mailbox prologue using cache";
 
   my $prologue_length = $CACHE->{$self->{'file_name'}}{'emails'}[0]{'offset'};
 
