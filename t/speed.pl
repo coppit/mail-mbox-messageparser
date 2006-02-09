@@ -15,9 +15,9 @@ my $TEMP_MAILBOX = 't/temp/bigmailbox.txt';
 
 my @IMPLEMENTATIONS_TO_TEST = (
 'Perl',
-'Grep',
-'Cache Init',
-'Cache Use',
+#'Grep',
+#'Cache Init',
+#'Cache Use',
 );
 
 mkdir 't/temp';
@@ -288,11 +288,11 @@ foreach my $file_type ('Filename', 'Filehandle')
   {
     my $label = "$old_or_new $impl $file_type";
 
-    my $t = new Benchmark::Timer(skip => 10, confidence => 98.5, error => 2);
+    my $t = new Benchmark::Timer(skip => 2, minimum => 5, confidence => 98.5, error => 2);
+    $| = 1;
 
     # Need enough for the statistics to be valid
-    my $count = 0;
-    while ($count - 10 < 30 || $t->need_more_samples($label))
+    while ($t->need_more_samples($label))
     {
       unlink 't/temp/cache' if $impl eq 'Cache Init';
 
@@ -308,8 +308,6 @@ foreach my $file_type ('Filename', 'Filehandle')
         ParseFile($filename,$settings{$impl}[0],$settings{$impl}[1], $file_type);
         $t->stop($label);
       }
-
-      $count++;
     }
 
     $t->report($label);

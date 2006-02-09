@@ -13,7 +13,6 @@ $VERSION = 0.01;
     'diff' => '/sw/bin/diff',
     'grep' => '/usr/bin/grep',
     'gzip' => '/sw/bin/gzip',
-    'tzip' => undef,
   },
 
   'max_testchar_buffer_size' => 1048576,
