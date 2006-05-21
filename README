@@ -7,13 +7,13 @@ information, GNU grep, or highly optimized Perl.
 
 NEW IN THIS VERSION
 
-Version 1.4001: Tue Aug 2 2005
-- Fixed a bug where emails involving time zones of length more than 3
-  characters (e.g. "WETDST") would not be processed correctly.  (Thanks to
-  Hans F. Nordhaug for the bug report.)
-- Fixed some undefined value warnings for some test cases.
-- Fixed a bug where mailboxes having emails with rfc822 attachments would not
-  be parsed correctly
+Version 1.4003: Sun May 21 2006
+- Fixed a bug where multi-part emails having boundaries containing characters
+	like " " and "+" would cause the remainder of the mailbox to be treated as
+	part of the email with the boundary.
+- Fixed a previously unrevealed fault in the mailbox for the separators test.
+	(The last message's separator wasn't used correctly.)
+
 
 MODULE DEPENDENCIES
 

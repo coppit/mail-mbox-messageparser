@@ -141,7 +141,7 @@ Subject: XXXXX =?XXX-XXXX-X?X?XXX=XXX?= XX XXXXX
 Date: Mon, 5 Jan 2004 08:50:15 +0100
 
 
---XXXXXXXXXX
+--NQWuVOReNt
 XXXXXXX-XXXX: XXXX/XXXXX; XXXXXXX=XXX-XXXX-X
 XXXXXXX-XXXXXXXXXXX: XXXXXXX XXXX XXXX
 XXXXXXX-XXXXXXXX-XXXXXXXX: XXXX
@@ -163,17 +163,17 @@ XXXXXÈX,
 	XXÈXÈXXX
 
 
---XXXXXXXXXX
+--NQWuVOReNt
 XXXXXXX-XXXX: XXXX/XXXXX; XXXXXXX=XX-XXXXX
 
 [XXXXXXX XXXXXXXXXXX/XXX]
 
---XXXXXXXXXX
+--NQWuVOReNt
 XXXXXXX-XXXX: XXXX/XXXXX; XXXXXXX=XX-XXXXX
 
 [XXXXXXX XXXXX XXXX]
 
---XXXXXXXXXX
+--NQWuVOReNt
 XXXXXXX-XXXX: XXXX/XXXXX; XXXXXXX=XXX-XXXX-X
 XXXXXXX-XXXXXXXXXXX: .XXXXXXXXX
 XXXXXXX-XXXXXXXX-XXXXXXXX: XXXX
@@ -188,4 +188,254 @@ XXXXXXX-XXXXXXXX-XXXXXXXX: XXXX
 | X-XXXXX XXXXXXXXXXXX, XXXXXX | XXXX://XXXX.XXXX.XXXX-XXXXXXX.XX/~XXXXX |
 --------------------------------------------------------------------------
 
---XXXXXXXXXX--
+--NQWuVOReNt--
+
+From linux-kernel-owner+list0570=40paradise.net.nz-S1030369AbWAXIZ4@vger.kernel.org  Tue Jan 24 21:35:10 2006
+Return-Path: <linux-kernel-owner+list0570=40paradise.net.nz-S1030369AbWAXIZ4@vger.kernel.org>
+Delivered-To: list0570@paradise.net.nz
+X-Envelope-To: list0570@paradise.net.nz
+Received: (qmail 14733 invoked from network); 24 Jan 2006 08:26:49 -0000
+Received: from tclsnelb1-src-1.paradise.net.nz (HELO linda-5.paradise.net.nz) (203.96.152.172)
+  by internal-pop3-5.paradise.net.nz with SMTP; 24 Jan 2006 08:26:49 -0000
+Received: from smtp-3.paradise.net.nz
+ (tclsnelb1-src-1.paradise.net.nz [203.96.152.172]) by linda-5.paradise.net.nz
+ (Paradise.net.nz) with ESMTP id <0ITL0014V8SKLW@linda-5.paradise.net.nz> for
+ list0570@paradise.net.nz; Tue, 24 Jan 2006 21:26:47 +1300 (NZDT)
+Received: from vger.kernel.org (vger.kernel.org [209.132.176.167])
+	by smtp-3.paradise.net.nz (Postfix) with ESMTP id 2BEA2895B47	for
+ <list0570@paradise.net.nz>; Tue, 24 Jan 2006 21:26:41 +1300 (NZDT)
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand	id
+ S1030369AbWAXIZ4 (ORCPT <rfc822;list0570@paradise.net.nz>); Tue,
+ 24 Jan 2006 03:25:56 -0500
+Received: (majordomo@vger.kernel.org) by vger.kernel.org id S932475AbWAXIZ4
+	(ORCPT <rfc822;linux-kernel-outgoing>); Tue, 24 Jan 2006 03:25:56 -0500
+Received: from relay.rost.ru ([80.254.111.11]:149 "EHLO relay.rost.ru")
+	by vger.kernel.org with ESMTP id S932466AbWAXIZ4
+ (ORCPT	<rfc822;linux-kernel@vger.kernel.org>); Tue, 24 Jan 2006 03:25:56 -0500
+Received: from pazke.donpac.ru ([80.254.111.9])	by smtp.donpac.ru with esmtps
+ on port 25 (TLSv1:AES256-SHA:256)	(Exim 4.42)	id 1F1JUk-0000A3-BW; Tue,
+ 24 Jan 2006 11:25:42 +0300
+Received: from pazke by pazke.donpac.ru with local (Exim 4.42)
+	id 1F1JUh-0005Oz-En; Tue, 24 Jan 2006 11:25:39 +0300
+Date: Tue, 24 Jan 2006 11:25:38 +0300
+From: Andrey Panin <pazke@donpac.ru>
+Subject: [PATCH] SIIG 8-port serial boards support
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King <rmk@arm.linux.org.uk>
+Cc: linux-kernel@vger.kernel.org
+Mail-followup-to: Russell King <rmk@arm.linux.org.uk>,
+ linux-kernel@vger.kernel.org
+Message-id: <20060124082538.GB4855@pazke>
+MIME-version: 1.0
+Content-type: multipart/signed; boundary=ZwgA9U+XZDXt4+m+;
+ protocol="application/pgp-signature"; micalg=pgp-sha1
+Content-disposition: inline
+Precedence: bulk
+User-Agent: Mutt/1.5.11
+X-Uname: Linux 2.6.11-pazke i686
+X-Mailing-List: linux-kernel@vger.kernel.org
+Status: O
+Content-Length: 3826
+Lines: 122
+
+
+--ZwgA9U+XZDXt4+m+
+Content-Type: multipart/mixed; boundary="BwCQnh7xodEAoBMC"
+Content-Disposition: inline
+
+
+--BwCQnh7xodEAoBMC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hello,
+
+This patch (against 2.6.16-rc1) adds support for SIIG 8 port serial boards.
+Please consider applying.
+
+Best regards.
+
+--=20
+Andrey Panin		| Linux and UNIX system administrator
+pazke@donpac.ru		| PGP key: wwwkeys.pgp.net
+
+--BwCQnh7xodEAoBMC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-siig-8port-board
+Content-Transfer-Encoding: quoted-printable
+
+
+ drivers/serial/8250_pci.c |   25 ++++++++++++++++++++++++-
+ include/linux/pci_ids.h   |    3 +++
+ 2 files changed, 27 insertions(+), 1 deletion(-)
+
+diff -urdpNX /usr/share/dontdiff linux-2.6.16-rc1.vanilla/drivers/serial/82=
+50_pci.c linux-2.6.16-rc1/drivers/serial/8250_pci.c
+--- linux-2.6.16-rc1.vanilla/drivers/serial/8250_pci.c	2006-01-24 10:14:24.=
+000000000 +0300
++++ linux-2.6.16-rc1/drivers/serial/8250_pci.c	2006-01-24 10:16:56.00000000=
+0 +0300
+@@ -439,6 +439,20 @@ static int pci_siig_init(struct pci_dev=20
+ 	return -ENODEV;
+ }
+=20
++static int pci_siig_setup(struct serial_private *priv,
++			  struct pciserial_board *board,
++			  struct uart_port *port, int idx)
++{
++	unsigned int bar =3D FL_GET_BASE(board->flags) + idx, offset =3D 0;
++
++	if (idx > 3) {
++		bar =3D 4;
++		offset =3D (idx - 4) * 8;
++	}
++
++	return setup_port(priv, port, bar, offset, 0);
++}
++
+ /*
+  * Timedia has an explosion of boards, and to avoid the PCI table from
+  * growing *huge*, we use this function to collapse some 70 entries
+@@ -748,7 +762,7 @@ static struct pci_serial_quirk pci_seria
+ 		.subvendor	=3D PCI_ANY_ID,
+ 		.subdevice	=3D PCI_ANY_ID,
+ 		.init		=3D pci_siig_init,
+-		.setup		=3D pci_default_setup,
++		.setup		=3D pci_siig_setup,
+ 	},
+ 	/*
+ 	 * Titan cards
+@@ -2134,6 +2148,15 @@ static struct pci_device_id serial_pci_t
+ 	{	PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_4S_20x_850,
+ 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b0_bt_4_921600 },
++	{	PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_8S_20x_550,
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
++		pbn_b0_bt_8_921600 },
++	{	PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_8S_20x_650,
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
++		pbn_b0_bt_8_921600 },
++	{	PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_8S_20x_850,
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
++		pbn_b0_bt_8_921600 },
+=20
+ 	/*
+ 	 * Computone devices submitted by Doug McNash dmcnash@computone.com
+diff -urdpNX /usr/share/dontdiff linux-2.6.16-rc1.vanilla/include/linux/pci=
+_ids.h linux-2.6.16-rc1/include/linux/pci_ids.h
+--- linux-2.6.16-rc1.vanilla/include/linux/pci_ids.h	2006-01-24 10:14:51.00=
+0000000 +0300
++++ linux-2.6.16-rc1/include/linux/pci_ids.h	2006-01-24 10:16:56.000000000 =
++0300
+@@ -1677,6 +1677,9 @@
+ #define PCI_DEVICE_ID_SIIG_2S1P_20x_550	0x2060
+ #define PCI_DEVICE_ID_SIIG_2S1P_20x_650	0x2061
+ #define PCI_DEVICE_ID_SIIG_2S1P_20x_850	0x2062
++#define PCI_DEVICE_ID_SIIG_8S_20x_550	0x2080
++#define PCI_DEVICE_ID_SIIG_8S_20x_650	0x2081
++#define PCI_DEVICE_ID_SIIG_8S_20x_850	0x2082
+ #define PCI_SUBDEVICE_ID_SIIG_QUARTET_SERIAL	0x2050
+=20
+ #define PCI_VENDOR_ID_RADISYS		0x1331
+
+--BwCQnh7xodEAoBMC--
+
+--ZwgA9U+XZDXt4+m+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFD1eSCPjHNUy6paxMRAulpAJ9cWL+qm5hBksgFyBJkcXvCveqxsACgpMEw
+XQTFjQ8wlR9Fx1kyc+a/NrU=
+=yUsm
+-----END PGP SIGNATURE-----
+
+--ZwgA9U+XZDXt4+m+--
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
+
+From suse-linux-return-368084-list0570=paradise.net.nz@suse.com  Tue Jan 24 21:35:10 2006
+Return-Path: <suse-linux-return-368084-list0570=paradise.net.nz@suse.com>
+Delivered-To: list0570@paradise.net.nz
+X-Envelope-To: list0570@paradise.net.nz
+Received: (qmail 28727 invoked from network); 24 Jan 2006 08:27:19 -0000
+Received: from tclsnelb1-src-1.paradise.net.nz (HELO linda-2.paradise.net.nz) (203.96.152.172)
+  by internal-pop3-4.paradise.net.nz with SMTP; 24 Jan 2006 08:27:19 -0000
+Received: from smtp-2.paradise.net.nz
+ (tclsnelb1-src-1.paradise.net.nz [203.96.152.172]) by linda-2.paradise.net.nz
+ (Paradise.net.nz) with ESMTP id <0ITL00JJ68TDNT@linda-2.paradise.net.nz> for
+ list0570@paradise.net.nz; Tue, 24 Jan 2006 21:27:15 +1300 (NZDT)
+Received: from lists.suse.com (lists.suse.de [195.135.221.131])
+	by smtp-2.paradise.net.nz (Postfix) with SMTP id 089C2262C3	for
+ <list0570@paradise.net.nz>; Tue, 24 Jan 2006 21:26:51 +1300 (NZDT)
+Received: (qmail 31695 invoked by alias); Tue, 24 Jan 2006 08:26:44 +0000
+Received: (qmail 31685 invoked from network); Tue, 24 Jan 2006 08:26:44 +0000
+Date: Tue, 24 Jan 2006 09:26:42 +0100
+From: Andre Tann <atann@gmx.net>
+Subject: Re: Cryptopartition mounten
+In-reply-to: <43D5024B.5030608@prostep.com>
+To: suse-linux@suse.com
+Message-id: <200601240926.42736@inter.netz>
+MIME-version: 1.0
+Content-type: text/plain; charset=iso-8859-15
+Content-transfer-encoding: 8BIT
+Content-disposition: inline
+Precedence: bulk
+Delivered-to: mailing list suse-linux@suse.com
+Mailing-List: contact suse-linux-help@suse.com; run by ezmlm
+User-Agent: KMail/1.8
+X-MIME-Notice: attachments may have been removed from this message
+X-Mailinglist: suse-linux
+X-Message-Number-for-archive: 368084
+X-Authenticated: #8948731
+X-Y-GMX-Trusted: 0
+X-Virus-Scanned: by amavisd-new at Relay2.suse.de
+X-Spam-Status: No, hits=-1.0 tagged_above=-20.0 required=5.0 tests=BAYES_05,
+ FORGED_RCVD_HELO
+X-Spam-Level:
+References: <200601231703.30662@inter.netz> <43D5024B.5030608@prostep.com>
+List-Post: <mailto:suse-linux@suse.com>
+List-Unsubscribe:
+ <mailto:suse-linux-unsubscribe-list0570=paradise.net.nz@suse.com>
+List-Help: <mailto:suse-linux-help@suse.com>
+Status: O
+Content-Length: 738
+Lines: 30
+
+Michael Behrens, Montag, 23. Januar 2006 17:20: 
+
+> Wenn du sowas bei der Installation anlegst, steht das in
+> /etc/cryptotab. Du kannst wahrscheinlich "/etc/init.d/boot.crypto
+> start" von Hand aufrufen.
+
+Stimmt, das kann man, und funktioniert auch.
+
+Wie m¸ﬂte ich mount aufrufen, wenn ich die Partition h‰ndisch 
+mounten wollte?
+
+
+
+> Sieht so aus, als ob das mit dem Timeout auch in boot.crypto
+> gemacht wird.
+
+Wird es, und habe ich auch schon nach meinen Vorstellungen ge‰ndert.
+
+Danke schonmal f¸r Deine Hilfe.
+
+-- 
+Andre Tann
+
+
+-- 
+Um die Liste abzubestellen, schicken Sie eine Mail an:
+    suse-linux-unsubscribe@suse.com
+Um eine Liste aller verfuegbaren Kommandos zu bekommen, schicken
+Sie eine Mail an: suse-linux-help@suse.com
+

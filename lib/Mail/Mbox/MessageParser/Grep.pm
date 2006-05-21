@@ -13,7 +13,7 @@ use Mail::Mbox::MessageParser::Config;
 use vars qw( $VERSION $DEBUG );
 use vars qw( $CACHE );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.70.1/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.70.2/ =~ /(\d+)/g;
 
 *CACHE = \$Mail::Mbox::MessageParser::MetaInfo::CACHE;
 
@@ -177,9 +177,8 @@ sub _multipart_boundary
     my $content_type_header = $1;
     $content_type_header =~ s/$endline//g;
 
-    # Are nonquoted parameter values allowed to have spaces? I assume not.
     if ($content_type_header =~ /boundary *= *"([^"]*)"/i ||
-        $content_type_header =~ /boundary *= *\b(\S+)\b/i)
+        $content_type_header =~ /boundary *= *([-0-9A-Za-z'()+_,.\/:=? ]*[-0-9A-Za-z'()+_,.\/:=?])/i)
     {
       return $1
     }

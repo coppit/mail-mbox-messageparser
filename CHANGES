@@ -1,4 +1,13 @@
-Version 1.4002:
+Version 1.4003: Sun May 21 2006
+- Fixed a bug where multi-part emails having boundaries containing characters
+	like " " and "+" would cause the remainder of the mailbox to be treated as
+	part of the email with the boundary. (Thanks to Volker Kuhlmann
+	<VolkerKuhlmann@gmx.de> for first reporting the bug, and thanks to Eduard
+	Bloch <blade@debian.org> for the bugfix.)
+- Fixed a previously unrevealed fault in the mailbox for the separators test.
+	(The last message's separator wasn't used correctly.)
+
+Version 1.4002: Thu Feb  9 2006
 - Dropped tzip support. The program seems poorly supported and buggy. (I can't
   get it to run right on Mac, for example.)
 - An invalid cache is detected and overwritten. This can occur if one changes
