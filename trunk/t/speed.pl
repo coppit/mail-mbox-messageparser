@@ -15,9 +15,9 @@ my $TEMP_MAILBOX = 't/temp/bigmailbox.txt';
 
 my @IMPLEMENTATIONS_TO_TEST = (
 'Perl',
-#'Grep',
-#'Cache Init',
-#'Cache Use',
+'Grep',
+'Cache Init',
+'Cache Use',
 );
 
 mkdir 't/temp';

@@ -79,11 +79,11 @@ sub _read_prologue
 
   my $prologue_length = $CACHE->{$self->{'file_name'}}{'emails'}[0]{'offset'};
 
-  my $bytes_read = 0;
+  my $total_amount_read = 0;
   do {
-    $bytes_read += read($self->{'file_handle'}, $self->{'prologue'},
-      $prologue_length-$bytes_read, $bytes_read);
-  } while ($bytes_read != $prologue_length);
+    $total_amount_read += read($self->{'file_handle'}, $self->{'prologue'},
+      $prologue_length-$total_amount_read, $total_amount_read);
+  } while ($total_amount_read != $prologue_length);
 }
 
 #-------------------------------------------------------------------------------
@@ -99,65 +99,19 @@ sub read_next_email
 
   my $email = '';
 
-  LOOK_FOR_NEXT_EMAIL:
-  while ($self->{'email_number'} <=
-      $#{$CACHE->{$self->{'file_name'}}{'emails'}})
+  $self->{'email_length'} =
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
+
   {
-    $self->{'email_length'} =
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
-
-    {
-      my $bytes_read = length($email);
-      do {
-        $bytes_read += read($self->{'file_handle'},
-          $email, $self->{'email_length'}-$bytes_read, $bytes_read);
-      } while ($bytes_read != $self->{'email_length'});
-    }
-
-    last LOOK_FOR_NEXT_EMAIL
-      if $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'};
-
-    my $endline = $self->{'endline'};
-
-    # Keep looking if the header we found is part of a "Begin Included
-    # Message".
-    my $end_of_string = '';
-    my $backup_amount = 100;
-    do
-    {
-      $backup_amount *= 2;
-      $end_of_string = substr($email, -$backup_amount);
-    } while (index($end_of_string, "$endline$endline") == -1 &&
-      $backup_amount < $self->{'email_length'});
-
-    if ($end_of_string =~
-        /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i ||
-        $end_of_string =~
-          /$endline--[^\r\n]*${endline}Content-type:[^\r\n]*$endline(?:$endline)+$/i)
-    {
-      dprint "Incorrect start of email found--adjusting cache data";
-
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'} +=
-        $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}+1]{'length'};
-
-      my $last_email_index = $#{$CACHE->{$self->{'file_name'}}{'emails'}};
-
-      if($self->{'email_number'}+2 <= $last_email_index)
-      {
-        @{$CACHE->{$self->{'file_name'}}{'emails'}}
-          [$self->{'email_number'}+1..$last_email_index-1] =
-            @{$CACHE->{$self->{'file_name'}}{'emails'}}
-            [$self->{'email_number'}+2..$last_email_index];
-      }
-
-      pop @{$CACHE->{$self->{'file_name'}}{'emails'}};
-    }
-    else
-    {
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'} = 1;
-      last LOOK_FOR_NEXT_EMAIL;
-    }
+    my $total_amount_read = length($email);
+    do {
+      $total_amount_read += read($self->{'file_handle'}, $email,
+        $self->{'email_length'}-$total_amount_read, $total_amount_read);
+    } while ($total_amount_read != $self->{'email_length'});
   }
+
+  die "Cache data not validated. This should not occur. Please notify david\@coppit.org"
+    unless $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'};
 
   $self->{'end_of_file'} = 1 if eof $self->{'file_handle'};
 

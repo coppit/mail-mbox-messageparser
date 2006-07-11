@@ -1,9 +1,23 @@
+Version 1.4004: Tue Jul 11 2006
+- Fixed a bug where, when emails are incomplete, the Perl parser would cache
+	incorrect information, causing the Cache implementation to go into an
+	infinite loop when it tried to use the invalid information.
+- Improved the behavior for multi-part emails that lack a valid ending
+	boundaries. Instead of treating the rest of the mailbox as part of the
+	email, the Perl and Grep parsers now find the end of the email using (1) a
+	Content-Length header if it is present, or (2) the next valid "^From " line
+	after the email's header. (Many thanks to Volker Kuhlmann
+	<VolkerKuhlmann@gmx.de>, Eduard Bloch <edi@gmx.de>, and Joey Hess
+	<joeyh@debian.org> for their efforts to track down the cause of the bug.
+	Special thanks to Volker for suggesting the right behavior. :)
+- Simplified the code some
+
 Version 1.4003: Sun May 21 2006
 - Fixed a bug where multi-part emails having boundaries containing characters
 	like " " and "+" would cause the remainder of the mailbox to be treated as
 	part of the email with the boundary. (Thanks to Volker Kuhlmann
-	<VolkerKuhlmann@gmx.de> for first reporting the bug, and thanks to Eduard
-	Bloch <blade@debian.org> for the bugfix.)
+	<VolkerKuhlmann@gmx.de> for first reporting the bug, and thanks to Joey Hess
+	<joeyh@debian.org> for the bugfix.)
 - Fixed a previously unrevealed fault in the mailbox for the separators test.
 	(The last message's separator wasn't used correctly.)
 
