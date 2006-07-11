@@ -19,7 +19,7 @@ use vars qw( $CACHE $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
-$VERSION = sprintf "%d.%02d%02d", q/1.40.3/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.40.4/ =~ /(\d+)/g;
 $DEBUG = 0;
 
 #-------------------------------------------------------------------------------
@@ -831,6 +831,50 @@ sub read_next_email
     }
 
   }
+}
+
+#-------------------------------------------------------------------------------
+
+# - Returns header lines in the email header which match the given name.
+# - Example names: 'From:', 'Received:' or 'From '
+# - If the calling context wants a list, a list of the matching header lines
+#   are returned. Otherwise, the first (and perhaps only) match is returned.
+# - Wrapped lines are handled. Look for multiple \n's in the return value(s)
+# - 'From ' also looks for Gnus 'X-From-Line:' or 'X-Draft-From:'
+
+# Stolen from grepmail
+sub _GET_HEADER_FIELD
+{
+  my $email_header = shift;
+  my $header_name = shift;
+  my $endline = shift;
+
+  die unless ref $email_header;
+
+  # Avoid perl 5.6 bug which causes spurious warning even though $email_header
+  # is defined.
+  local $^W = 0 if $] >= 5.006 && $] < 5.8;
+
+  if ($header_name =~ /^From$/i &&
+    $$email_header =~ /^((?:From\s|X-From-Line:|X-Draft-From:).*$endline(\s.*$endline)*)/im)
+  {
+    return wantarray ? ($1) : $1;
+  }
+
+  my @matches = $$email_header =~ /^($header_name\s.*$endline(?:\s.*$endline)*)/igm;
+
+  if (@matches)
+  {
+    return wantarray ? @matches : shift @matches;
+  }
+
+  if (lc $header_name eq 'from ' &&
+    $$email_header =~ /^(From\s.*$endline(\s.*$endline)*)/im)
+  {
+    return wantarray ? ($1) : $1;
+  }
+
+  return undef;
 }
 
 1;

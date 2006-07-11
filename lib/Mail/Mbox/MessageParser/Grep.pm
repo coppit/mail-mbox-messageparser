@@ -30,7 +30,7 @@ sub new
   carp "Need file_name option" unless defined $self->{'file_name'};
   carp "Need file_handle option" unless defined $self->{'file_handle'};
 
-  return "GNU grep not installed"
+  return "Mail::Mbox::MessageParser::Grep not configured to use GNU grep. Perhaps it is not installed"
     unless defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'};
 
   bless ($self, __PACKAGE__);
@@ -46,8 +46,11 @@ sub _init
 {
   my $self = shift;
 
+  $self->{'CURRENT_EMAIL_INDEX'} = -1;
+
   $self->{'READ_BUFFER'} = '';
   $self->{'START_OF_EMAIL'} = 0;
+  $self->{'END_OF_EMAIL'} = 0;
 
   $self->SUPER::_init();
 
@@ -56,19 +59,17 @@ sub _init
 
 #-------------------------------------------------------------------------------
 
-sub _initialize_cache_entry
+sub reset
 {
   my $self = shift;
-    
-  my @stat = stat $self->{'file_name'};
-      
-  my $size = $stat[7];
-  my $time_stamp = $stat[9];
 
-  $CACHE->{$self->{'file_name'}}{'size'} = $size;
-  $CACHE->{$self->{'file_name'}}{'time_stamp'} = $time_stamp;
-  $CACHE->{$self->{'file_name'}}{'emails'} =
-    _READ_GREP_DATA($self->{'file_name'});
+  $self->{'CURRENT_EMAIL_INDEX'} = 0;
+
+  $self->{'READ_BUFFER'} = '';
+  $self->{'START_OF_EMAIL'} = 0;
+  $self->{'END_OF_EMAIL'} = 0;
+
+  $self->SUPER::reset();
 }
 
 #-------------------------------------------------------------------------------
@@ -79,13 +80,14 @@ sub _read_prologue
 
   dprint "Reading mailbox prologue using grep";
 
-  my $prologue_length = $CACHE->{$self->{'file_name'}}{'emails'}[0]{'offset'};
+  $self->_read_until_match(
+    qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/,0);
 
-  my $bytes_read = 0;
-  do {
-    $bytes_read += read($self->{'file_handle'}, $self->{'prologue'},
-      $prologue_length-$bytes_read, $bytes_read);
-  } while ($bytes_read != $prologue_length);
+  my $start_of_email = pos($self->{'READ_BUFFER'});
+  $self->{'prologue'} = substr($self->{'READ_BUFFER'}, 0, $start_of_email);
+
+  # Set up for read_next_email
+  $self->{'END_OF_EMAIL'} = $start_of_email;
 }
 
 #-------------------------------------------------------------------------------
@@ -94,15 +96,15 @@ sub read_next_email
 {
   my $self = shift;
 
-  $self->{'READ_BUFFER'} = '';
-
   $self->{'email_line_number'} =
     $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'line_number'};
   $self->{'email_offset'} =
     $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'offset'};
 
+  $self->{'START_OF_EMAIL'} = $self->{'END_OF_EMAIL'};
 
-  # Slurp in an entire multipart email
+  # Slurp in an entire multipart email (but continue looking for the next
+  # header so that we can get any following newlines as well)
   unless ($self->_read_header())
   {
     return $self->_extract_email_and_finalize();
@@ -110,6 +112,34 @@ sub read_next_email
 
   unless ($self->_read_email_parts())
   {
+    # Could issue a warning here, but I'm not sure how to do this cleanly for
+    # a work-only module like this. Maybe something like CGI's cgi_error()?
+    dprint "Inconsistent multi-part message. Could not find ending for " .
+      "boundary \"" . $self->_multipart_boundary() . "\"";
+
+    # Try to read the content length and use that
+		my $email_header = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
+			$self->{'START_OF_BODY'} - $self->{'START_OF_EMAIL'});
+
+		my $content_length = Mail::Mbox::MessageParser::_GET_HEADER_FIELD(
+			\$email_header, 'Content-Length:', $self->{'endline'});
+
+    if (defined $content_length)
+		{
+		  $content_length =~ s/Content-Length: *(\d+).*/$1/i;
+			pos($self->{'READ_BUFFER'}) = $self->{'START_OF_EMAIL'} + $content_length;
+		}
+		# Otherwise use the start of the body 
+		else
+		{
+			pos($self->{'READ_BUFFER'}) = $self->{'START_OF_BODY'};
+		}
+
+    # Reset the search and look for the start of the
+    # next email.
+    $self->{'end_of_file'} = 0;
+    $self->_read_rest_of_email();
+
     return $self->_extract_email_and_finalize();
   }
 
@@ -124,43 +154,58 @@ sub _read_rest_of_email
 {
   my $self = shift;
 
-  return
-    if $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'};
-
   # Look for the start of the next email
   while (1)
   {
-    my $endline = $self->{'endline'};
-
-    # Keep looking if the header we found is part of a "Begin Included
-    # Message".
-    my $end_of_string = '';
-    my $backup_amount = 100;
-    do
+    while ($self->{'READ_BUFFER'} =~
+      m/$Mail::Mbox::MessageParser::Config{'from_pattern'}/mg)
     {
-      $backup_amount *= 2;
-      $end_of_string = substr($self->{'READ_BUFFER'}, -$backup_amount);
-    } while (index($end_of_string, "$endline$endline") == -1 &&
-      $backup_amount < $self->{'email_length'});
+      $self->{'END_OF_EMAIL'} = pos($self->{'READ_BUFFER'}) - length($1);
 
-    return unless ($end_of_string !~ /$endline$endline$/ ||
-        $end_of_string =~
-        /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i);
+      my $endline = $self->{'endline'};
+
+      # Keep looking if the header we found is part of a "Begin Included
+      # Message".
+      my $end_of_string = '';
+      my $backup_amount = 100;
+      do
+      {
+        $backup_amount *= 2;
+        $end_of_string = substr($self->{'READ_BUFFER'},
+          $self->{'END_OF_EMAIL'}-$backup_amount, $backup_amount);
+      } while (index($end_of_string, "$endline$endline") == -1 &&
+        $backup_amount < $self->{'END_OF_EMAIL'});
+
+      next if $end_of_string =~
+          /$endline-----(?: Begin Included Message |Original Message)-----$endline[^\r\n]*(?:$endline)*$/i;
+
+      next unless $end_of_string =~ /$endline$endline$/;
+
+      # Found the next email!
+      return;
+    }
+
+    # Didn't find next email in current buffer. Most likely we need to read some
+    # more of the mailbox. Shift the current email to the front of the buffer
+    # unless we've already done so.
+		my $shift_amount = $self->{'START_OF_EMAIL'};
+    $self->{'READ_BUFFER'} =
+      substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'});
+    $self->{'START_OF_EMAIL'} -= $shift_amount;
+    $self->{'START_OF_BODY'} -= $shift_amount;
+    pos($self->{'READ_BUFFER'}) = length($self->{'READ_BUFFER'});
 
     # Start looking at the end of the buffer, but back up some in case the
     # edge of the newly read buffer contains the start of a new header. I
     # believe the RFC says header lines can be at most 90 characters long.
-    my $search_position = length($self->{'READ_BUFFER'}) - 90;
-    $search_position = 0 if $search_position < 0;
-
-    if ($self->_read_chunk())
-    {
-      pos($self->{'READ_BUFFER'}) = $search_position;
-    }
-    else
-    {
+    unless ($self->_read_until_match(
+      qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/,90))
+     {
+      $self->{'END_OF_EMAIL'} = length($self->{'READ_BUFFER'});
       return;
     }
+
+    redo;
   }
 }
 
@@ -171,8 +216,10 @@ sub _multipart_boundary
   my $self = shift;
 
   my $endline = $self->{'endline'};
-    
-  if (substr($self->{'READ_BUFFER'},$self->{'START_OF_EMAIL'},$self->{'START_OF_BODY'}-$self->{'START_OF_EMAIL'}) =~ /^(content-type: *multipart[^\n\r]*$endline( [^\n\r]*$endline)*)/im)
+
+  if (substr($self->{'READ_BUFFER'},$self->{'START_OF_EMAIL'},
+    $self->{'START_OF_BODY'}-$self->{'START_OF_EMAIL'}) =~
+    /^(content-type: *multipart[^\n\r]*$endline( [^\n\r]*$endline)*)/im)
   {
     my $content_type_header = $1;
     $content_type_header =~ s/$endline//g;
@@ -212,16 +259,22 @@ sub _extract_email_and_finalize
 {
   my $self = shift;
 
-  $self->{'email_length'} =
-    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
+  $self->{'email_length'} = $self->{'END_OF_EMAIL'}-$self->{'START_OF_EMAIL'};
 
-  $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'} = 1;
+  my $email = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
+    $self->{'email_length'});
+
+  while ($self->{'email_length'} >
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'})
+  {
+    $self->_adjust_cache_data();
+  }
 
   $self->{'email_number'}++;
 
   $self->SUPER::read_next_email();
 
-  return \$self->{'READ_BUFFER'};
+  return \$email;
 }
 
 #-------------------------------------------------------------------------------
@@ -230,86 +283,145 @@ sub _read_header
 {
   my $self = shift;
 
-  $self->_read_until_match(qr/$self->{'endline'}$self->{'endline'}/,4)
-      or return 0;
+  $self->_read_until_match(qr/$self->{'endline'}$self->{'endline'}/,0)
+    or return 0;
 
-  $self->{'START_OF_BODY'} = pos($self->{'READ_BUFFER'});
+  $self->{'START_OF_BODY'} =
+    pos($self->{'READ_BUFFER'}) + length("$self->{'endline'}$self->{'endline'}");
 
   return 1;
 }
 
 #-------------------------------------------------------------------------------
 
+# The search position is at the start of the pattern when this function
+# returns 1.
 sub _read_until_match
 {
   my $self = shift;
   my $pattern = shift;
   my $backup = shift;
 
-  while (!defined pos($self->{'READ_BUFFER'}) ||
-    $self->{'READ_BUFFER'} !~ m/$pattern/mg)
-  {
-    # Start looking at the end of the buffer, but back up some in case the edge
-    # of the newly read buffer contains part of the pattern.
-    my $search_position = length($self->{'READ_BUFFER'}) - $backup;
-    $search_position = 0 if $search_position < 0;
+  # Start looking at the end of the buffer, but back up some in case the edge
+  # of the newly read buffer contains part of the pattern.
+  if (!defined pos($self->{'READ_BUFFER'}) ||
+      pos($self->{'READ_BUFFER'}) - $backup < 0) {
+    pos($self->{'READ_BUFFER'}) = 0;
+  } else {
+    pos($self->{'READ_BUFFER'}) -= $backup;
+  }
 
-    return 0 unless $self->_read_chunk();
+  while (1)
+  {
+    if ($self->{'READ_BUFFER'} =~ m/($pattern)/mg)
+    {
+      pos($self->{'READ_BUFFER'}) -= length($1);
+      return 1;
+    }
+
+    pos($self->{'READ_BUFFER'}) = length($self->{'READ_BUFFER'});
+
+    unless ($self->_read_chunk()) {
+      $self->{'END_OF_EMAIL'} = length($self->{'READ_BUFFER'});
+      return 0;
+    }
+
+    if (pos($self->{'READ_BUFFER'}) - $backup < 0) {
+      pos($self->{'READ_BUFFER'}) = 0;
+    } else {
+      pos($self->{'READ_BUFFER'}) -= $backup;
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+# Maintains pos($self->{'READ_BUFFER'})
+sub _read_chunk
+{
+  my $self = shift;
+
+  my $search_position = pos($self->{'READ_BUFFER'});
+
+  # Reading the prologue, so use the offset of the first email
+  if ($self->{'CURRENT_EMAIL_INDEX'} == -1)
+  {
+    my $length_to_read = $CACHE->{$self->{'file_name'}}{'emails'}[0]{'offset'};
+    my $total_amount_read = 0;
+
+    do {
+      $total_amount_read += read($self->{'file_handle'}, $self->{'READ_BUFFER'},
+        $length_to_read-$total_amount_read, length($self->{'READ_BUFFER'}));
+    } while ($total_amount_read != $length_to_read);
 
     pos($self->{'READ_BUFFER'}) = $search_position;
+
+    $self->{'CURRENT_EMAIL_INDEX'}++;
   }
+
+  my $last_email_index = $#{$CACHE->{$self->{'file_name'}}{'emails'}};
+
+  if ($self->{'CURRENT_EMAIL_INDEX'} == $last_email_index+1)
+  {
+    $self->{'end_of_file'} = 1;
+    return 0;
+  }
+
+  my $length_to_read =
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'CURRENT_EMAIL_INDEX'}]{'length'};
+  my $total_amount_read = 0;
+
+  do {
+    $total_amount_read += read($self->{'file_handle'}, $self->{'READ_BUFFER'},
+      $length_to_read-$total_amount_read, length($self->{'READ_BUFFER'}));
+  } while ($total_amount_read != $length_to_read);
+
+  pos($self->{'READ_BUFFER'}) = $search_position;
+
+  $self->{'CURRENT_EMAIL_INDEX'}++;
 
   return 1;
 }
 
 #-------------------------------------------------------------------------------
 
-sub _read_chunk
+sub _adjust_cache_data
 {
   my $self = shift;
 
   my $last_email_index = $#{$CACHE->{$self->{'file_name'}}{'emails'}};
 
-  $self->{'end_of_file'} = 1 if $self->{'email_number'} == $last_email_index;
+  $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'} +=
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}+1]{'length'};
 
-  my $length_to_read =
-    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
-  my $bytes_read = length($self->{'READ_BUFFER'});
-
-  # Need to join next email entry
-  if ($length_to_read == $bytes_read)
+  if($self->{'email_number'}+2 <= $last_email_index)
   {
-    dprint "Incorrect start of email found--adjusting cache data";
-
-    if ($self->{'email_number'} == $last_email_index)
-    {
-      $self->{'end_of_file'} = 1;
-      return 0;
-    }
-
-    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'} +=
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}+1]{'length'};
-
-    if($self->{'email_number'}+2 <= $last_email_index)
-    {
-      @{$CACHE->{$self->{'file_name'}}{'emails'}}
-        [$self->{'email_number'}+1..$last_email_index-1] =
-          @{$CACHE->{$self->{'file_name'}}{'emails'}}
-          [$self->{'email_number'}+2..$last_email_index];
-    }
-
-    pop @{$CACHE->{$self->{'file_name'}}{'emails'}};
-
-    $length_to_read =
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'};
+    @{$CACHE->{$self->{'file_name'}}{'emails'}}
+      [$self->{'email_number'}+1..$last_email_index-1] =
+        @{$CACHE->{$self->{'file_name'}}{'emails'}}
+        [$self->{'email_number'}+2..$last_email_index];
   }
 
-  do {
-    $bytes_read += read($self->{'file_handle'},
-      $self->{'READ_BUFFER'}, $length_to_read-$bytes_read, $bytes_read);
-  } while ($bytes_read != $length_to_read);
+  pop @{$CACHE->{$self->{'file_name'}}{'emails'}};
 
-  return 1;
+  $self->{'CURRENT_EMAIL_INDEX'}--;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _initialize_cache_entry
+{
+  my $self = shift;
+    
+  my @stat = stat $self->{'file_name'};
+      
+  my $size = $stat[7];
+  my $time_stamp = $stat[9];
+
+  $CACHE->{$self->{'file_name'}}{'size'} = $size;
+  $CACHE->{$self->{'file_name'}}{'time_stamp'} = $time_stamp;
+  $CACHE->{$self->{'file_name'}}{'emails'} =
+    _READ_GREP_DATA($self->{'file_name'});
 }
 
 #-------------------------------------------------------------------------------

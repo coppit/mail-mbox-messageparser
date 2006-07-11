@@ -39,15 +39,15 @@ sub _init
 {
   my $self = shift;
 
-  $self->{'READ_CHUNK_SIZE'} =
-    $Mail::Mbox::MessageParser::Config{'read_chunk_size'};
-
   $self->{'CURRENT_LINE_NUMBER'} = 1;
   $self->{'CURRENT_OFFSET'} = 0;
 
   $self->{'READ_BUFFER'} = '';
   $self->{'START_OF_EMAIL'} = 0;
   $self->{'END_OF_EMAIL'} = 0;
+
+  $self->{'READ_CHUNK_SIZE'} =
+    $Mail::Mbox::MessageParser::Config{'read_chunk_size'};
 
   $self->SUPER::_init();
 }
@@ -76,76 +76,16 @@ sub _read_prologue
 
   dprint "Reading mailbox prologue using Perl";
 
-  # Look for the start of the next email
-  LOOK_FOR_FIRST_HEADER:
-  if ($self->{'READ_BUFFER'} =~
-      m/$Mail::Mbox::MessageParser::Config{'from_pattern'}/mg)
-  {
-    my $start_of_email = pos($self->{'READ_BUFFER'}) - length($1);
+  $self->_read_until_match(
+    qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/,0);
 
-    if ($start_of_email == 0)
-    {
-      $self->{'prologue'} = '';
-      return;
-    }
+  my $start_of_email = pos($self->{'READ_BUFFER'});
+  $self->{'prologue'} = substr($self->{'READ_BUFFER'}, 0, $start_of_email);
 
-    $self->{'prologue'} = substr($self->{'READ_BUFFER'}, 0, $start_of_email);
-
-    $self->{'CURRENT_LINE_NUMBER'} += ($self->{'prologue'} =~ tr/\n//);
-    $self->{'CURRENT_OFFSET'} = $start_of_email;
-    $self->{'END_OF_EMAIL'} = $start_of_email;
-
-    return;
-  }
-
-  # Didn't find next email in current buffer. Most likely we need to read some
-  # more of the mailbox.
-
-  # Start looking at the end of the buffer, but back up some in case the edge
-  # of the newly read buffer contains the start of a new header. I believe the
-  # RFC says header lines can be at most 90 characters long.
-  my $search_position = length($self->{'READ_BUFFER'}) - 90;
-  $search_position = 0 if $search_position < 0;
-
-  local $/ = undef;
-
-  # Can't use sysread because it doesn't work with ungetc
-  if ($self->{'READ_CHUNK_SIZE'} == 0)
-  {
-    local $/ = undef;
-
-    if (eof $self->{'file_handle'})
-    {
-      $self->{'end_of_file'} = 1;
-
-      $self->{'prologue'} = $self->{'READ_BUFFER'};
-      return;
-    }
-    else
-    {
-      # < $self->{'file_handle'} > doesn't work, so we use readline
-      $self->{'READ_BUFFER'} = readline($self->{'file_handle'});
-      pos($self->{'READ_BUFFER'}) = $search_position;
-      goto LOOK_FOR_FIRST_HEADER;
-    }
-  }
-  else
-  {
-    if (read($self->{'file_handle'}, $self->{'READ_BUFFER'},
-      $self->{'READ_CHUNK_SIZE'}, length($self->{'READ_BUFFER'})))
-    {
-      pos($self->{'READ_BUFFER'}) = $search_position;
-      $self->{'READ_CHUNK_SIZE'} *= 2;
-      goto LOOK_FOR_FIRST_HEADER;
-    }
-    else
-    {
-      $self->{'end_of_file'} = 1;
-
-      $self->{'prologue'} = $self->{'READ_BUFFER'};
-      return;
-    }
-  }
+  # Set up for read_next_email
+  $self->{'CURRENT_LINE_NUMBER'} += ($self->{'prologue'} =~ tr/\n//);
+  $self->{'CURRENT_OFFSET'} = $start_of_email;
+  $self->{'END_OF_EMAIL'} = $start_of_email;
 }
 
 #-------------------------------------------------------------------------------
@@ -158,7 +98,6 @@ sub read_next_email
   $self->{'email_offset'} = $self->{'CURRENT_OFFSET'};
 
   $self->{'START_OF_EMAIL'} = $self->{'END_OF_EMAIL'};
-  $self->{'END_OF_EMAIL'} = length($self->{'READ_BUFFER'});
 
   # Slurp in an entire multipart email (but continue looking for the next
   # header so that we can get any following newlines as well)
@@ -169,6 +108,34 @@ sub read_next_email
 
   unless ($self->_read_email_parts())
   {
+    # Could issue a warning here, but I'm not sure how to do this cleanly for
+    # a work-only module like this. Maybe something like CGI's cgi_error()?
+    dprint "Inconsistent multi-part message. Could not find ending for " .
+      "boundary \"" . $self->_multipart_boundary() . "\"";
+
+    # Try to read the content length and use that
+		my $email_header = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
+			$self->{'START_OF_BODY'} - $self->{'START_OF_EMAIL'});
+
+		my $content_length = Mail::Mbox::MessageParser::_GET_HEADER_FIELD(
+			\$email_header, 'Content-Length:', $self->{'endline'});
+
+    if (defined $content_length)
+		{
+		  $content_length =~ s/Content-Length: *(\d+).*/$1/i;
+			pos($self->{'READ_BUFFER'}) = $self->{'START_OF_EMAIL'} + $content_length;
+		}
+		# Otherwise use the start of the body 
+		else
+		{
+			pos($self->{'READ_BUFFER'}) = $self->{'START_OF_BODY'};
+		}
+
+    # Reset the search and look for the start of the
+    # next email.
+    $self->{'end_of_file'} = 0;
+    $self->_read_rest_of_email();
+
     return $self->_extract_email_and_finalize();
   }
 
@@ -183,13 +150,11 @@ sub _read_rest_of_email
 {
   my $self = shift;
 
-  my $already_read_a_chunk = 0;
-
   # Look for the start of the next email
   while (1)
   {
     while ($self->{'READ_BUFFER'} =~
-        m/$Mail::Mbox::MessageParser::Config{'from_pattern'}/mg)
+      m/$Mail::Mbox::MessageParser::Config{'from_pattern'}/mg)
     {
       $self->{'END_OF_EMAIL'} = pos($self->{'READ_BUFFER'}) - length($1);
 
@@ -219,19 +184,24 @@ sub _read_rest_of_email
     # Didn't find next email in current buffer. Most likely we need to read some
     # more of the mailbox. Shift the current email to the front of the buffer
     # unless we've already done so.
+		my $shift_amount = $self->{'START_OF_EMAIL'};
     $self->{'READ_BUFFER'} =
       substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'});
-    $self->{'START_OF_EMAIL'} = 0;
+    $self->{'START_OF_EMAIL'} -= $shift_amount;
+    $self->{'START_OF_BODY'} -= $shift_amount;
+    pos($self->{'READ_BUFFER'}) = length($self->{'READ_BUFFER'});
 
     # Start looking at the end of the buffer, but back up some in case the
     # edge of the newly read buffer contains the start of a new header. I
     # believe the RFC says header lines can be at most 90 characters long.
     unless ($self->_read_until_match(
       qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/,90))
-    {
+     {
       $self->{'END_OF_EMAIL'} = length($self->{'READ_BUFFER'});
       return;
     }
+
+    redo;
   }
 }
 
@@ -243,7 +213,9 @@ sub _multipart_boundary
 
   my $endline = $self->{'endline'};
 
-  if (substr($self->{'READ_BUFFER'},$self->{'START_OF_EMAIL'},$self->{'START_OF_BODY'}-$self->{'START_OF_EMAIL'}) =~ /^(content-type: *multipart[^\n\r]*$endline( [^\n\r]*$endline)*)/im)
+  if (substr($self->{'READ_BUFFER'},$self->{'START_OF_EMAIL'},
+    $self->{'START_OF_BODY'}-$self->{'START_OF_EMAIL'}) =~
+    /^(content-type: *multipart[^\n\r]*$endline( [^\n\r]*$endline)*)/im)
   {
     my $content_type_header = $1;
     $content_type_header =~ s/$endline//g;
@@ -303,50 +275,66 @@ sub _extract_email_and_finalize
 sub _read_header
 {
   my $self = shift;
- 
-  $self->_read_until_match(qr/$self->{'endline'}$self->{'endline'}/,4)
-      or return 0;
- 
-  $self->{'START_OF_BODY'} = pos($self->{'READ_BUFFER'});
- 
+
+  $self->_read_until_match(qr/$self->{'endline'}$self->{'endline'}/,0)
+    or return 0;
+
+  $self->{'START_OF_BODY'} =
+    pos($self->{'READ_BUFFER'}) + length("$self->{'endline'}$self->{'endline'}");
+
   return 1;
 }
 
 #-------------------------------------------------------------------------------
 
+# The search position is at the start of the pattern when this function
+# returns 1.
 sub _read_until_match
 {
   my $self = shift;
   my $pattern = shift;
   my $backup = shift;
 
-  # Look for the end of the header
-  my $already_read_a_chunk = 0;
-
-  while (!defined pos($self->{'READ_BUFFER'}) ||
-    $self->{'READ_BUFFER'} !~ m/$pattern/mg)
-  {
-    # Start looking at the end of the buffer, but back up some in case the edge
-    # of the newly read buffer contains part of the pattern.
-    my $search_position = length($self->{'READ_BUFFER'}) - $backup;
-    $search_position = 0 if $search_position < 0;
-
-    $self->{'READ_CHUNK_SIZE'} *= 2 if $already_read_a_chunk;
-    $already_read_a_chunk = 1;
-
-    return 0 unless $self->_read_chunk();
-
-    pos($self->{'READ_BUFFER'}) = $search_position;
+  # Start looking at the end of the buffer, but back up some in case the edge
+  # of the newly read buffer contains part of the pattern.
+  if (!defined pos($self->{'READ_BUFFER'}) ||
+      pos($self->{'READ_BUFFER'}) - $backup < 0) {
+    pos($self->{'READ_BUFFER'}) = 0;
+  } else {
+    pos($self->{'READ_BUFFER'}) -= $backup;
   }
 
-  return 1;
+  while (1)
+  {
+    if ($self->{'READ_BUFFER'} =~ m/($pattern)/mg)
+    {
+      pos($self->{'READ_BUFFER'}) -= length($1);
+      return 1;
+    }
+
+    pos($self->{'READ_BUFFER'}) = length($self->{'READ_BUFFER'});
+
+    unless ($self->_read_chunk()) {
+      $self->{'END_OF_EMAIL'} = length($self->{'READ_BUFFER'});
+      return 0;
+    }
+
+    if (pos($self->{'READ_BUFFER'}) - $backup < 0) {
+      pos($self->{'READ_BUFFER'}) = 0;
+    } else {
+      pos($self->{'READ_BUFFER'}) -= $backup;
+    }
+  }
 }
 
 #-------------------------------------------------------------------------------
 
+# Maintains pos($self->{'READ_BUFFER'})
 sub _read_chunk
 {
   my $self = shift;
+
+  my $search_position = pos($self->{'READ_BUFFER'});
 
   # Can't use sysread because it doesn't work with ungetc
   if ($self->{'READ_CHUNK_SIZE'} == 0)
@@ -362,7 +350,8 @@ sub _read_chunk
     {
       # < $self->{'file_handle'} > doesn't work, so we use readline
       $self->{'READ_BUFFER'} = readline($self->{'file_handle'});
-	  return 1;
+      pos($self->{'READ_BUFFER'}) = $search_position;
+      return 1;
     }
   }
   else
@@ -376,6 +365,8 @@ sub _read_chunk
         $self->{'READ_CHUNK_SIZE'} - $total_amount_read,
         length($self->{'READ_BUFFER'}));
 
+      pos($self->{'READ_BUFFER'}) = $search_position;
+
       if ($amount_read == 0)
       {
         return 1 unless $total_amount_read == 0;
@@ -387,7 +378,7 @@ sub _read_chunk
       $total_amount_read += $amount_read;
     }
 
-	return 1;
+    return 1;
   }
 }
 
