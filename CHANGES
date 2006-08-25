@@ -1,3 +1,9 @@
+Version 1.4005: Thu Aug 24 2006
+- Fixed a bug where emails with a line near the end that start with "From "
+	would cause the Grep implementation to go into an infinite loop. (Thanks to
+	Volker Kuhlmann <VolkerKuhlmann@gmx.de> for the bug report.)
+- Fixed some minor coding style issues.
+
 Version 1.4004: Tue Jul 11 2006
 - Fixed a bug where, when emails are incomplete, the Perl parser would cache
 	incorrect information, causing the Cache implementation to go into an

@@ -49,6 +49,7 @@ t/mailboxes/mailarc-2.txt.bz2
 t/mailboxes/mailarc-3.txt
 t/mailboxes/mailseparators.txt
 t/mailboxes/separators1.sep
+t/mailboxes/separators2.sep
 t/mailboxes/newlines_at_beginning.txt
 #t/mailboxes/mailbox with space.txt
 #t/mailboxes/mailbox with space.txt.gz

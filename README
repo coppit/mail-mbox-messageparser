@@ -7,17 +7,10 @@ information, GNU grep, or highly optimized Perl.
 
 NEW IN THIS VERSION
 
-Version 1.4004: Tue Jul 11 2006
-- Fixed a bug where, when emails are incomplete, the Perl parser would cache
-	incorrect information, causing the Cache implementation to go into an
-	infinite loop when it tried to use the invalid information.
-- Improved the behavior for multi-part emails that lack a valid ending
-	boundaries. Instead of treating the rest of the mailbox as part of the
-	email, the Perl and Grep parsers now find the end of the email using (1) a
-	Content-Length header if it is present, or (2) the next valid "^From " line
-	after the email's header.
-- Simplified the code some
-
+Version 1.4005: Thu Aug 24 2006
+- Fixed a bug where emails with a line near the end that start with "From "
+  would cause the Grep implementation to go into an infinite loop.
+- Fixed some minor coding style issues.
 
 MODULE DEPENDENCIES
 

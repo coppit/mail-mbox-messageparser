@@ -12,7 +12,7 @@ use Mail::Mbox::MessageParser::Config;
 
 use vars qw( $VERSION $DEBUG );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.60.2/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.60.3/ =~ /(\d+)/g;
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *dprint = \&Mail::Mbox::MessageParser::dprint;
@@ -298,7 +298,7 @@ sub _read_until_match
   # Start looking at the end of the buffer, but back up some in case the edge
   # of the newly read buffer contains part of the pattern.
   if (!defined pos($self->{'READ_BUFFER'}) ||
-      pos($self->{'READ_BUFFER'}) - $backup < 0) {
+      pos($self->{'READ_BUFFER'}) - $backup <= 0) {
     pos($self->{'READ_BUFFER'}) = 0;
   } else {
     pos($self->{'READ_BUFFER'}) -= $backup;
@@ -319,7 +319,7 @@ sub _read_until_match
       return 0;
     }
 
-    if (pos($self->{'READ_BUFFER'}) - $backup < 0) {
+    if (pos($self->{'READ_BUFFER'}) - $backup <= 0) {
       pos($self->{'READ_BUFFER'}) = 0;
     } else {
       pos($self->{'READ_BUFFER'}) -= $backup;
