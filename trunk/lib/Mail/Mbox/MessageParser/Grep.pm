@@ -13,7 +13,7 @@ use Mail::Mbox::MessageParser::Config;
 use vars qw( $VERSION $DEBUG );
 use vars qw( $CACHE );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.70.2/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.70.3/ =~ /(\d+)/g;
 
 *CACHE = \$Mail::Mbox::MessageParser::MetaInfo::CACHE;
 
@@ -135,8 +135,7 @@ sub read_next_email
 			pos($self->{'READ_BUFFER'}) = $self->{'START_OF_BODY'};
 		}
 
-    # Reset the search and look for the start of the
-    # next email.
+    # Reset the search and look for the start of the next email.
     $self->{'end_of_file'} = 0;
     $self->_read_rest_of_email();
 
@@ -188,7 +187,7 @@ sub _read_rest_of_email
     # Didn't find next email in current buffer. Most likely we need to read some
     # more of the mailbox. Shift the current email to the front of the buffer
     # unless we've already done so.
-		my $shift_amount = $self->{'START_OF_EMAIL'};
+    my $shift_amount = $self->{'START_OF_EMAIL'};
     $self->{'READ_BUFFER'} =
       substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'});
     $self->{'START_OF_EMAIL'} -= $shift_amount;
@@ -200,7 +199,7 @@ sub _read_rest_of_email
     # believe the RFC says header lines can be at most 90 characters long.
     unless ($self->_read_until_match(
       qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/,90))
-     {
+    {
       $self->{'END_OF_EMAIL'} = length($self->{'READ_BUFFER'});
       return;
     }
@@ -305,7 +304,7 @@ sub _read_until_match
   # Start looking at the end of the buffer, but back up some in case the edge
   # of the newly read buffer contains part of the pattern.
   if (!defined pos($self->{'READ_BUFFER'}) ||
-      pos($self->{'READ_BUFFER'}) - $backup < 0) {
+      pos($self->{'READ_BUFFER'}) - $backup <= 0) {
     pos($self->{'READ_BUFFER'}) = 0;
   } else {
     pos($self->{'READ_BUFFER'}) -= $backup;
@@ -326,7 +325,7 @@ sub _read_until_match
       return 0;
     }
 
-    if (pos($self->{'READ_BUFFER'}) - $backup < 0) {
+    if (pos($self->{'READ_BUFFER'}) - $backup <= 0) {
       pos($self->{'READ_BUFFER'}) = 0;
     } else {
       pos($self->{'READ_BUFFER'}) -= $backup;
@@ -390,6 +389,12 @@ sub _adjust_cache_data
   my $self = shift;
 
   my $last_email_index = $#{$CACHE->{$self->{'file_name'}}{'emails'}};
+
+	die<<EOF
+Error: Cannot adjust cache data. Please email the author with your mailbox to
+have him fix the problem. In the meantime, disable the grep implementation.
+EOF
+		if $self->{'email_number'} == $last_email_index;
 
   $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'length'} +=
     $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}+1]{'length'};

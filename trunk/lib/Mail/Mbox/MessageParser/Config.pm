@@ -4,7 +4,7 @@ use strict;
 
 use vars qw( $VERSION %Config );
 
-$VERSION = 0.01;
+$VERSION = sprintf "%d.%02d%02d", q/0.1.1/ =~ /(\d+)/g;
 
 %Mail::Mbox::MessageParser::Config = (
   'programs' => {
@@ -22,7 +22,7 @@ $VERSION = 0.01;
   'from_pattern' => q/(?x)^
     (From\s
       # Skip names, months, days
-      (?> [^:]+ )
+      (?> [^:\n]+ )
       # Match time
       (?: :\d\d){1,2}
       # Match time zone (EST), hour shift (+0500), and-or year

@@ -14,6 +14,7 @@ eval 'require Storable;';
 
 my %tests = (
   "t/mailboxes/separators1.sep" => 4,
+  "t/mailboxes/separators2.sep" => 2,
 );
 
 mkdir catfile('t','temp'), 0700;
