@@ -1,20 +1,22 @@
-Mail::Mbox::MessageParser 1.00 released
+Mail::Mbox::MessageParser 1.4005 released
 
 Description:
-- Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser. It
-  uses the best of three strategies for parsing a mailbox: either using cached
-  folder information, GNU grep, or highly optimized Perl.
+- Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser.
+	It uses the best of three strategies for parsing a mailbox: either
+	using cached folder information, GNU grep, or highly optimized Perl.
 
 Download:
 - You can download Mail::Mbox::MessageParser from CPAN:
-  http://www.cpan.org/authors/id/D/DC/DCOPPIT/Mail-Mbox-MessageParser-1.00.tar.gz
-- Until the file propagates to the mirrors, you can use the following URL:
-  http://prdownloads.sourceforge.net/m-m-msgparser/Mail-Mbox-MessageParser-1.00.tar.gz
+	http://www.cpan.org/authors/id/D/DC/DCOPPIT/Mail-Mbox-MessageParser-1.4005.tar.gz
+- Until the file propagates to the mirrors, you can use the following
+	URL:
+	http://prdownloads.sourceforge.net/m-m-msgparser/Mail-Mbox-MessageParser-1.4005.tar.gz
 
 Changes:
-- This is the initial version. The code is based on a previous version that
-  was part of the grepmail package. As such, it is somewhat more stable than
-  one might expect from an initial release.
+- Fixed a bug where emails with a line near the end that start with
+	"From " would cause the Grep implementation to go into an infinite
+	loop.
+- Fixed some minor coding style issues.
 
 See the README for additional notes.
 
