@@ -120,10 +120,10 @@ sub TestPartialRead
   {
     my $email = $folder_reader->read_next_email();
     print $output
-      "number: " . $folder_reader->number() . "\n" .
-      "line: " . $folder_reader->line_number() . "\n" .
-      "offset: " . $folder_reader->offset() . "\n" .
-      "bytes: " . $folder_reader->length() . "\n" .
+      "number: " . $folder_reader->number() . $folder_reader->endline() .
+      "line: " . $folder_reader->line_number() . $folder_reader->endline() .
+      "offset: " . $folder_reader->offset() . $folder_reader->endline() .
+      "bytes: " . $folder_reader->length() . $folder_reader->endline() .
       $$email;
   }
 
@@ -186,10 +186,10 @@ sub TestFullRead
   {
     my $email = $folder_reader->read_next_email();
     print $output
-      "number: " . $folder_reader->number() . "\n" .
-      "line: " . $folder_reader->line_number() . "\n" .
-      "offset: " . $folder_reader->offset() . "\n" .
-      "bytes: " . $folder_reader->length() . "\n" .
+      "number: " . $folder_reader->number() . $folder_reader->endline() .
+      "line: " . $folder_reader->line_number() . $folder_reader->endline() .
+      "offset: " . $folder_reader->offset() . $folder_reader->endline() .
+      "bytes: " . $folder_reader->length() . $folder_reader->endline() .
       $$email;
   }
 
