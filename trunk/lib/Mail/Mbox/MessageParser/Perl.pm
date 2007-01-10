@@ -194,8 +194,12 @@ sub _read_rest_of_email
     # Start looking at the end of the buffer, but back up some in case the
     # edge of the newly read buffer contains the start of a new header. I
     # believe the RFC says header lines can be at most 90 characters long.
+		my $backup_amount = 90;
+		$backup_amount = length($self->{'READ_BUFFER'}) - 1
+			if length($self->{'READ_BUFFER'}) < $backup_amount;
+
     unless ($self->_read_until_match(
-      qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/,90))
+      qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/,$backup_amount))
      {
       $self->{'END_OF_EMAIL'} = length($self->{'READ_BUFFER'});
       return;

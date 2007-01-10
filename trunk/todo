@@ -1,0 +1,9 @@
+- Add compression support to grep
+- Add random access (email Tassilo von Parseval
+	<tassilo.parseval@post.rwth-aachen.de>)
+- Cache, Cache::Cache
+- When the subclasses call read_next_email, shouldn't the entry be validated?
+- Version the cache file, so that we can invalidate it if a release of the
+	module fixes a bug.
+- As it is now, if we re-initialize the cache, we start all caching over. Fix
+	this so that we can use partial cache information. See MetaInfo.pm
