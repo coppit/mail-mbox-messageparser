@@ -139,6 +139,27 @@ sub INITIALIZE_ENTRY
 
 #-------------------------------------------------------------------------------
 
+sub ENTRY_STILL_VALID
+{
+  my $file_name = shift;
+
+  return 0 unless exists $CACHE->{$file_name} &&
+		defined $CACHE->{$file_name}{'size'} &&
+		defined $CACHE->{$file_name}{'time_stamp'};
+
+  my @stat = stat $file_name;
+
+  return 0 unless @stat;
+
+  my $size = $stat[7];
+  my $time_stamp = $stat[9];
+
+  return ($CACHE->{$file_name}{'size'} == $size &&
+		$CACHE->{$file_name}{'time_stamp'} == $time_stamp);
+}
+
+#-------------------------------------------------------------------------------
+
 sub _READ_CACHE
 {
   my $self = shift;

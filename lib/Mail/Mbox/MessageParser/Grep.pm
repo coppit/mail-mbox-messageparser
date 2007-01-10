@@ -46,7 +46,12 @@ sub _init
 {
   my $self = shift;
 
-  $self->{'CURRENT_EMAIL_INDEX'} = -1;
+	# Reading grep data provides us with an array of potential email starting
+	# locations. However, due to included emails and attachments, we have to
+	# validate these locations as actually being the start of emails. As a
+	# result, there may be more "chunks" in the array than emails. So
+	# CHUNK_INDEX >= email_number-1.
+  $self->{'CHUNK_INDEX'} = -1;
 
   $self->{'READ_BUFFER'} = '';
   $self->{'START_OF_EMAIL'} = 0;
@@ -63,7 +68,7 @@ sub reset
 {
   my $self = shift;
 
-  $self->{'CURRENT_EMAIL_INDEX'} = 0;
+  $self->{'CHUNK_INDEX'} = 0;
 
   $self->{'READ_BUFFER'} = '';
   $self->{'START_OF_EMAIL'} = 0;
@@ -343,7 +348,7 @@ sub _read_chunk
   my $search_position = pos($self->{'READ_BUFFER'});
 
   # Reading the prologue, so use the offset of the first email
-  if ($self->{'CURRENT_EMAIL_INDEX'} == -1)
+  if ($self->{'CHUNK_INDEX'} == -1)
   {
     my $length_to_read = $CACHE->{$self->{'file_name'}}{'emails'}[0]{'offset'};
     my $total_amount_read = 0;
@@ -355,19 +360,19 @@ sub _read_chunk
 
     pos($self->{'READ_BUFFER'}) = $search_position;
 
-    $self->{'CURRENT_EMAIL_INDEX'}++;
+    $self->{'CHUNK_INDEX'}++;
   }
 
   my $last_email_index = $#{$CACHE->{$self->{'file_name'}}{'emails'}};
 
-  if ($self->{'CURRENT_EMAIL_INDEX'} == $last_email_index+1)
+  if ($self->{'CHUNK_INDEX'} == $last_email_index+1)
   {
     $self->{'end_of_file'} = 1;
     return 0;
   }
 
   my $length_to_read =
-    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'CURRENT_EMAIL_INDEX'}]{'length'};
+    $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'CHUNK_INDEX'}]{'length'};
   my $total_amount_read = 0;
 
   do {
@@ -377,7 +382,7 @@ sub _read_chunk
 
   pos($self->{'READ_BUFFER'}) = $search_position;
 
-  $self->{'CURRENT_EMAIL_INDEX'}++;
+  $self->{'CHUNK_INDEX'}++;
 
   return 1;
 }
@@ -409,7 +414,7 @@ EOF
 
   pop @{$CACHE->{$self->{'file_name'}}{'emails'}};
 
-  $self->{'CURRENT_EMAIL_INDEX'}--;
+  $self->{'CHUNK_INDEX'}--;
 }
 
 #-------------------------------------------------------------------------------

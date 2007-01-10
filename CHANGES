@@ -1,6 +1,9 @@
 Version:
 - Changed the reset test so that it doesn't create output with inconsistent
 	line endings in the case of a dos mailbox.
+- Fixed a bug where occasionally the reading of the next email will go into an
+	infinite loop when reading from standard input. (Thanks to
+	<hpeberhard@users.sourceforge.net> for the bug report and sample input.)
 
 Version 1.4005: Thu Aug 24 2006
 - Fixed a bug where emails with a line near the end that start with "From "
