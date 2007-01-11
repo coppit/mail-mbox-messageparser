@@ -109,7 +109,7 @@ sub ParseFile
 
   print $output_file_handle $folder_reader->prologue();
 
-  while (!$folder_reader->{end_of_file})
+  while (!$folder_reader->end_of_file())
   {
     my $email_text = $folder_reader->read_next_email();
     print $output_file_handle $$email_text;
