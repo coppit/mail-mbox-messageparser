@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+# Test the method of reading a mailbox that relies on undef rather than
+# checking EOF
+
 use strict;
 
 use Test::More;
@@ -12,36 +15,38 @@ use FileHandle;
 
 eval 'require Storable;';
 
-my %tests = (
-  "t/mailboxes/separators1.sep" => 4,
-  "t/mailboxes/separators2.sep" => 2,
-);
+my @files = <t/mailboxes/*.txt>;
 
 mkdir catfile('t','temp'), 0700;
 
-plan (tests => 3 * scalar (keys %tests));
+plan (tests => 3 * scalar (@files));
 
-foreach my $filename (keys %tests) 
+foreach my $filename (@files)
 {
-  print "Testing filename: $filename\n";
+	print "Testing Perl \n";
 
-  SKIP:
-  {
-    skip('Storable not installed',2) unless defined $Storable::VERSION;
+	TestImplementation($filename,0,0);
 
-    InitializeCache($filename);
+	SKIP:
+	{
+		skip('Storable not installed',1) unless defined $Storable::VERSION;
 
-    TestImplementation($filename,$tests{$filename},1,0);
-    TestImplementation($filename,$tests{$filename},1,1);
-  }
+		InitializeCache($filename);
 
-  SKIP:
-  {
-    skip('GNU grep not available',1)
-      unless defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'};
+		print "Testing Cache implementation\n";
 
-    TestImplementation($filename,$tests{$filename},0,1);
-  }
+		TestImplementation($filename,1,0);
+	}
+
+	SKIP:
+	{
+		skip('GNU grep not available',1)
+			unless defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'};
+
+		print "Testing Grep implementation\n";
+
+		TestImplementation($filename,0,1);
+	}
 }
 
 # ---------------------------------------------------------------------------
@@ -49,20 +54,21 @@ foreach my $filename (keys %tests)
 sub TestImplementation
 {
   my $filename = shift;
-  my $number_of_emails = shift;
   my $enable_cache = shift;
   my $enable_grep = shift;
 
   my $testname = [splitdir($0)]->[-1];
-  $testname =~ s#\.t##;
+  $testname =~ s/\.t//;
 
-  my ($folder_name) = $filename =~ /\/([^\/\\]*)\..*?$/;
+  my ($folder_name) = $filename =~ /\/([^\/]*)\.txt$/;
 
   my $output_filename = catfile('t','temp',
     "${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout");
 
   my $output = new FileHandle(">$output_filename");
   binmode $output;
+
+  my $filehandle = new FileHandle($filename);
 
   my $cache_file = catfile('t','temp','cache');
 
@@ -72,27 +78,25 @@ sub TestImplementation
   my $folder_reader =
       new Mail::Mbox::MessageParser( {
         'file_name' => $filename,
-        'file_handle' => undef,
+        'file_handle' => $filehandle,
         'enable_cache' => $enable_cache,
         'enable_grep' => $enable_grep,
       } );
 
   die $folder_reader unless ref $folder_reader;
 
-  my $prologue = $folder_reader->prologue;
-  print $output $prologue;
-
-  my $count = 0;
+  print $output $folder_reader->prologue;
 
   # This is the main loop. It's executed once for each email
-  while(!$folder_reader->end_of_file())
+  while(my $email = $folder_reader->read_next_email())
   {
-    my $email_text = $folder_reader->read_next_email();
-
-    $count++;
+    print $output $$email;
   }
 
   $output->close();
 
-  is($count,$number_of_emails, "Number of emails in $filename");
+  CheckDiffs([$filename,$output_filename]);
 }
+
+# ---------------------------------------------------------------------------
+

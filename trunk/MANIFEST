@@ -20,6 +20,7 @@ lib/Mail/Mbox/MessageParser/MetaInfo.pm
 t/Test/Utils.pm
 
 # Tests
+t/appended_mailbox.t
 t/endline.t
 t/grep.t
 t/bzip2.t
@@ -38,6 +39,7 @@ t/separators.t
 t/stdin_compressed.t
 t/stdin_uncompressed.t
 t/speed.pl
+t/undef_return_value.t
 t/mailboxes/binary_body.txt
 t/mailboxes/hessbug.txt
 t/mailboxes/invalid-boundaries.txt

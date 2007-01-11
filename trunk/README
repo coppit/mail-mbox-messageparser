@@ -7,10 +7,25 @@ information, GNU grep, or highly optimized Perl.
 
 NEW IN THIS VERSION
 
-Version 1.4005: Thu Aug 24 2006
-- Fixed a bug where emails with a line near the end that start with "From "
-  would cause the Grep implementation to go into an infinite loop.
-- Fixed some minor coding style issues.
+Version 1.5000: Thu Jan 11 2007
+- The Cache and Grep implementations now detect when changes have occurred to
+	the file being parsed, and automatically invalidate their cache values and
+	revert to the Perl implementation. NOTE: This works well for appending to
+	the mailbox, but undefined behavior occurs if modifications are made to the
+	mailbox at locations earlier than the current position. (Thanks to Armin
+	Obersteiner for the feature suggestion.)
+- Changed the reset test so that it doesn't create output with inconsistent
+	line endings in the case of a dos mailbox.
+- Fixed a bug where occasionally the reading of the next email will go into an
+	infinite loop when reading from standard input. (Thanks to for the bug
+	report and sample input.)
+- read_next_email now returns undef on end of file. (Thanks to Lucas Nussbaum
+	for first reporting the bug. Thanks to Stephen Gran Frank Lichtenheld
+	Steinar H. Gunderson Christian Hammers gregor herrmann and Joey Hess for
+	their efforts to fix or work around the bug. Finally, thanks to Tassilo von
+	Parseval for (mis)using the module in an intuitive way that prompted the
+	solution.)
+- Simplified code by removing end_of_file attribute of parser objects.
 
 MODULE DEPENDENCIES
 

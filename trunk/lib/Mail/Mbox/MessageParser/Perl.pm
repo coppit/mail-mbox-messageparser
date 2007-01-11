@@ -12,7 +12,10 @@ use Mail::Mbox::MessageParser::Config;
 
 use vars qw( $VERSION $DEBUG );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.60.3/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.60.4/ =~ /(\d+)/g;
+
+*ENTRY_STILL_VALID = \&Mail::Mbox::MessageParser::MetaInfo::ENTRY_STILL_VALID;
+sub ENTRY_STILL_VALID;
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *dprint = \&Mail::Mbox::MessageParser::dprint;
@@ -70,6 +73,20 @@ sub reset
 
 #-------------------------------------------------------------------------------
 
+sub end_of_file
+{
+  my $self = shift;
+
+  # Reset eof in case the file was appended to. Hopefully this works all the
+  # time. See perldoc -f seek for details.
+  seek($self->{'file_handle'},0,1) if eof $self->{'file_handle'};
+
+  return eof $self->{'file_handle'} &&
+    $self->{'END_OF_EMAIL'} == length($self->{'READ_BUFFER'});
+}
+
+#-------------------------------------------------------------------------------
+
 sub _read_prologue
 {
   my $self = shift;
@@ -94,6 +111,8 @@ sub read_next_email
 {
   my $self = shift;
 
+  return undef if $self->end_of_file();
+
   $self->{'email_line_number'} = $self->{'CURRENT_LINE_NUMBER'};
   $self->{'email_offset'} = $self->{'CURRENT_OFFSET'};
 
@@ -114,26 +133,25 @@ sub read_next_email
       "boundary \"" . $self->_multipart_boundary() . "\"";
 
     # Try to read the content length and use that
-		my $email_header = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
-			$self->{'START_OF_BODY'} - $self->{'START_OF_EMAIL'});
+    my $email_header = substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'},
+      $self->{'START_OF_BODY'} - $self->{'START_OF_EMAIL'});
 
-		my $content_length = Mail::Mbox::MessageParser::_GET_HEADER_FIELD(
-			\$email_header, 'Content-Length:', $self->{'endline'});
+    my $content_length = Mail::Mbox::MessageParser::_GET_HEADER_FIELD(
+      \$email_header, 'Content-Length:', $self->{'endline'});
 
     if (defined $content_length)
-		{
-		  $content_length =~ s/Content-Length: *(\d+).*/$1/i;
-			pos($self->{'READ_BUFFER'}) = $self->{'START_OF_EMAIL'} + $content_length;
-		}
-		# Otherwise use the start of the body 
-		else
-		{
-			pos($self->{'READ_BUFFER'}) = $self->{'START_OF_BODY'};
-		}
+    {
+      $content_length =~ s/Content-Length: *(\d+).*/$1/i;
+      pos($self->{'READ_BUFFER'}) = $self->{'START_OF_EMAIL'} + $content_length;
+    }
+    # Otherwise use the start of the body 
+    else
+    {
+      pos($self->{'READ_BUFFER'}) = $self->{'START_OF_BODY'};
+    }
 
     # Reset the search and look for the start of the
     # next email.
-    $self->{'end_of_file'} = 0;
     $self->_read_rest_of_email();
 
     return $self->_extract_email_and_finalize();
@@ -184,7 +202,7 @@ sub _read_rest_of_email
     # Didn't find next email in current buffer. Most likely we need to read some
     # more of the mailbox. Shift the current email to the front of the buffer
     # unless we've already done so.
-		my $shift_amount = $self->{'START_OF_EMAIL'};
+    my $shift_amount = $self->{'START_OF_EMAIL'};
     $self->{'READ_BUFFER'} =
       substr($self->{'READ_BUFFER'}, $self->{'START_OF_EMAIL'});
     $self->{'START_OF_EMAIL'} -= $shift_amount;
@@ -194,9 +212,9 @@ sub _read_rest_of_email
     # Start looking at the end of the buffer, but back up some in case the
     # edge of the newly read buffer contains the start of a new header. I
     # believe the RFC says header lines can be at most 90 characters long.
-		my $backup_amount = 90;
-		$backup_amount = length($self->{'READ_BUFFER'}) - 1
-			if length($self->{'READ_BUFFER'}) < $backup_amount;
+    my $backup_amount = 90;
+    $backup_amount = length($self->{'READ_BUFFER'}) - 1
+      if length($self->{'READ_BUFFER'}) < $backup_amount;
 
     unless ($self->_read_until_match(
       qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/,$backup_amount))
@@ -345,18 +363,12 @@ sub _read_chunk
   {
     local $/ = undef;
 
-    if (eof $self->{'file_handle'})
-    {
-      $self->{'end_of_file'} = 1;
-      return 0;
-    }
-    else
-    {
-      # < $self->{'file_handle'} > doesn't work, so we use readline
-      $self->{'READ_BUFFER'} = readline($self->{'file_handle'});
-      pos($self->{'READ_BUFFER'}) = $search_position;
-      return 1;
-    }
+    return 0 if eof $self->{'file_handle'};
+
+    # < $self->{'file_handle'} > doesn't work, so we use readline
+    $self->{'READ_BUFFER'} = readline($self->{'file_handle'});
+    pos($self->{'READ_BUFFER'}) = $search_position;
+    return 1;
   }
   else
   {
@@ -375,7 +387,6 @@ sub _read_chunk
       {
         return 1 unless $total_amount_read == 0;
 
-        $self->{'end_of_file'} = 1;
         return 0;
       }
 

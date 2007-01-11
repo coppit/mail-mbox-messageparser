@@ -1,9 +1,8 @@
 This file is not distributed with the module. It outlines some notes for
 developers readying a set of files for distribution.
 
-CVS CHECKOUT:
-$ export CVS_RSH=ssh
-$ cvs -z3 -d:ext:coppit@m-m-msgparser.cvs.sourceforge.net:/cvsroot/m-m-msgparser co devel
+SVN CHECKOUT:
+$ svn co https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/trunk
 
 Checklist for a release:
 - Be sure to add new test cases for new features
@@ -23,7 +22,7 @@ Checklist for a release:
   $ make dist
 - Install the distribution file elsewhere to test it.
   $ scp Mail-Mbox-MessageParser-X.XX.tar.gz coppit@linux.sourceforge.net:.
-  $ ssh -l coppit linux.sourceforge.net
+  $ ssh coppit@linux.sourceforge.net
   $ tar xvfz Mail-Mbox-MessageParser-X.XX.tar.gz
   $ cd Mail-Mbox-MessageParser-X.XX
   $ perl Makefile.PL
@@ -47,8 +46,9 @@ Checklist for a release:
   http://freshmeat.net/projects/m-m-msgparser/
 - Announce it to comp.lang.perl.announce.
 - Copy current code to old in devel
-  $ rm -rf old2; rsync -r --cvs-exclude * old2
+  $ rm -rf old; rsync -r * old
 - Check in code:
-  $ cvs ci
+  $ svn commit
 - Tag the release for easy retrieval later
-  $ cvs tag "v1_21_0"
+	$ svn cp https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/trunk \
+		https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/tags/1.5000 \

@@ -13,7 +13,10 @@ use Mail::Mbox::MessageParser::MetaInfo;
 use vars qw( $VERSION $DEBUG );
 use vars qw( $CACHE );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.30.0/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.30.1/ =~ /(\d+)/g;
+
+*ENTRY_STILL_VALID = \&Mail::Mbox::MessageParser::MetaInfo::ENTRY_STILL_VALID;
+sub ENTRY_STILL_VALID;
 
 *CACHE = \$Mail::Mbox::MessageParser::MetaInfo::CACHE;
 *WRITE_CACHE = \&Mail::Mbox::MessageParser::MetaInfo::WRITE_CACHE;
@@ -92,6 +95,29 @@ sub read_next_email
 {
   my $self = shift;
 
+  unless (defined $self->{'file_name'} &&
+    ENTRY_STILL_VALID($self->{'file_name'}))
+  {
+    # Patch up the data structures for the Perl implementation
+    $self->{'CURRENT_LINE_NUMBER'} =
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'line_number'};
+    $self->{'CURRENT_OFFSET'} =
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'offset'};
+    $self->{'READ_CHUNK_SIZE'} =
+      $Mail::Mbox::MessageParser::Config{'read_chunk_size'};
+    $self->{'READ_BUFFER'} = '';
+    $self->{'END_OF_EMAIL'} = 0;
+
+    # Invalidate the remaining data
+    $#{ $CACHE->{$self->{'file_name'}}{'emails'} } = $self->{'email_number'};
+
+    bless ($self, 'Mail::Mbox::MessageParser::Perl');
+
+    return $self->read_next_email();
+  }
+
+  return undef if $self->end_of_file();
+
   $self->{'email_line_number'} =
     $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'line_number'};
   $self->{'email_offset'} =
@@ -112,8 +138,6 @@ sub read_next_email
 
   die "Cache data not validated. This should not occur. Please notify david\@coppit.org"
     unless $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'};
-
-  $self->{'end_of_file'} = 1 if eof $self->{'file_handle'};
 
   $self->{'email_number'}++;
 

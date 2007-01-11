@@ -39,7 +39,7 @@ foreach my $filename (@files)
 
   SKIP:
   {
-    skip('Skip GNU grep not available',1)
+    skip('GNU grep not available',1)
       unless defined $Mail::Mbox::MessageParser::Config{'programs'}{'grep'};
 
     TestImplementation($filename,0,1);

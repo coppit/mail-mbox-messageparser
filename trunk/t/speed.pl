@@ -380,7 +380,7 @@ sub ParseFile
         'enable_grep' => $enable_grep,
       } );
 
-  while (!$folder_reader->{end_of_file})
+  while (!$folder_reader->end_of_file())
   {
     my $email_text = $folder_reader->read_next_email();
   }

@@ -19,7 +19,7 @@ use vars qw( $CACHE $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
-$VERSION = sprintf "%d.%02d%02d", q/1.40.5/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.50.0/ =~ /(\d+)/g;
 $DEBUG = 0;
 
 #-------------------------------------------------------------------------------
@@ -678,8 +678,6 @@ sub reset
     seek $self->{'file_handle'}, length($self->{'prologue'}), 0
   }
 
-  $self->{'end_of_file'} = 0;
-
   $self->{'email_line_number'} = 0;
   $self->{'email_offset'} = 0;
   $self->{'email_length'} = 0;
@@ -688,6 +686,7 @@ sub reset
 
 #-------------------------------------------------------------------------------
 
+# Ceci n'set pas une pipe
 sub _IS_A_PIPE
 {
   my $file_handle = shift;
@@ -747,7 +746,11 @@ sub end_of_file
 {
   my $self = shift;
 
-  return $self->{'end_of_file'};
+  # Reset eof in case the file was appended to. Hopefully this works all the
+  # time. See perldoc -f seek for details.
+  seek($self->{'file_handle'},0,1) if eof $self->{'file_handle'};
+
+  return eof $self->{'file_handle'};
 }
 
 #-------------------------------------------------------------------------------
@@ -821,7 +824,7 @@ sub read_next_email
 
     $CACHE->{$self->{'file_name'}}{'modified'} = 1;
 
-    if ($self->{'end_of_file'})
+    if ($self->end_of_file())
     {
       $UPDATING_CACHE = 0;
 
@@ -1050,7 +1053,7 @@ Returns the byte offset of the last email read.
 =item read_next_email()
 
 Returns a reference to a scalar holding the text of the next email in the
-mailbox.
+mailbox, or undef at the end of the file.
 
 =back
 

@@ -12,7 +12,7 @@ use Mail::Mbox::MessageParser;
 use vars qw( $VERSION $DEBUG );
 use vars qw( $CACHE %CACHE_OPTIONS $UPDATING_CACHE );
 
-$VERSION = sprintf "%d.%02d%02d", q/0.1.1/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/0.2.0/ =~ /(\d+)/g;
 
 *DEBUG = \$Mail::Mbox::MessageParser::DEBUG;
 *dprint = \&Mail::Mbox::MessageParser::dprint;
@@ -144,8 +144,8 @@ sub ENTRY_STILL_VALID
   my $file_name = shift;
 
   return 0 unless exists $CACHE->{$file_name} &&
-		defined $CACHE->{$file_name}{'size'} &&
-		defined $CACHE->{$file_name}{'time_stamp'};
+    defined $CACHE->{$file_name}{'size'} &&
+    defined $CACHE->{$file_name}{'time_stamp'};
 
   my @stat = stat $file_name;
 
@@ -155,7 +155,7 @@ sub ENTRY_STILL_VALID
   my $time_stamp = $stat[9];
 
   return ($CACHE->{$file_name}{'size'} == $size &&
-		$CACHE->{$file_name}{'time_stamp'} == $time_stamp);
+    $CACHE->{$file_name}{'time_stamp'} == $time_stamp);
 }
 
 #-------------------------------------------------------------------------------
