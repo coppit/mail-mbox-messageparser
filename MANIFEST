@@ -117,13 +117,9 @@ t/results/reset_newlines_at_beginning.stdout
 #t/results/reset_mailbox with space.stdout
 
 # Module::Install extensions
-inc/Algorithm/Diff.pm
-inc/ExtUtils/AutoInstall.pm
-inc/File/Spec.pm
-inc/File/Spec/Unix.pm
-inc/Module/Install/AutoInstall.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
+inc/Module/Install/CheckOptional.pm
 inc/Module/Install/Fetch.pm
 inc/Module/Install/GetProgramLocations.pm
 inc/Module/Install/Include.pm
@@ -132,11 +128,9 @@ inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 inc/Module/Install.pm
-inc/Scalar/Util.pm
 inc/Sort/Versions.pm
-inc/Test/Builder.pm
-inc/Test/Builder/Module.pm
-inc/Test/More.pm
-inc/Text/Diff.pm
+
+# Needed for Module::Install::CheckOptional
+inc/Module/AutoInstall.pm
 
 META.yml

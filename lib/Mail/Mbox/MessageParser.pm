@@ -1,6 +1,7 @@
 package Mail::Mbox::MessageParser;
 
 use strict;
+use 5.005;
 use Carp;
 use FileHandle::Unget;
 use File::Spec;
@@ -19,7 +20,7 @@ use vars qw( $CACHE $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
-$VERSION = sprintf "%d.%02d%02d", q/1.50.0/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.50.2/ =~ /(\d+)/g;
 $DEBUG = 0;
 
 #-------------------------------------------------------------------------------
@@ -222,13 +223,10 @@ sub _PREPARE_FILE_HANDLE
     {
       dprint "Filehandle is not compressed";
 
-      return ($file_handle,$file_type,0,"No data on filehandle",undef)
-        if eof($file_handle);
-
       my $endline = _GET_ENDLINE(\$file_handle);
 
       return ($file_handle,$file_type,0,"Not a mailbox",$endline)
-        if $file_type ne 'mailbox';
+        if !eof($file_handle) && $file_type ne 'mailbox';
 
       return ($file_handle,$file_type,0,undef,$endline);
     }
@@ -829,7 +827,7 @@ sub read_next_email
       $UPDATING_CACHE = 0;
 
       # Last one is always validated
-      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'} =
+      $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}-1]{'validated'} =
         1;
     }
 

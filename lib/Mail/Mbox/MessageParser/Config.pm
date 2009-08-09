@@ -4,14 +4,14 @@ use strict;
 
 use vars qw( $VERSION %Config );
 
-$VERSION = sprintf "%d.%02d%02d", q/0.1.1/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/0.1.2/ =~ /(\d+)/g;
 
 %Mail::Mbox::MessageParser::Config = (
   'programs' => {
     'bzip' => '/sw/bin/bzip2',
     'bzip2' => '/sw/bin/bzip2',
-    'diff' => '/sw/bin/diff',
-    'grep' => '/usr/bin/grep',
+    'diff' => '/usr/bin/diff',
+    'grep' => undef,
     'gzip' => '/sw/bin/gzip',
   },
 
@@ -19,7 +19,7 @@ $VERSION = sprintf "%d.%02d%02d", q/0.1.1/ =~ /(\d+)/g;
 
   'read_chunk_size' => 20000,
 
-  'from_pattern' => q/(?x)^
+  'from_pattern' => q/(?mx)^
     (From\s
       # Skip names, months, days
       (?> [^:\n]+ )

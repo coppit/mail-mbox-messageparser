@@ -13,7 +13,7 @@ use Mail::Mbox::MessageParser::MetaInfo;
 use vars qw( $VERSION $DEBUG );
 use vars qw( $CACHE );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.30.1/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.30.2/ =~ /(\d+)/g;
 
 *ENTRY_STILL_VALID = \&Mail::Mbox::MessageParser::MetaInfo::ENTRY_STILL_VALID;
 sub ENTRY_STILL_VALID;
@@ -95,9 +95,13 @@ sub read_next_email
 {
   my $self = shift;
 
+	my $entry_became_invalidated = 0;
+
   unless (defined $self->{'file_name'} &&
     ENTRY_STILL_VALID($self->{'file_name'}))
   {
+		$entry_became_invalidated = 1;
+
     # Patch up the data structures for the Perl implementation
     $self->{'CURRENT_LINE_NUMBER'} =
       $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'line_number'};
@@ -136,8 +140,32 @@ sub read_next_email
     } while ($total_amount_read != $self->{'email_length'});
   }
 
-  die "Cache data not validated. This should not occur. Please notify david\@coppit.org"
-    unless $CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'};
+  unless ($CACHE->{$self->{'file_name'}}{'emails'}[$self->{'email_number'}]{'validated'}) {
+	  my $current_time = localtime;
+		my $email_last_modified_time = localtime((stat($self->{'file_name'}))[9]);
+		my $cache_last_modified_time =
+			localtime((stat($Mail::Mbox::MessageParser::MetaInfo::CACHE_OPTIONS{'file_name'}))[9]);
+
+		die <<EOF;
+Cache data not validated. This should not occur. Please send an email to
+david\@coppit.org with the following information.
+
+Debugging info:
+- Current time: $current_time
+- Email file: $self->{'file_name'}
+- Email file last modified time: $email_last_modified_time
+- Cache file: $Mail::Mbox::MessageParser::MetaInfo::CACHE_OPTIONS{'file_name'}
+- Cache file last modified time: $cache_last_modified_time
+- Email number: $self->{'email_number'}
+- Email line number: $self->{'email_line_number'}
+- Email offset: $self->{'email_offset'}
+- Email length: $self->{'email_length'}
+- Entry became invalidated?: $entry_became_invalidated
+
+It would also be really helpful if you could send the cache and email file,
+but I realize that many would not be comfortable doing that.
+EOF
+  }
 
   $self->{'email_number'}++;
 

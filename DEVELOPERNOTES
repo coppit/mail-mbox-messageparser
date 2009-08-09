@@ -7,7 +7,7 @@ $ svn co https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/trunk
 Checklist for a release:
 - Be sure to add new test cases for new features
 - Make sure version number increases.
-- Add version changes to README and CHANGES, ***ANONYMIZING THE NOTES IN THE README.***
+- Add version changes to CHANGES
 - Add new module dependencies to Makefile.PL, and update README
 - Update MANIFEST and MANIFEST.SKIP if necessary.
   $ make distcheck
@@ -21,34 +21,17 @@ Checklist for a release:
 - After the tests have passed, make the distribution file:
   $ make dist
 - Install the distribution file elsewhere to test it.
-  $ scp Mail-Mbox-MessageParser-X.XX.tar.gz coppit@linux.sourceforge.net:.
-  $ ssh coppit@linux.sourceforge.net
-  $ tar xvfz Mail-Mbox-MessageParser-X.XX.tar.gz
-  $ cd Mail-Mbox-MessageParser-X.XX
-  $ perl Makefile.PL
-  $ make
-  $ make test
-- Update CHANGES file, and copy to server:
-  $ scp CHANGES coppit@m-m-msgparser.sourceforge.net:/home/groups/m/m-/m-m-msgparser/htdocs
-  (Use your username instead of coppit)
 - Upload to CPAN:
     http://pause.perl.org/pause/authenquery
   or
     cpan-upload Mail-Mbox-MessageParser-X.XX.tar.gz
-- Release file:
-  http://sourceforge.net/account/login.php
-  ncftpput upload.sf.net incoming Mail-Mbox-MessageParser-X.XX.tar.gz
-  http://sourceforge.net/project/admin/editpackages.php?group_id=87298
-- Announce any news on SourceForge:
-  http://sourceforge.net/news/submit.php?group_id=87298
-- Announce on freshmeat:
-  http://freshmeat.net/login/
-  http://freshmeat.net/projects/m-m-msgparser/
 - Announce it to comp.lang.perl.announce.
-- Copy current code to old in devel
-  $ rm -rf old; rsync -r * old
 - Check in code:
   $ svn commit
 - Tag the release for easy retrieval later
+	$ svn cp https://mail-mbox-messageparser.googlecode.com/svn/trunk https://mail-mbox-messageparser.googlecode.com/svn/tags/1.4201
+
+
+
 	$ svn cp https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/trunk \
-		https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/tags/1.5000 \
+		https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/tags/1.5000
