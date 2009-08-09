@@ -1,31 +1,9 @@
 Mail::Mbox::MessageParser - A fast and simple mbox folder reader
 
 Mail::Mbox::MessageParser is a feature-poor but very fast mbox parser. It uses
-the best of three strategies for parsing a mailbox: either using cached folder
-information, GNU grep, or highly optimized Perl.
+the best of two strategies for parsing a mailbox: either using cached folder
+information or highly optimized Perl.
 
-
-NEW IN THIS VERSION
-
-Version 1.5000: Thu Jan 11 2007
-- The Cache and Grep implementations now detect when changes have occurred to
-	the file being parsed, and automatically invalidate their cache values and
-	revert to the Perl implementation. NOTE: This works well for appending to
-	the mailbox, but undefined behavior occurs if modifications are made to the
-	mailbox at locations earlier than the current position. (Thanks to Armin
-	Obersteiner for the feature suggestion.)
-- Changed the reset test so that it doesn't create output with inconsistent
-	line endings in the case of a dos mailbox.
-- Fixed a bug where occasionally the reading of the next email will go into an
-	infinite loop when reading from standard input. (Thanks to for the bug
-	report and sample input.)
-- read_next_email now returns undef on end of file. (Thanks to Lucas Nussbaum
-	for first reporting the bug. Thanks to Stephen Gran Frank Lichtenheld
-	Steinar H. Gunderson Christian Hammers gregor herrmann and Joey Hess for
-	their efforts to fix or work around the bug. Finally, thanks to Tassilo von
-	Parseval for (mis)using the module in an intuitive way that prompted the
-	solution.)
-- Simplified code by removing end_of_file attribute of parser objects.
 
 MODULE DEPENDENCIES
 
@@ -33,12 +11,12 @@ To use this module, you will need to install:
 
 - FileHandle::Unget
 - Storable: required if you want to use caching
-- GNU grep(1): required if you want to use grep support
 - bzip2(1): required if you want to use bzip and bzip2 support
 - bzip(1): required if you want to use bzip support
 
-You should be prompted to install modules automatically when you run "perl
-Makefile.PL".
+To test this module, you will need to install:
+
+- Test::More
 
 
 INSTALLATION
@@ -60,10 +38,10 @@ the following to the "perl Makefile.PL" command:
 
 You will be prompted for program locations. You can suppress these prompts by
 appending the path to one or more external programs to the "perl Makefile.PL"
-command. For example, "GREP=/gnu/bin/grep GZIP=/gnu/bin/gzip BZIP=
-BZIP2=/bin/bzip2" would set values for all but one program.  "BZIP=" disables
-compression support and prevents interactive execution.  (NOTE: These values
-are not validated as they are in the interactive query.)
+command. For example, "GZIP=/gnu/bin/gzip BZIP= BZIP2=/bin/bzip2" would set
+values for all but one program.  "BZIP=" disables compression support and
+prevents interactive execution.  (NOTE: These values are not validated as they
+are in the interactive query.)
 
 If you make the installation into your own directory, then remember that you
 must tell perl where to search for modules before trying to 'use' them. For
@@ -92,25 +70,28 @@ DOCUMENTATION
 
 Just "perldoc Mail::Mbox::MessageParser". After installation on Unix systems,
 you can also do "man Mail::Mbox::MessageParser". If you are interested in the
-Cache, Grep, or Perl implementations, you can do the same for
-Mail::Mbox::MessageParser::Cache, Mail::Mbox::MessageParser::Grep. and
-Mail::Mbox::MessageParser::Perl
+Cache, or Perl implementations, you can do the same for
+Mail::Mbox::MessageParser::Cache and Mail::Mbox::MessageParser::Perl.
 
 
 HOMEPAGE
 
-Visit http://sourceforge.net/projects/m-m-msgparser/ for the latest version,
-mailing lists, discussion forums, CVS access, and more.
+The CPAN Page:
+http://search.cpan.org/~dcoppit/mail-mbox-messageparser/
+
+The Google Code page:
+http://code.google.com/p/mail-mbox-messageparser/
 
 
 REPORTING BUGS
 
-You can report bugs by filing a bug report at the project homepage. Please
-attach the output files noted above. If the bug is related to processing of a
-particular mailbox, try to trim the mailbox to the smallest set of emails that
-still exhibit the problem.  Then use the "anonymize_mailbox" program that
-comes with the distribution to remove any sensitive information, and attach
-the mailbox to the bug report.
+http://code.google.com/p/mail-mbox-messageparser/issues/entry
+
+Please attach the output files noted above. If the bug is related to
+processing of a particular mailbox, try to trim the mailbox to the smallest
+set of emails that still exhibit the problem.  Then use the
+"anonymize_mailbox" program that comes with the distribution to remove any
+sensitive information, and attach the mailbox to the bug report.
 
 
 COPYRIGHT
@@ -121,8 +102,9 @@ Coppit. All rights reserved, save those granted by the license.
 
 LICENSE
 
-This code is distributed under the GNU General Public License (GPL).  See
-the file LICENSE included in the distribution.
+This code is distributed under the GNU General Public License (GPL). See the
+file LICENSE in the distribution, http://www.opensource.org/gpl-license.html,
+and http://www.opensource.org/.
 
 
 AUTHOR

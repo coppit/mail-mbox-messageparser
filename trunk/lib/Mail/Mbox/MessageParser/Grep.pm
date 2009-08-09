@@ -13,7 +13,7 @@ use Mail::Mbox::MessageParser::Config;
 use vars qw( $VERSION $DEBUG );
 use vars qw( $CACHE );
 
-$VERSION = sprintf "%d.%02d%02d", q/1.70.4/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.70.5/ =~ /(\d+)/g;
 
 *ENTRY_STILL_VALID = \&Mail::Mbox::MessageParser::MetaInfo::ENTRY_STILL_VALID;
 sub ENTRY_STILL_VALID;
@@ -103,7 +103,7 @@ sub _read_prologue
   dprint "Reading mailbox prologue using grep";
 
   $self->_read_until_match(
-    qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/,0);
+    qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/m,0);
 
   my $start_of_email = pos($self->{'READ_BUFFER'});
   $self->{'prologue'} = substr($self->{'READ_BUFFER'}, 0, $start_of_email);
@@ -241,7 +241,7 @@ sub _read_rest_of_email
     # edge of the newly read buffer contains the start of a new header. I
     # believe the RFC says header lines can be at most 90 characters long.
     unless ($self->_read_until_match(
-      qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/,90))
+      qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/m,90))
     {
       $self->{'END_OF_EMAIL'} = length($self->{'READ_BUFFER'});
       return;
@@ -289,7 +289,7 @@ sub _read_email_parts
   # RFC 1521 says the boundary can be no longer than 70 characters. Back up a
   # little more than that.
   my $endline = $self->{'endline'};
-  $self->_read_until_match(qr/^--\Q$boundary\E--$endline/,76)
+  $self->_read_until_match(qr/^--\Q$boundary\E--$endline/m,76)
     or return 0;
 
   return 1;
@@ -325,7 +325,7 @@ sub _read_header
 {
   my $self = shift;
 
-  $self->_read_until_match(qr/$self->{'endline'}$self->{'endline'}/,0)
+  $self->_read_until_match(qr/$self->{'endline'}$self->{'endline'}/m,0)
     or return 0;
 
   $self->{'START_OF_BODY'} =

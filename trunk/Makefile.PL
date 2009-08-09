@@ -1,13 +1,10 @@
 #!/usr/bin/perl
 
 use strict;
+
 use inc::Module::Install;
 
-name              ('Mail-Mbox-MessageParser');
-author            ('David Coppit <david@coppit.org>');
-abstract_from     ('lib/Mail/Mbox/MessageParser.pm');
-version_from      ('lib/Mail/Mbox/MessageParser.pm');
-license           ('gpl');
+all_from          ('lib/Mail/Mbox/MessageParser.pm');
 
 build_requires    (
                     'Test::More' => 0,
@@ -19,34 +16,27 @@ requires          (
                     'FileHandle::Unget' => 0,
                   );
 
-# Optional features and their modules
-features          (
-                    'Speed Tests' => [
-                      -default => 0,
-                      recommends( 'Benchmark::Timer' => '0.7100' ),
-                    ],
-                  );
+check_optional  ( 'Benchmark::Timer' => '0.7100',
+  "Install Benchmark::Timer if you want to run \"make speedtest\"\n");
 
-postamble         (
-'
+sub MY::postamble {
+  return &Module::AutoInstall::postamble . <<'EOF';
 testspeed :: pure_all
 	PERL_DL_NONLAZY=1 $(PERLRUN) "-I$(INST_LIB)" \
 	  "-I$(INST_ARCHLIB)" t/speed.pl
-'
-);
-
-include           ('ExtUtils/AutoInstall.pm');
+EOF
+}
 
 clean_files       ('t/temp');
 
-print "\n", '-'x78, "\n\n";
+# Module::Install doesn't figure out that Module::Install::CheckOptional needs
+# this. Include it manually.
+include           (
+                    'Module::AutoInstall' => 0,
+                  );
 
 Configure_Programs();
 
-print "\n", '-'x78, "\n\n";
-
-auto_include_deps ( );
-auto_install      ( );
 WriteAll();
 
 Fix_PREOP();
@@ -61,26 +51,35 @@ sub Configure_Programs
       'diff'     => { default => 'diff', argname => 'DIFF' },
       'grep'     => { default => 'grep', argname => 'GREP',
                       types => {
-                        'GNU' => { fetch => \&Get_GNU_Version,
+                        'GNU' => { fetch => \&get_gnu_version,
                                    numbers => '[2.1,)', },
                       },
                     },
       'gzip'     => { default => 'gzip', argname => 'GZIP' },
       'bzip'     => { default => 'bzip2', argname => 'BZIP',
                       types => {
-                        'bzip2' => { fetch => \&Get_Bzip2_Version,
+                        'bzip2' => { fetch => \&get_bzip2_version,
                                      numbers => '[1.0,)', },
                       },
                     },
       'bzip2'    => { default => 'bzip2', argname => 'BZIP2',
                       types => {
-                        'bzip2' => { fetch => \&Get_Bzip2_Version,
+                        'bzip2' => { fetch => \&get_bzip2_version,
                                      numbers => '[1.0,)', },
                       },
                     },
   );
 
-  my %locations = Get_Program_Locations(\%info);
+	# XXX: disable grep support by pretending like the user doesn't have grep
+	# installed
+	delete $info{'grep'};
+
+  my %locations = get_program_locations(\%info);
+
+  # XXX: pretend we didn't find grep
+  $locations{'grep'} = {
+		'version' => undef, 'type' => undef, 'path' => undef
+	};
 
   Update_Config('lib/Mail/Mbox/MessageParser/Config.pm', \%locations);
   Update_Config('old/Mail/Mbox/MessageParser/Config.pm', \%locations)
@@ -163,7 +162,19 @@ sub Fix_PREOP
 {
   print "Fixing PREOP in the Makefile to copy files with spaces during building\n";
 
-  my $commands = q{; \$(CP) t/mailboxes/*\\\\ * \$(DISTVNAME)/t/mailboxes; \$(CP) t/results/*\\\\ * \$(DISTVNAME)/t/results};
+  my $commands = q{; $(CP) t/mailboxes/*\\ * $(DISTVNAME)/t/mailboxes; $(CP) t/results/*\\ * $(DISTVNAME)/t/results};
 
-  system "$^X -pi -e 's|^(PREOP\\s*=.*)|\$1$commands|' Makefile";
+	my $makefile_code;
+	{
+		local $/ = undef;
+		open IN, 'Makefile';
+		$makefile_code = <IN>;
+		close IN;
+	}
+
+  $makefile_code =~ s|^(PREOP\s*=.*)|$1$commands|m;
+
+	open OUT, '>Makefile';
+	print OUT $makefile_code;
+	close OUT;
 }

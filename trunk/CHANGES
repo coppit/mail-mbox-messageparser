@@ -1,3 +1,31 @@
+Version 1.5002: Sun Aug 9 2009
+- Disabled the grep interface, which has had some tricky bugs that I don't
+	have time to figure out.
+- Fixed infinite loop that occurred for emails of less than 200 characters.
+	(Thanks to Julian Ladisch <bitcard.org-prt@ladisch.de> for the bug report.)
+- Updated Makefile.PL to be compatible with versions of Module::Install >
+	0.88.
+- Instead of returning an error for an empty mailbox, a valid mailbox is
+	returned that will immediately fail the end_of_mailbox check. This should
+	simplify people's code. (Thanks to Daniel Maher <dma@witbe.net> for a bug
+	report that suggested this change in semantics.)
+- More updates for the missing "m" modifier issue exposed by Perl 5.10.
+	(Thanks to Tom Callawa <tcallawa@redhat.com> for the bug report, and Andreas
+	König <andreas.koenig@anima.de> for the patch.)
+- Added some debugging information for the "cache data not validated" error.
+	Hopefully this will help catch the bug in the act.
+
+Version 1.5001: Sun Jul 20 2008
+- Added the missing "m" modifier to a number of regular expressions. A change
+	in Perl 5.10 exposed this issue. (Thanks to Anicka Bernathova
+	<anicka@suse.cz> for the patch.)
+- Fixed an off-by-one error that would sometimes cause warnings about
+	undefined values.
+- Added a hack to Makefile.PL to force Module::AutoInstall to be included for
+	Module::Install::CheckOptional.
+- Fixed a problem in the PREOP rewriting that would cause it to fail on
+	Windows.
+
 Version 1.5000: Thu Jan 11 2007
 - The Cache and Grep implementations now detect when changes have occurred to
   the file being parsed, and automatically invalidate their cache values and

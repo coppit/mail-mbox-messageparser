@@ -96,8 +96,15 @@ sub InitializeCache
 
   Mail::Mbox::MessageParser::MetaInfo::WRITE_CACHE();
 
+  die "Couldn't initialize cache: Storable version not defined"
+    unless defined $Storable::VERSION;
+
+  die "Couldn't initialize cache: \$UPDATING_CACHE is true"
+    if $Mail::Mbox::MessageParser::MetaInfo::UPDATING_CACHE;
+
   # Check that the cache is actually there
-  die "Couldn't initialize cache" unless -e $cache_file;
+  die "Couldn't initialize cache: Not modified so nothing written"
+    unless -e $cache_file;
 }
 
 # ---------------------------------------------------------------------------
