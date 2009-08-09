@@ -1,0 +1,37 @@
+This file is not distributed with the module. It outlines some notes for
+developers readying a set of files for distribution.
+
+SVN CHECKOUT:
+$ svn co https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/trunk
+
+Checklist for a release:
+- Be sure to add new test cases for new features
+- Make sure version number increases.
+- Add version changes to CHANGES
+- Add new module dependencies to Makefile.PL, and update README
+- Update MANIFEST and MANIFEST.SKIP if necessary.
+  $ make distcheck
+- Test your distribution:
+  $ make realclean
+  $ perl Makefile.PL
+  $ make
+  $ make test
+- Test the speed of the new code:
+  - make testspeed
+- After the tests have passed, make the distribution file:
+  $ make dist
+- Install the distribution file elsewhere to test it.
+- Upload to CPAN:
+    http://pause.perl.org/pause/authenquery
+  or
+    cpan-upload Mail-Mbox-MessageParser-X.XX.tar.gz
+- Announce it to comp.lang.perl.announce.
+- Check in code:
+  $ svn commit
+- Tag the release for easy retrieval later
+	$ svn cp https://mail-mbox-messageparser.googlecode.com/svn/trunk https://mail-mbox-messageparser.googlecode.com/svn/tags/1.4201
+
+
+
+	$ svn cp https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/trunk \
+		https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/tags/1.5000
