@@ -36,6 +36,10 @@ foreach my $filename (@files)
       if $filename =~ /\.bz$/ &&
         !defined $Mail::Mbox::MessageParser::Config{'programs'}{'bzip'};
 
+    skip('lzip not available',1)
+      if $filename =~ /\.lz$/ &&
+        !defined $Mail::Mbox::MessageParser::Config{'programs'}{'lzip'};
+
     skip('xz not available',1)
       if $filename =~ /\.xz$/ &&
         !defined $Mail::Mbox::MessageParser::Config{'programs'}{'xz'};
@@ -82,7 +86,7 @@ sub TestImplementation
   print PIPE $mailbox;
   close PIPE;
 
-  $filename =~ s#\.(tz|bz2|xz|gz)$##;
+  $filename =~ s#\.(tz|bz2|lz|xz|gz)$##;
 
   CheckDiffs([$filename,$output_filename]);
 }

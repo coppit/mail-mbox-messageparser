@@ -391,6 +391,7 @@ sub _GET_FILE_TYPE
   return 'bzip2' if substr($test_chars, 0, 3) eq 'BZh';
   return 'bzip' if substr($test_chars, 0, 2) eq 'BZ';
   return 'xz' if substr($test_chars, 1, 4) eq '7zXZ';
+  return 'lzip' if substr($test_chars, 0, 4) eq 'LZIP';
 #  return 'zip' if substr($test_chars, 0, 2) eq 'PK' &&
 #    ord(substr($test_chars,3,1)) == 0003 && ord(substr($test_chars,4,1)) == 0004;
   return 'gzip' if
@@ -484,7 +485,7 @@ sub _IS_COMPRESSED_TYPE
   
   local $" = '|';
 
-  my @types = qw( gzip bzip bzip2 xz compress );
+  my @types = qw( gzip bzip bzip2 xz lzip compress );
   my $file_type_pattern = "(@types)";
 
   return $file_type =~ /^$file_type_pattern$/;
@@ -920,7 +921,8 @@ Mail::Mbox::MessageParser - A fast and simple mbox folder reader
 
   use Mail::Mbox::MessageParser;
 
-  my $file_name = 'mail/saved-mail';
+  # Compression support
+  my $file_name = 'mail/saved-mail.xz';
   my $file_handle = new FileHandle($file_name);
 
   # Set up cache. (Not necessary if enable_cache is false.)
@@ -1008,11 +1010,10 @@ file using the file name. You should always pass the file name if you have it,
 so that the parser can cache the mailbox information.
 
 This module will automatically decompress the mailbox as necessary. If a
-filename is available but the file handle is undef, the module will call
-either bzip2, or gzip to decompress the file in memory if the filename
-ends with .tz, .bz2, or .gz, respectively. If the file handle is defined, it
-will detect the type of compression and apply the correct decompression
-program.
+filename is available but the file handle is undef, the module will call bzip,
+bzip2, gzip, lzip, xz to decompress the file in memory if the filename ends
+with the appropriate suffix. If the file handle is defined, it will detect the
+type of compression and apply the correct decompression program.
 
 The Cache, Grep, or Perl implementation of the parser will be loaded,
 whichever is most appropriate. For example, the first time you use caching,
