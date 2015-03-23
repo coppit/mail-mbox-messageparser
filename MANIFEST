@@ -31,6 +31,7 @@ t/filehandle_compressed.t
 t/filehandle_noncompressed.t
 t/filename_compressed.t
 t/filename_noncompressed.t
+t/pod.t
 t/prologue.t
 t/number.t
 t/offset.t

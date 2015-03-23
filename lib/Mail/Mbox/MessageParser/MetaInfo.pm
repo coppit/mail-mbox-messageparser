@@ -294,6 +294,8 @@ the opened file handle to the mailbox. Both arguments are required.
 Returns a reference to a Mail::Mbox::MessageParser object, or a string
 describing the error.
 
+=back
+
 
 =head1 BUGS
 
