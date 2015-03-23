@@ -173,7 +173,7 @@ sub CollectData
 
   my %data;
 
-  foreach my $old_or_new qw(New Old)
+  foreach my $old_or_new (qw(New Old))
   {
     my $results = `$path_to_perl t/temp/test_speed.pl $old_or_new`;
 
