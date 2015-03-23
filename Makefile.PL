@@ -4,6 +4,9 @@ use strict;
 
 use inc::Module::Install;
 
+# To prevent MakeMaker from processing our old directory
+BEGIN { makemaker_args( NORECURS => 1 ) }
+
 all_from          ('lib/Mail/Mbox/MessageParser.pm');
 
 build_requires    (
