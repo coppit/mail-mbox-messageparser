@@ -6,12 +6,15 @@
 
 use strict;
 use warnings 'all';
+use Config;
 
 use lib 't';
 use Benchmark;
 
 my $MAILBOX_SIZE = 10_000_000;
 my $TEMP_MAILBOX = 't/temp/bigmailbox.txt';
+
+my $path_to_perl = $Config{perlpath};
 
 my @IMPLEMENTATIONS_TO_TEST = (
 'Perl',
@@ -172,7 +175,7 @@ sub CollectData
 
   foreach my $old_or_new qw(New Old)
   {
-    my $results = `$^X t/temp/test_speed.pl $old_or_new`;
+    my $results = `$path_to_perl t/temp/test_speed.pl $old_or_new`;
 
     die $results unless $results =~ /VAR1/;
 
