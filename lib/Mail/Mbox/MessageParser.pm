@@ -628,12 +628,37 @@ sub _DO_DECOMPRESSION
 # 1000 characters because the body may have foreign binary-like characters
 sub _IS_BINARY_MAILBOX
 {
-  my $data_length;
-  $data_length = index(${$_[0]},"\n\n");
-  $data_length = index(${$_[0]},"\r\n\r\n") if $data_length == -1;
-  $data_length = CORE::length(${$_[0]}) if $data_length == -1;
+  my ($start, $data_length);
 
-  my $bin_length = substr(${$_[0]},0,$data_length) =~ tr/[\t\n\x20-\x7e]//c;
+  # Unix line endings
+  {
+    $start = 0;
+
+    # Handle newlines at the start
+    while (index(${$_[0]}, "\n\n", $start) == $start) {
+      $start += 2;
+    }
+
+    $data_length = index(${$_[0]}, "\n\n", $start) - $start;
+  }
+
+  # If we didn't succeed with Unix line endings, try DOS line endings
+  if ($data_length == -1)
+  {
+    # Handle newlines at the start
+    $start = 0;
+
+    while (index(${$_[0]}, "\r\n\r\n", $start) == $start) {
+      $start += 4;
+    }
+
+    $data_length = index(${$_[0]}, "\r\n\r\n", $start) - $start;
+  }
+
+  # Didn't find any kind of empty line. Use the whole buffer.
+  $data_length = CORE::length(${$_[0]}) - $start if $data_length == -1;
+
+  my $bin_length = substr(${$_[0]}, $start ,$data_length) =~ tr/[\t\n\x20-\x7e]//c;
 
   my $non_bin_length = $data_length - $bin_length;
 
