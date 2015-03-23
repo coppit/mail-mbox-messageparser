@@ -1,8 +1,12 @@
 This file is not distributed with the module. It outlines some notes for
 developers readying a set of files for distribution.
 
-SVN CHECKOUT:
-$ svn co https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/trunk
+Check for any open issues:
+- https://rt.cpan.org/Dist/Display.html?Name=Mail-Mbox-MessageParser
+- https://code.google.com/p/mail-mbox-messageparser/issues/list
+
+git checkout:
+$ git clone https://github.com/coppit/mail-mbox-messageparser.git
 
 Checklist for a release:
 - Be sure to add new test cases for new features
@@ -25,13 +29,7 @@ Checklist for a release:
     http://pause.perl.org/pause/authenquery
   or
     cpan-upload Mail-Mbox-MessageParser-X.XX.tar.gz
-- Announce it to comp.lang.perl.announce.
-- Check in code:
-  $ svn commit
 - Tag the release for easy retrieval later
-	$ svn cp https://mail-mbox-messageparser.googlecode.com/svn/trunk https://mail-mbox-messageparser.googlecode.com/svn/tags/1.4201
-
-
-
-	$ svn cp https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/trunk \
-		https://coppit@svn.sourceforge.net/svnroot/m-m-msgparser/tags/1.5000
+  $ git tag -a v1.5100 -m 'Version 1.5100'
+- Push changes to github:
+  $ git push

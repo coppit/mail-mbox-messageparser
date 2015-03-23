@@ -3,6 +3,8 @@
 \bCVS\b
 ,v$
 \B\.svn\b
+\B\.git\b
+^\.gitignore$
 
 # Makemaker generated files and dirs.
 ^MANIFEST\.
@@ -24,9 +26,11 @@
 ^todo$
 ^DEVELOPERNOTES$
 ^announce.sample$
-^old2/
+^old/
 \.tar\.gz$
 t/temp/
+^MYMETA.(json|yml)
+parse_test.pl
 
 # Skip filenames with spaces. (I can't specify them in MANIFEST.)
 t/results/.* .*

@@ -77,7 +77,7 @@ Mail::Mbox::MessageParser::Cache and Mail::Mbox::MessageParser::Perl.
 HOMEPAGE
 
 The CPAN Page:
-http://search.cpan.org/~dcoppit/mail-mbox-messageparser/
+http://search.cpan.org/dist/Mail-Mbox-MessageParser/
 
 The Google Code page:
 http://code.google.com/p/mail-mbox-messageparser/

@@ -8,11 +8,11 @@ $VERSION = sprintf "%d.%02d%02d", q/0.1.2/ =~ /(\d+)/g;
 
 %Mail::Mbox::MessageParser::Config = (
   'programs' => {
-    'bzip' => '/sw/bin/bzip2',
-    'bzip2' => '/sw/bin/bzip2',
+    'bzip' => '/usr/bin/bzip2',
+    'bzip2' => '/usr/bin/bzip2',
     'diff' => '/usr/bin/diff',
     'grep' => undef,
-    'gzip' => '/sw/bin/gzip',
+    'gzip' => '/usr/bin/gzip',
   },
 
   'max_testchar_buffer_size' => 1048576,
