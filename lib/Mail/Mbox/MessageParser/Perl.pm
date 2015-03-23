@@ -453,7 +453,7 @@ Mail::Mbox::MessageParser::Perl - A Perl-based mbox folder reader
   while(!$folder_reader->end_of_file());
   {
     my $email = $folder_reader->read_next_email();
-    print $email;
+    print $$email;
   }
 
 =head1 DESCRIPTION
