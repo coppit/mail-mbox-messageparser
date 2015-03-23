@@ -33,5 +33,5 @@ t/temp/
 parse_test.pl
 
 # Skip filenames with spaces. (I can't specify them in MANIFEST.)
-t/results/.* .*
-t/mailboxes/.* .*
+t/results/.*\s.*
+t/mailboxes/.*\s.*
