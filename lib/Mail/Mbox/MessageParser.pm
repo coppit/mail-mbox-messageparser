@@ -390,6 +390,7 @@ sub _GET_FILE_TYPE
   # See "magic" on unix systems for details on how to identify file types
   return 'bzip2' if substr($test_chars, 0, 3) eq 'BZh';
   return 'bzip' if substr($test_chars, 0, 2) eq 'BZ';
+  return 'xz' if substr($test_chars, 1, 4) eq '7zXZ';
 #  return 'zip' if substr($test_chars, 0, 2) eq 'PK' &&
 #    ord(substr($test_chars,3,1)) == 0003 && ord(substr($test_chars,4,1)) == 0004;
   return 'gzip' if
@@ -483,7 +484,7 @@ sub _IS_COMPRESSED_TYPE
   
   local $" = '|';
 
-  my @types = qw( gzip bzip bzip2 compress );
+  my @types = qw( gzip bzip bzip2 xz compress );
   my $file_type_pattern = "(@types)";
 
   return $file_type =~ /^$file_type_pattern$/;

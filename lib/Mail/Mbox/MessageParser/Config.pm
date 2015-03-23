@@ -13,6 +13,7 @@ $VERSION = sprintf "%d.%02d%02d", q/0.1.2/ =~ /(\d+)/g;
     'diff' => '/usr/bin/diff',
     'grep' => undef,
     'gzip' => '/usr/bin/gzip',
+    'xz' => '/usr/local/bin/xz',
   },
 
   'max_testchar_buffer_size' => 1048576,

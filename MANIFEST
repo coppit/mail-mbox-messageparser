@@ -41,6 +41,7 @@ t/stdin_compressed.t
 t/stdin_uncompressed.t
 t/speed.pl
 t/undef_return_value.t
+t/xz.t
 t/mailboxes/binary_body.txt
 t/mailboxes/hessbug.txt
 t/mailboxes/invalid-boundaries.txt
@@ -50,6 +51,7 @@ t/mailboxes/mailarc-1-dos.txt
 t/mailboxes/mailarc-2.txt
 t/mailboxes/mailarc-2.txt.gz
 t/mailboxes/mailarc-2.txt.bz2
+t/mailboxes/mailarc-2.txt.xz
 t/mailboxes/mailarc-3.txt
 t/mailboxes/mailseparators.txt
 t/mailboxes/separators1.sep

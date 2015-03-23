@@ -14,6 +14,9 @@ Version 1.5100: Sun Mar 22 2015
   newline.
   https://rt.cpan.org/Ticket/Display.html?id=69469
   Thanks to vadz@cpan.org for the bug report.
+- Added xz support.
+  https://rt.cpan.org/Ticket/Display.html?id=68286
+  Thanks to carnil@cpan.org for initial patches.
 
 Version 1.5002: Sun Aug 9 2009
 - Disabled the grep interface, which has had some tricky bugs that I don't
