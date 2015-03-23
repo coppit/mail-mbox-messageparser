@@ -168,6 +168,8 @@ sub _read_rest_of_email
 {
   my $self = shift;
 
+  my $previous_backup;
+
   # Look for the start of the next email
   while (1)
   {
@@ -220,6 +222,17 @@ sub _read_rest_of_email
     $backup_amount = length($self->{'READ_BUFFER'}) - 1
       if length($self->{'READ_BUFFER'}) < $backup_amount;
 
+    # Avoid an infinite loop that can occur if the pattern is within the
+    # 90-character lookback, but doesn't indicate the start of the next email.
+    # We detect this case as one where we previously shifted the email to
+    # the start of the buffer.
+    if ($shift_amount == 0) {
+      $previous_backup--;
+      $backup_amount = $previous_backup;
+    } else {
+      $previous_backup = $backup_amount;
+    }
+
     unless ($self->_read_until_match(
       qr/$Mail::Mbox::MessageParser::Config{'from_pattern'}/m,$backup_amount))
      {
@@ -267,7 +280,9 @@ sub _read_email_parts
   return 1 unless defined $boundary;
 
   # RFC 1521 says the boundary can be no longer than 70 characters. Back up a
-  # little more than that.
+  # little more than that. Unlike _read_rest_of_email() we don't have to
+	# worry about infinite loops here since the pattern is designed to not
+	# match falsely.
   my $endline = $self->{'endline'};
   $self->_read_until_match(qr/^--\Q$boundary\E--$endline/m,76)
     or return 0;

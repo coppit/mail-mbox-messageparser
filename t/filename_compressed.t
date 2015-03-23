@@ -16,7 +16,7 @@ use Test::Utils;
 use FileHandle;
 
 my @files = <t/mailboxes/*.txt.*>;
-@files = grep { !/non-mailbox/ } @files;
+@files = grep { !/non-mailbox/ && !/malformed/ } @files;
 
 mkdir catfile('t','temp'), 0700;
 

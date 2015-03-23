@@ -1,6 +1,9 @@
 Version 1.5100: Sun Mar 22 2015
 - Moved code to github
 - Added POD test
+- Fixed hang in pure Perl implementation for a malformed mbox file scenario.
+  Thanks to Jason Brooks <jason@petting-zoo.org> for providing an mbox
+  that found this bug.
 
 Version 1.5002: Sun Aug 9 2009
 - Disabled the grep interface, which has had some tricky bugs that I don't
