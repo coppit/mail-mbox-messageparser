@@ -1,0 +1,8 @@
+/blib/
+inc/
+/Makefile
+/META.yml
+/MYMETA.*
+/pm_to_blib
+/Mail-Mbox-MessageParser-*.tar.gz
+**/*.swp
