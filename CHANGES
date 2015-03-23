@@ -19,6 +19,9 @@ Version 1.5100: Sun Mar 22 2015
   Thanks to sascha@trimind.de for initial patches.
 - Fix bug in M::M::Perl documentation.
   Thanks to Christopher Orsolits <chris@s7logic.com> for spotting it.
+- Add more cache file validation.
+  Thanks to Richard Higson <richard.higson@gt.owl.de> for reporting the
+  problem.
 
 Version 1.5002: Sun Aug 9 2009
 - Disabled the grep interface, which has had some tricky bugs that I don't

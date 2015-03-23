@@ -145,7 +145,10 @@ sub ENTRY_STILL_VALID
 
   return 0 unless exists $CACHE->{$file_name} &&
     defined $CACHE->{$file_name}{'size'} &&
-    defined $CACHE->{$file_name}{'time_stamp'};
+    defined $CACHE->{$file_name}{'time_stamp'} &&
+    # Sanity check the cache to ensure we can at least determine the prologue
+    # length.
+    defined $CACHE->{$file_name}{'emails'}[0]{'offset'};
 
   my @stat = stat $file_name;
 
