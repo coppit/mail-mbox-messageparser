@@ -58,6 +58,7 @@ sub Configure_Programs
                                    numbers => '[2.1,)', },
                       },
                     },
+      'lzip'     => { default => 'lzip', argname => 'LZIP' },
       'xz'       => { default => 'xz', argname => 'XZ' },
       'gzip'     => { default => 'gzip', argname => 'GZIP' },
       'bzip'     => { default => 'bzip2', argname => 'BZIP',
