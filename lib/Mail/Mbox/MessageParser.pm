@@ -854,7 +854,7 @@ sub _GET_HEADER_FIELD
 
   # Avoid perl 5.6 bug which causes spurious warning even though $email_header
   # is defined.
-  local $^W = 0 if $] >= 5.006 && $] < 5.8;
+  local $^W = 0 if $] >= 5.006 && $] < 5.008;
 
   if ($header_name =~ /^From$/i &&
     $$email_header =~ /^((?:From\s|X-From-Line:|X-Draft-From:).*$endline(\s.*$endline)*)/im)
