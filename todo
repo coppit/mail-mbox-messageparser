@@ -1,3 +1,11 @@
+- Detect mix of dos and unix line endings and fail with an error
+- Tolerate a mix of dos and unix line endings
+- read_until_match() is slow when it has to read more data, because it
+  restarts the search at the top of the buffer, leading to exponential
+  slowdown
+- The above 3 issues were observed while investigating an email from
+  Pali Rohár <pali.rohar@gmail.com>
+
 - Add compression support to grep
 - Add random access (email Tassilo von Parseval
   <tassilo.parseval@post.rwth-aachen.de>)
