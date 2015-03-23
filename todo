@@ -6,6 +6,12 @@
 - The above 3 issues were observed while investigating an email from
   Pali Rohár <pali.rohar@gmail.com>
 
+- Wrong assumption parsing Multipart/Mixed messages
+  https://rt.cpan.org/Ticket/Display.html?id=19817
+- thousands of warnings during tests
+  https://rt.cpan.org/Ticket/Display.html?id=13134
+- Module misidentifies a mbox-file as binary
+  https://rt.cpan.org/Ticket/Display.html?id=8162
 - Add compression support to grep
 - Add random access (email Tassilo von Parseval
   <tassilo.parseval@post.rwth-aachen.de>)
