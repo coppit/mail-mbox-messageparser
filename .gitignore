@@ -6,3 +6,4 @@ inc/
 /pm_to_blib
 /Mail-Mbox-MessageParser-*.tar.gz
 **/*.swp
+/t/temp/
