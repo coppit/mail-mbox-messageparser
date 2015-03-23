@@ -293,8 +293,8 @@ sub _OPEN_FILE_HANDLE
 
   dprint "Calling \"$filter_command\" to decompress file \"$file_name\".";
 
-  use vars qw(*OLDSTDERR);
-  open OLDSTDERR,">&STDERR" or die "Can't save STDERR: $!\n";
+  my $oldstderr;
+  open $oldstderr,">&STDERR" or die "Can't save STDERR: $!\n";
   open STDERR,">" . File::Spec->devnull()
     or die "Can't redirect STDERR to " . File::Spec->devnull() . ": $!\n";
 
@@ -305,7 +305,7 @@ sub _OPEN_FILE_HANDLE
 
   binmode $file_handle;
 
-  open STDERR,">&OLDSTDERR" or die "Can't restore STDERR: $!\n";
+  open STDERR, '>&', $oldstderr or die "Can't restore STDERR: $!\n";
 
   if (eof($file_handle))
   {
