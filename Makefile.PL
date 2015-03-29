@@ -7,19 +7,19 @@ use inc::Module::Install;
 # To prevent MakeMaker from processing our old directory
 BEGIN { makemaker_args( NORECURS => 1 ) }
 
-all_from          ('lib/Mail/Mbox/MessageParser.pm');
+all_from('lib/Mail/Mbox/MessageParser.pm');
 
-build_requires    (
-                    'Test::More' => 0,
-                    'Text::Diff' => 0,
-                  );
+build_requires(
+  'Test::More' => 0,
+  'Text::Diff' => 0,
+);
 
-requires          (
-                    'Storable' => 0,
-                    'FileHandle::Unget' => 0,
-                  );
+requires(
+  'Storable' => 0,
+  'FileHandle::Unget' => 0,
+);
 
-check_optional  ( 'Benchmark::Timer' => '0.7100',
+check_optional( 'Benchmark::Timer' => '0.7100',
   "Install Benchmark::Timer if you want to run \"make speedtest\"\n");
 
 sub MY::postamble {
@@ -30,13 +30,13 @@ testspeed :: pure_all
 EOF
 }
 
-clean_files       ('t/temp');
+clean_files('t/temp');
 
 # Module::Install doesn't figure out that Module::Install::CheckOptional needs
 # this. Include it manually.
-include           (
-                    'Module::AutoInstall' => 0,
-                  );
+include(
+  'Module::AutoInstall' => 0,
+);
 
 Configure_Programs();
 
@@ -58,7 +58,12 @@ sub Configure_Programs
                                    numbers => '[2.1,)', },
                       },
                     },
-      'lzip'     => { default => 'lzip', argname => 'LZIP' },
+      'lzip'     => { default => 'lzip', argname => 'LZIP',
+                      types => {
+                        'GNU' => { fetch => \&get_gnu_version,
+                                   numbers => '[1.3,)', },
+                      },
+                    },
       'xz'       => { default => 'xz', argname => 'XZ' },
       'gzip'     => { default => 'gzip', argname => 'GZIP' },
       'bzip'     => { default => 'bzip2', argname => 'BZIP',
