@@ -3,6 +3,9 @@ Version 1.5101: Mon Mar 30 2015
   properly during testing. Thanks to Paul Howarth <paul@city-fan.org> for the
   suggestion.
 - Fix warning about deleting nonexistent test cache
+- Enhance "make test TEST_VERBOSE=1" to dump debug information
+- Work around a POD-stripping bug that would cause module load to fail on some
+  platforms
 
 Version 1.5100: Sun Mar 22 2015
 - Moved code to github

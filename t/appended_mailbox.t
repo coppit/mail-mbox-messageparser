@@ -165,6 +165,7 @@ sub TestModifiedMailbox
         'file_handle' => $filehandle,
         'enable_cache' => $enable_cache,
         'enable_grep' => $enable_grep,
+        'debug' => $ENV{TEST_VERBOSE},
       } );
 
   die $folder_reader unless ref $folder_reader;

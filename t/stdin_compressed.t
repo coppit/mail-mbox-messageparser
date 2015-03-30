@@ -128,6 +128,7 @@ sub ParseFile
         'file_handle' => $file_handle,
         'enable_cache' => 0,
         'enable_grep' => 0,
+        'debug' => $ENV{TEST_VERBOSE},
       } );
 
   die $folder_reader unless ref $folder_reader;
