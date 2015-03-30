@@ -42,6 +42,8 @@ Configure_Programs();
 
 WriteAll();
 
+Fix_Sort_Versions_POD();
+
 Fix_PREOP();
 
 exit;
@@ -164,6 +166,27 @@ sub _Write_Code
     or die "Couldn't open grepmail file \"$filename\": $!";
   print SOURCE $code;
   close SOURCE;
+}
+
+# --------------------------------------------------------------------------
+
+sub Fix_Sort_Versions_POD
+{
+  print "Fixing POD in inc/Sort/Versions.pm\n";
+
+	my $code;
+	{
+		local $/ = undef;
+		open IN, 'inc/Sort/Versions.pm';
+		$code = <IN>;
+		close IN;
+	}
+
+  $code =~ s|^=encoding.*||m;
+
+	open OUT, '>inc/Sort/Versions.pm';
+	print OUT $code;
+	close OUT;
 }
 
 # --------------------------------------------------------------------------
