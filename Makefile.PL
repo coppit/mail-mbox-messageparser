@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 
 use strict;
-
 use inc::Module::Install;
 
 # To prevent MakeMaker from processing our old directory
@@ -9,18 +8,18 @@ BEGIN { makemaker_args( NORECURS => 1 ) }
 
 all_from('lib/Mail/Mbox/MessageParser.pm');
 
-build_requires(
+requires(
+  'FileHandle::Unget' => 0,
+  'Storable' => 0,
+);
+
+test_requires(
   'Test::More' => 0,
   'Text::Diff' => 0,
 );
 
-requires(
-  'Storable' => 0,
-  'FileHandle::Unget' => 0,
-);
-
 check_optional( 'Benchmark::Timer' => '0.7100',
-  "Install Benchmark::Timer if you want to run \"make speedtest\"\n");
+  "Install Benchmark::Timer if you want to run \"make testspeed\"\n");
 
 sub MY::postamble {
   return &Module::AutoInstall::postamble . <<'EOF';
