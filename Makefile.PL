@@ -2,6 +2,7 @@
 
 use strict;
 use inc::Module::Install;
+use File::Slurp;
 
 # To prevent MakeMaker from processing our old directory
 BEGIN { makemaker_args( NORECURS => 1 ) }
@@ -33,10 +34,10 @@ EOF
 
 clean_files('t/temp');
 
-# Module::Install doesn't figure out that Module::Install::CheckOptional needs
-# this. Include it manually.
 include(
+  # Module::Install doesn't figure out that Module::Install::CheckOptional needs this. Include it manually.
   'Module::AutoInstall' => 0,
+  'File::Slurp' => 0,
 );
 
 Configure_Programs();
@@ -46,9 +47,30 @@ auto_license(holder => 'David Coppit');
 
 WriteAll();
 
-Fix_Sort_Versions_POD();
+if (auto_tester) {
+  my $code = read_file('Makefile');
+  $code =~ s/TEST_VERBOSE\s*=\s*0/TEST_VERBOSE=1/ or die "Couldn't enable verbose mode in Makefile";
+  write_file('Makefile', $code);
+}
 
-Fix_PREOP();
+{
+  print "Fixing POD in inc/Sort/Versions.pm\n";
+
+  my $code = read_file('inc/Sort/Versions.pm');
+  $code =~ s|^=encoding.*||m;
+  write_file('inc/Sort/Versions.pm', $code);
+}
+
+{
+  print "Fixing PREOP in the Makefile to copy files with spaces during building\n";
+
+  my $code = read_file('Makefile');
+
+  my $commands = q{; $(CP) t/mailboxes/*\\ * $(DISTVNAME)/t/mailboxes; $(CP) t/results/*\\ * $(DISTVNAME)/t/results};
+  $code =~ s|^(PREOP\s*=.*)|$1$commands|m;
+
+  write_file('Makefile', $code);
+}
 
 exit;
 
@@ -109,7 +131,7 @@ sub Update_Config
   my $filename = shift;
   my %locations = %{ shift @_ };
 
-  my $code = _Read_Code($filename);
+  my $code = read_file($filename);
 
   foreach my $program (keys %locations)
   {
@@ -140,78 +162,5 @@ sub Update_Config
     die "Couldn't find programs hash in $filename";
   }
 
-  _Write_Code($filename, $code);
-}
-
-# --------------------------------------------------------------------------
-
-sub _Read_Code
-{
-  my $filename = shift;
-
-  local $/ = undef;
-
-  open SOURCE, $filename
-    or die "Couldn't open file \"$filename\": $!";
-  my $code = <SOURCE>;
-  close SOURCE;
-
-  return $code;
-}
-
-# --------------------------------------------------------------------------
-
-sub _Write_Code
-{
-  my $filename = shift;
-  my $code = shift;
-
-  open SOURCE, ">$filename"
-    or die "Couldn't open grepmail file \"$filename\": $!";
-  print SOURCE $code;
-  close SOURCE;
-}
-
-# --------------------------------------------------------------------------
-
-sub Fix_Sort_Versions_POD
-{
-  print "Fixing POD in inc/Sort/Versions.pm\n";
-
-	my $code;
-	{
-		local $/ = undef;
-		open IN, 'inc/Sort/Versions.pm';
-		$code = <IN>;
-		close IN;
-	}
-
-  $code =~ s|^=encoding.*||m;
-
-	open OUT, '>inc/Sort/Versions.pm';
-	print OUT $code;
-	close OUT;
-}
-
-# --------------------------------------------------------------------------
-
-sub Fix_PREOP
-{
-  print "Fixing PREOP in the Makefile to copy files with spaces during building\n";
-
-  my $commands = q{; $(CP) t/mailboxes/*\\ * $(DISTVNAME)/t/mailboxes; $(CP) t/results/*\\ * $(DISTVNAME)/t/results};
-
-	my $makefile_code;
-	{
-		local $/ = undef;
-		open IN, 'Makefile';
-		$makefile_code = <IN>;
-		close IN;
-	}
-
-  $makefile_code =~ s|^(PREOP\s*=.*)|$1$commands|m;
-
-	open OUT, '>Makefile';
-	print OUT $makefile_code;
-	close OUT;
+  write_file($filename, $code);
 }

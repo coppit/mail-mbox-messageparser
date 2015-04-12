@@ -1,5 +1,6 @@
 Version 1.5102:
 - Fix xz test skip for when xz is not installed
+- Enable verbose testing for CPAN-testers
 
 Version 1.5101: Sat Apr 4 2015
 - Add a version check for lzip, to make sure the .lz file can be decompressed

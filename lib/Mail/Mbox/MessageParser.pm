@@ -20,7 +20,7 @@ use vars qw( $CACHE $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
-$VERSION = sprintf "%d.%02d%02d", q/1.51.1/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.51.2/ =~ /(\d+)/g;
 $DEBUG = 0;
 
 #-------------------------------------------------------------------------------
