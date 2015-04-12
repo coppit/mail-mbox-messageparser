@@ -4,6 +4,7 @@ MANIFEST
 MANIFEST.SKIP
 Makefile.PL
 README
+TODO
 
 # A utility program for bug reporting
 anonymize_mailbox
@@ -22,42 +23,44 @@ t/Test/Utils.pm
 
 # Tests
 t/appended_mailbox.t
-t/endline.t
-t/grep.t
 t/bzip2.t
-t/gzip.t
-t/length.t
-t/line_number.t
+t/endline.t
 t/filehandle_compressed.t
 t/filehandle_noncompressed.t
 t/filename_compressed.t
 t/filename_noncompressed.t
-t/pod.t
-t/prologue.t
-t/number.t
-t/offset.t
-t/reset.t
-t/separators.t
-t/stdin_compressed.t
-t/stdin_uncompressed.t
-t/speed.pl
-t/undef_return_value.t
-t/xz.t
+t/grep.t
+t/gzip.t
+t/length.t
+t/line_number.t
+t/lzip.t
 t/mailboxes/binary_body.txt
 t/mailboxes/hessbug.txt
 t/mailboxes/invalid-boundaries.txt
-t/mailboxes/malformed.txt
-t/mailboxes/mailarc-1.txt
 t/mailboxes/mailarc-1-dos.txt
+t/mailboxes/mailarc-1.txt
 t/mailboxes/mailarc-2.txt
-t/mailboxes/mailarc-2.txt.gz
 t/mailboxes/mailarc-2.txt.bz2
+t/mailboxes/mailarc-2.txt.gz
+t/mailboxes/mailarc-2.txt.lz
 t/mailboxes/mailarc-2.txt.xz
 t/mailboxes/mailarc-3.txt
 t/mailboxes/mailseparators.txt
+t/mailboxes/malformed.txt
+t/mailboxes/newlines_at_beginning.txt
 t/mailboxes/separators1.sep
 t/mailboxes/separators2.sep
-t/mailboxes/newlines_at_beginning.txt
+t/number.t
+t/offset.t
+t/pod.t
+t/prologue.t
+t/reset.t
+t/separators.t
+t/speed.pl
+t/stdin_compressed.t
+t/stdin_uncompressed.t
+t/undef_return_value.t
+t/xz.t
 #t/mailboxes/mailbox with space.txt
 #t/mailboxes/mailbox with space.txt.gz
 t/mailboxes/non-mailbox.txt.gz
@@ -142,6 +145,7 @@ inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
+inc/Module/Install/PRIVATE/Add_Test_Target.pm
 inc/Sort/Versions.pm
 
 # Needed for Module::Install::CheckOptional
