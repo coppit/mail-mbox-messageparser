@@ -41,6 +41,9 @@ include(
 
 Configure_Programs();
 
+license 'gpl2';
+auto_license(holder => 'David Coppit');
+
 WriteAll();
 
 Fix_Sort_Versions_POD();
