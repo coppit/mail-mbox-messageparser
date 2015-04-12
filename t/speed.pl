@@ -10,10 +10,11 @@ use Config;
 use File::Slurp;
 
 use lib 't';
+use Test::Utils;
 use Benchmark;
 
 my $MAILBOX_SIZE = 10_000_000;
-my $TEMP_MAILBOX = 't/temp/bigmailbox.txt';
+my $TEMP_MAILBOX = "$TEMPDIR/bigmailbox.txt";
 
 my $path_to_perl = $Config{perlpath};
 
@@ -23,8 +24,6 @@ my @IMPLEMENTATIONS_TO_TEST = (
 'Cache Init',
 'Cache Use',
 );
-
-mkdir 't/temp';
 
 my @mailboxes = CreateInputFiles($TEMP_MAILBOX);
 
@@ -157,17 +156,18 @@ sub CollectData
   {
     local $" = "', '";
     my $implementations_to_test = "'@IMPLEMENTATIONS_TO_TEST'";
-    my $modified_test_program = $test_program;
-    $modified_test_program =~ s/\@IMPLEMENTATIONS_TO_TEST/$implementations_to_test/;
-
-    write_file('t/temp/test_speed.pl', $modified_test_program);
+    $test_program =~ s/\@IMPLEMENTATIONS_TO_TEST/$implementations_to_test/g;
   }
+
+  $test_program =~ s/\$TEMPDIR/$TEMPDIR/g;
+
+  write_file("$TEMPDIR/test_speed.pl", $test_program);
 
   my %data;
 
   foreach my $old_or_new (qw(New Old))
   {
-    my $results = `$path_to_perl t/temp/test_speed.pl $old_or_new`;
+    my $results = `$path_to_perl $TEMPDIR/test_speed.pl $old_or_new`;
 
     die $results unless $results =~ /VAR1/;
 
@@ -259,7 +259,7 @@ die unless @ARGV == 1;
 my $old_or_new = $ARGV[0];
 my $modpath = $old_or_new eq 'New' ? 'lib' : 'old';
 
-my $filename = 't/temp/bigmailbox.txt';
+my $filename = "$TEMPDIR/bigmailbox.txt";
 
 my %data;
 
@@ -289,7 +289,7 @@ foreach my $file_type ('Filename', 'Filehandle')
     # Need enough for the statistics to be valid
     while ($t->need_more_samples($label))
     {
-      unlink 't/temp/cache' if $impl eq 'Cache Init';
+      unlink "$TEMPDIR/cache" if $impl eq 'Cache Init';
 
       if ($impl eq 'Cache Init')
       {
@@ -327,7 +327,7 @@ sub InitializeCache
   my $filename = shift;
   my $file_type = shift;
 
-  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => 't/temp/cache'});
+  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => "$TEMPDIR/cache"});
   Mail::Mbox::MessageParser::MetaInfo::CLEAR_CACHE();
 
   my $filehandle;
@@ -364,7 +364,7 @@ sub ParseFile
   my $file_handle;
   $file_handle = new FileHandle($filename) if $file_type eq 'Filehandle';
 
-  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => 't/temp/cache'})
+  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => "$TEMPDIR/cache"})
     if $enable_cache;
 
   my $folder_reader =

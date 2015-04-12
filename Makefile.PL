@@ -32,8 +32,6 @@ testspeed :: pure_all
 EOF
 }
 
-clean_files('t/temp');
-
 include(
   # Module::Install doesn't figure out that Module::Install::CheckOptional needs this. Include it manually.
   'Module::AutoInstall' => 0,

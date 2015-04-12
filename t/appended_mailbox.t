@@ -15,12 +15,10 @@ use File::Slurp;
 
 eval 'require Storable;';
 
-mkdir catfile('t','temp'), 0700;
-
 plan (tests => 6 );
 
 my $source_filename = 't/mailboxes/mailarc-1.txt';
-my $mailbox_filename = 't/temp/tempmailbox';
+my $mailbox_filename = "$TEMPDIR/tempmailbox";
 
 {
 	print "Testing modified mailbox with Perl implementation\n";
@@ -133,7 +131,7 @@ sub TestModifiedMailbox
 
   my ($folder_name) = $source_filename =~ /\/([^\/\\]*)\.txt$/;
 
-  my $output_filename = catfile('t','temp',
+  my $output_filename = catfile($TEMPDIR,
     "${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout");
 
   my $output = new FileHandle(">$output_filename");
@@ -141,7 +139,7 @@ sub TestModifiedMailbox
 
   my $filehandle = new FileHandle($mailbox_filename);
 
-  my $cache_file = catfile('t','temp','cache');
+  my $cache_file = catfile($TEMPDIR,'cache');
 
   Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache_file})
     if $enable_cache;

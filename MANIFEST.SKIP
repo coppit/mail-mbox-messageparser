@@ -28,7 +28,6 @@
 ^announce.sample$
 ^old/
 \.tar\.gz$
-t/temp/
 ^MYMETA.(json|yml)
 parse_test.pl
 

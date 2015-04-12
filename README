@@ -60,8 +60,7 @@ If "make test" fails, run
   make test TEST_VERBOSE=1
 
 and see which test(s) are failing. Please email, to the address below, the
-*.testoutput and *.testoutput.diff files for the test, which are located in
-t/temp.
+*.testoutput and *.testoutput.diff files for the test.
 
 For other bugs, see the section REPORTING BUGS below.
 

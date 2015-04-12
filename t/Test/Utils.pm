@@ -6,7 +6,8 @@ use Test::More;
 use Text::Diff;
 use FileHandle::Unget;
 use File::Path qw( remove_tree );
-use File::Spec::Functions qw(:ALL);
+use File::Spec::Functions qw( :ALL );
+use File::Temp;
 use File::Slurp;
 
 use vars qw( @EXPORT @ISA );
@@ -14,9 +15,13 @@ use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::MetaInfo;
 
 @ISA = qw( Exporter );
-@EXPORT = qw( CheckDiffs InitializeCache ModuleInstalled
-  Broken_Pipe No_such_file_or_directory
+@EXPORT = qw( CheckDiffs InitializeCache Module_Installed
+  Broken_Pipe No_such_file_or_directory $TEMPDIR
 );
+
+use vars qw( $TEMPDIR );
+
+$TEMPDIR = File::Temp::tempdir();
 
 # ---------------------------------------------------------------------------
 
@@ -64,7 +69,7 @@ sub InitializeCache
 {
   my $filename = shift;
 
-  my $cache_file = catfile('t','temp','cache');
+  my $cache_file = catfile($TEMPDIR,'cache');
 
   remove_tree($cache_file) if -e $cache_file;
 
@@ -107,7 +112,7 @@ sub InitializeCache
 
 # ---------------------------------------------------------------------------
 
-sub ModuleInstalled
+sub Module_Installed
 {
   my $module_name = shift;
 
@@ -148,9 +153,7 @@ sub No_such_file_or_directory
 # doing this?
 sub Broken_Pipe
 {
-  mkdir catdir('t','temp'), 0700;
-
-  my $script_path = catfile('t','temp','broken_pipe.pl');
+  my $script_path = catfile($TEMPDIR,'broken_pipe.pl');
   my $dev_null = devnull();
 
   write_file($script_path, <<EOF);
