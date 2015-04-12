@@ -9,6 +9,7 @@ use lib 't';
 use File::Spec::Functions qw(:ALL);
 use Test::Utils;
 use FileHandle;
+use File::Slurp;
 
 my @files = <t/mailboxes/*.txt>;
 
@@ -16,9 +17,7 @@ mkdir catfile('t','temp'), 0700;
 
 plan (tests => 1 * scalar (@files));
 
-local $/ = undef;
-
-my $test_program = <DATA>;
+my $test_program = read_file(\*DATA);
 
 foreach my $filename (@files) 
 {
@@ -44,15 +43,9 @@ sub TestImplementation
 
   local $/ = undef;
 
-  open TESTER, ">" . catfile('t','temp','stdin.pl');
-  binmode TESTER;
-  print TESTER $test_program;
-  close TESTER;
+  write_file(catfile('t','temp','stdin.pl'), {binmode => ':raw'}, $test_program);
 
-  open MAILBOX, $filename;
-  binmode MAILBOX;
-  my $mailbox = <MAILBOX>;
-  close MAILBOX;
+  my $mailbox = read_file($filename, { binmode => ':raw' });
 
   open PIPE, "|$^X -I" . catfile('blib','lib') . " " .
     catfile('t','temp','stdin.pl') . " \"$output_filename\"";

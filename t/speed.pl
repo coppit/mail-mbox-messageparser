@@ -7,6 +7,7 @@
 use strict;
 use warnings 'all';
 use Config;
+use File::Slurp;
 
 use lib 't';
 use Benchmark;
@@ -78,10 +79,7 @@ sub CreateInputFiles
   {
     print "Making input file ($MAILBOX_SIZE bytes).\n";
 
-    open FILE, 't/mailboxes/mailarc-1.txt';
-    local $/ = undef;
-    my $data = <FILE>;
-    close FILE;
+    my $data = read_file('t/mailboxes/mailarc-1.txt');
 
     open FILE, ">$filename";
 
@@ -152,11 +150,7 @@ sub CollectData
 
   print "Collecting data...\n\n";
 
-  unless (defined $test_program)
-  {
-    local $/ = undef;
-    $test_program = <DATA>;
-  }
+  $test_program = read_file(\*DATA) unless defined $test_program;
 
   # I couldn't get the module to reload right, so we'll create an external program
   # to do the testing
@@ -166,9 +160,7 @@ sub CollectData
     my $modified_test_program = $test_program;
     $modified_test_program =~ s/\@IMPLEMENTATIONS_TO_TEST/$implementations_to_test/;
 
-    open TESTER, ">t/temp/test_speed.pl";
-    print TESTER $modified_test_program;
-    close TESTER;
+    write_file('t/temp/test_speed.pl', $modified_test_program);
   }
 
   my %data;
