@@ -9,6 +9,7 @@ BEGIN { makemaker_args( NORECURS => 1 ) }
 
 all_from('lib/Mail/Mbox/MessageParser.pm');
 
+auto_set_bugtracker;
 githubmeta;
 
 requires(

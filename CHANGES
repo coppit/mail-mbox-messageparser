@@ -2,6 +2,7 @@ Version 1.5102:
 - Fix xz test skip for when xz is not installed
 - Enable verbose testing for CPAN-testers
 - Use proper temp dir instead of t/temp
+- Consolidate issue tracking at rt.cpan.org
 
 Version 1.5101: Sat Apr 4 2015
 - Add a version check for lzip, to make sure the .lz file can be decompressed

@@ -3,7 +3,6 @@ developers readying a set of files for distribution.
 
 Check for any open issues:
 - https://rt.cpan.org/Dist/Display.html?Name=Mail-Mbox-MessageParser
-- https://code.google.com/p/mail-mbox-messageparser/issues/list
 
 git checkout:
 $ git clone https://github.com/coppit/mail-mbox-messageparser.git

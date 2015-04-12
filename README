@@ -73,7 +73,7 @@ Cache, or Perl implementations, you can do the same for
 Mail::Mbox::MessageParser::Cache and Mail::Mbox::MessageParser::Perl.
 
 
-HOMEPAGE
+RESOURCES
 
 The CPAN Page:
 http://search.cpan.org/dist/Mail-Mbox-MessageParser/
@@ -81,14 +81,12 @@ http://search.cpan.org/dist/Mail-Mbox-MessageParser/
 The Google Code page:
 http://code.google.com/p/mail-mbox-messageparser/
 
+Bug and feature tracking:
+http://rt.cpan.org/Public/Dist/Display.html?Name=Mail-Mbox-MessageParser
 
-REPORTING BUGS
-
-http://code.google.com/p/mail-mbox-messageparser/issues/entry
-
-Please attach the output files noted above. If the bug is related to
-processing of a particular mailbox, try to trim the mailbox to the smallest
-set of emails that still exhibit the problem.  Then use the
+When reporting a bug, please attach the output files noted above. If the bug
+is related to processing of a particular mailbox, try to trim the mailbox to
+the smallest set of emails that still exhibit the problem.  Then use the
 "anonymize_mailbox" program that comes with the distribution to remove any
 sensitive information, and attach the mailbox to the bug report.
 
