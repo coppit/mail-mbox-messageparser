@@ -15,6 +15,7 @@ lib/Mail/Mbox/MessageParser/Cache.pm
 lib/Mail/Mbox/MessageParser/Grep.pm
 lib/Mail/Mbox/MessageParser/Perl.pm
 lib/Mail/Mbox/MessageParser/MetaInfo.pm
+lib/Module/Install/PRIVATE/Add_Test_Target.pm
 
 # The test module files
 t/Test/Utils.pm

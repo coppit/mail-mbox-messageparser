@@ -1,6 +1,10 @@
 #!/usr/bin/perl
 
 use strict;
+
+# For PRIVATE Module::Install extensions
+use lib 'lib';
+
 use inc::Module::Install;
 use File::Slurp;
 
@@ -25,13 +29,7 @@ test_requires(
 check_optional( 'Benchmark::Timer' => '0.7100',
   "Install Benchmark::Timer if you want to run \"make testspeed\"\n");
 
-sub MY::postamble {
-  return &Module::AutoInstall::postamble . <<'EOF';
-testspeed :: pure_all
-	PERL_DL_NONLAZY=1 $(PERLRUN) "-I$(INST_LIB)" \
-	  "-I$(INST_ARCHLIB)" t/speed.pl
-EOF
-}
+Add_Test_Target('testspeed', 't/speed.pl');
 
 include(
   # Module::Install doesn't figure out that Module::Install::CheckOptional needs this. Include it manually.
