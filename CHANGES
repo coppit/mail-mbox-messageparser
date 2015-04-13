@@ -1,5 +1,5 @@
 Version 1.5102: Sun Apr 12 2015
-- Fix xz test skip for when xz is not installed
+- Fix xz and lzip test skip for when tools are not installed
 - Enable verbose testing for CPAN-testers
 - Use proper temp dir instead of t/temp
 - Consolidate issue tracking at rt.cpan.org
