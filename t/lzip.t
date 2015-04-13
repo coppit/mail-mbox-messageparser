@@ -84,7 +84,7 @@ sub SetSkip
 
   unless (defined $Mail::Mbox::MessageParser::Config{'programs'}{'lzip'})
   {
-    $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.gz') . " | $LZIP -cd"}
+    $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.lz') . " | $LZIP -cd"}
       = 'lzip not available';
   }
 
