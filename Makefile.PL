@@ -31,11 +31,9 @@ check_optional( 'Benchmark::Timer' => '0.7100',
 
 Add_Test_Target('testspeed', 't/speed.pl');
 
-include(
-  # Module::Install doesn't figure out that Module::Install::CheckOptional needs this. Include it manually.
-  'Module::AutoInstall' => 0,
-  'File::Slurp' => 0,
-);
+# Module::Install doesn't figure out that Module::Install::CheckOptional needs this. Include it manually.
+include( 'Module::AutoInstall' => 0 );
+include( 'File::Slurp' => 0 );
 
 Configure_Programs();
 

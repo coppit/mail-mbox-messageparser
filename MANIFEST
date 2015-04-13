@@ -130,6 +130,7 @@ t/results/reset_newlines_at_beginning.stdout
 #t/results/reset_mailbox with space.stdout
 
 # Module::Install extensions
+inc/File/Slurp.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoLicense.pm
 inc/Module/Install/AutomatedTester.pm
