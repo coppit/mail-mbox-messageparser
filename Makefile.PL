@@ -24,6 +24,7 @@ requires(
 test_requires(
   'Test::More' => 0,
   'Text::Diff' => 0,
+  'File::Path' => 2.08,
 );
 
 check_optional( 'Benchmark::Timer' => '0.7100',
