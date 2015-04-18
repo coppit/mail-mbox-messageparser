@@ -501,8 +501,8 @@ David Coppit <david@coppit.org>.
 
 =head1 LICENSE
 
-This software is distributed under the terms of the GPL. See the file
-"LICENSE" for more information.
+This code is distributed under the GNU General Public License (GPL) Version 2.
+See the file LICENSE in the distribution for details.
 
 
 =head1 HISTORY
