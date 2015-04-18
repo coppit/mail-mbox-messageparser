@@ -2,6 +2,9 @@ Version 1.5103
 - Add File::Path dependency for testing. Thanks to Paul Howarth
   <paul@city-fan.org> for the info.
   https://rt.cpan.org/Ticket/Display.html?id=103482
+- Don't install private Module::Install extension. Thanks to Paul Howarth
+  <paul@city-fan.org> for the bug report.
+  https://rt.cpan.org/Ticket/Display.html?id=103482
 
 Version 1.5102: Sun Apr 12 2015
 - Fix xz and lzip test skip for when tools are not installed
