@@ -15,7 +15,6 @@ lib/Mail/Mbox/MessageParser/Cache.pm
 lib/Mail/Mbox/MessageParser/Grep.pm
 lib/Mail/Mbox/MessageParser/Perl.pm
 lib/Mail/Mbox/MessageParser/MetaInfo.pm
-private-lib/Module/Install/PRIVATE/Add_Test_Target.pm
 
 # The test module files
 t/Test/Utils.pm
@@ -145,8 +144,13 @@ inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
-inc/Module/Install/PRIVATE/Add_Test_Target.pm
 inc/Sort/Versions.pm
+inc/Module/Install/PRIVATE/Add_Test_Target.pm
+inc/Module/Install/PRIVATE/Enable_Verbose_CPAN_Testing.pm
+
+# Private Module::Install extensions
+private-lib/Module/Install/PRIVATE/Add_Test_Target.pm
+private-lib/Module/Install/PRIVATE/Enable_Verbose_CPAN_Testing.pm
 
 # Needed for Module::Install::CheckOptional
 inc/Module/AutoInstall.pm

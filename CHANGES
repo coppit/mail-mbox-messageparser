@@ -6,6 +6,8 @@ Version 1.5103
   <paul@city-fan.org> for the bug report.
   https://rt.cpan.org/Ticket/Display.html?id=103482
 - Clarify licensing terms
+- Move verbose testing to a private module, and implement it in a way that
+  doesn't require editing the Makefile after it is generated.
 
 Version 1.5102: Sun Apr 12 2015
 - Fix xz and lzip test skip for when tools are not installed

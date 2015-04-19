@@ -6,7 +6,6 @@ use strict;
 use lib 'private-lib';
 
 use inc::Module::Install;
-use File::Slurp;
 
 # To prevent MakeMaker from processing our old directory
 BEGIN { makemaker_args( NORECURS => 1 ) }
@@ -32,8 +31,6 @@ check_optional( 'Benchmark::Timer' => '0.7100',
 
 Add_Test_Target('testspeed', 't/speed.pl');
 
-# Module::Install doesn't figure out that Module::Install::CheckOptional needs this. Include it manually.
-include( 'Module::AutoInstall' => 0 );
 include( 'File::Slurp' => 0 );
 
 Configure_Programs();
@@ -42,12 +39,6 @@ license 'gpl2';
 auto_license(holder => 'David Coppit');
 
 WriteAll();
-
-if (auto_tester) {
-  my $code = read_file('Makefile');
-  $code =~ s/TEST_VERBOSE\s*=\s*0/TEST_VERBOSE=1/ or die "Couldn't enable verbose mode in Makefile";
-  write_file('Makefile', $code);
-}
 
 {
   print "Fixing POD in inc/Sort/Versions.pm\n";
