@@ -16,12 +16,17 @@ all_from('lib/Mail/Mbox/MessageParser.pm');
 auto_set_bugtracker;
 githubmeta;
 
+configure_requires(
+  'File::Slurp' => 0,
+);
+
 requires(
   'FileHandle::Unget' => 0,
   'Storable' => 0,
 );
 
 test_requires(
+  'File::Slurp' => 0,
   'Test::More' => 0,
   'Text::Diff' => 0,
   'File::Path' => 2.08,
@@ -31,8 +36,6 @@ check_optional( 'Benchmark::Timer' => '0.7100',
   "Install Benchmark::Timer if you want to run \"make testspeed\"\n");
 
 Add_Test_Target('testspeed', 't/speed.pl');
-
-include( 'File::Slurp' => 0 );
 
 Configure_Programs();
 
