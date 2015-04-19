@@ -6,6 +6,7 @@ use strict;
 use lib 'private-lib';
 
 use inc::Module::Install;
+use File::Slurp;
 
 # To prevent MakeMaker from processing our old directory
 BEGIN { makemaker_args( NORECURS => 1 ) }
@@ -37,6 +38,8 @@ Configure_Programs();
 
 license 'gpl2';
 auto_license(holder => 'David Coppit');
+
+enable_verbose_cpan_testing();
 
 WriteAll();
 
