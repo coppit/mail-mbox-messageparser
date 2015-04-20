@@ -9,8 +9,16 @@ use inc::Module::Install;
 use Module::Install::GetProgramLocations;
 use File::Slurp;
 
-# To prevent MakeMaker from processing our old directory
-BEGIN { makemaker_args( NORECURS => 1 ) }
+BEGIN {
+  my $commands = q{$(CP) t/mailboxes/*\\ * $(DISTVNAME)/t/mailboxes; $(CP) t/results/*\\ * $(DISTVNAME)/t/results};
+
+  makemaker_args(
+    # To prevent MakeMaker from processing our old directory
+    NORECURS => 1,
+    # Copy files that have spaces in them.
+    dist => { PREOP => q{$(PERL) -I. "-MModule::Install::Admin" -e "dist_preop(q($(DISTVNAME)))"; } . $commands },
+  )
+}
 
 all_from('lib/Mail/Mbox/MessageParser.pm');
 
@@ -48,17 +56,6 @@ enable_verbose_cpan_testing();
 WriteAll();
 
 fix_sort_versions('inc/Sort/Versions.pm');
-
-{
-  print "Fixing PREOP in the Makefile to copy files with spaces during building\n";
-
-  my $code = read_file('Makefile');
-
-  my $commands = q{; $(CP) t/mailboxes/*\\ * $(DISTVNAME)/t/mailboxes; $(CP) t/results/*\\ * $(DISTVNAME)/t/results};
-  $code =~ s|^(PREOP\s*=.*)|$1$commands|m;
-
-  write_file('Makefile', $code);
-}
 
 exit;
 
