@@ -54,7 +54,9 @@ sub TestIt
   $testname =~ s#\.t##;
 
   my $test_stdout = File::Temp->new();
+  $test_stdout->close();
   my $test_stderr = File::Temp->new();
+  $test_stderr->close();
 
   system "$test 1>" . $test_stdout->filename . " 2>" . $test_stderr->filename;
 

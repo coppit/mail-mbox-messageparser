@@ -8,14 +8,15 @@ use lib 't';
 use Test::Utils;
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Config;
-use File::Spec::Functions qw( :ALL );
+use File::Spec::Functions qw(:ALL);
+use File::Cat;
 
 # To prevent undef warnings
 my $BZIP2 = $Mail::Mbox::MessageParser::Config{'programs'}{'bzip2'} || 'bzip2';
+my $CAT = $Mail::Mbox::MessageParser::Config{'programs'}{'cat'} || 'cat';
 
 my %tests = (
-"cat " . catfile('t','mailboxes','mailarc-2.txt.bz2') . " | $BZIP2 -cd"
-  => ['mailarc-2.txt','none'],
+ qq{"$CAT" "} . catfile('t','mailboxes','mailarc-2.txt.bz2') . qq{" | "$BZIP2" -cd} => ['mailarc-2.txt','none'],
 );
 
 my %expected_errors = (
@@ -49,7 +50,9 @@ sub TestIt
   $testname =~ s#\.t##;
 
   my $test_stdout = File::Temp->new();
+  $test_stdout->close();
   my $test_stderr = File::Temp->new();
+  $test_stderr->close();
 
   system "$test 1>" . $test_stdout->filename . " 2>" . $test_stderr->filename;
 
@@ -83,7 +86,7 @@ sub SetSkip
 
   unless (defined $Mail::Mbox::MessageParser::Config{'programs'}{'bzip2'})
   {
-    $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.bz2') . " | $BZIP2 -cd"}
+    $skip{qq{"$CAT" "} . catfile('t','mailboxes','mailarc-2.txt.bz2') . qq{" | "$BZIP2" -cd}}
       = 'bzip2 not available';
   }
 

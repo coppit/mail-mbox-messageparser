@@ -23,6 +23,7 @@ sub configure_programs {
   $self->configure_requires('File::Slurp', 0);
 
   my %info = (
+      'cat'      => { default => 'cat', argname => 'CAT' },
       'diff'     => { default => 'diff', argname => 'DIFF' },
       'grep'     => { default => 'grep', argname => 'GREP',
                       types => {

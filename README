@@ -43,6 +43,9 @@ values for all but one program.  "BZIP=" disables compression support and
 prevents interactive execution.  (NOTE: These values are not validated as they
 are in the interactive query.)
 
+On Windows, the GNUWin project has Windows ports of many GNU tools. (Get
+"CoreUtils" to get diff and cat.)
+
 If you make the installation into your own directory, then remember that you
 must tell perl where to search for modules before trying to 'use' them. For
 example:

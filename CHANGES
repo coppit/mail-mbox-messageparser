@@ -1,4 +1,4 @@
-Version 1.5103
+Version 1.5103: Mon Apr 20 2015
 - Add File::Path dependency for testing. Thanks to Paul Howarth
   <paul@city-fan.org> for the info.
   https://rt.cpan.org/Ticket/Display.html?id=103482
@@ -12,6 +12,9 @@ Version 1.5103
   like this:
   http://www.cpantesters.org/cpan/report/86a0145a-e52b-11e4-a1d1-8536eb4f9f07
 - Improve the ability of the test suite to be run in parallel
+- Fix Windows test incompatibilities, such as:
+  http://www.cpantesters.org/cpan/report/12187014-af8d-1014-92d8-fdf72a825c07
+  http://www.cpantesters.org/cpan/report/12187014-af8d-1014-92d8-fdf72a825c07
 
 Version 1.5102: Sun Apr 12 2015
 - Fix xz and lzip test skip for when tools are not installed

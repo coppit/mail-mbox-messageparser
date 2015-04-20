@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 
 use strict;
-#use warnings 'all';
 
 use File::Temp;
 use Test::More;
@@ -10,12 +9,14 @@ use Test::Utils;
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Config;
 use File::Spec::Functions qw(:ALL);
+use File::Cat;
 
+# To prevent undef warnings
 my $GZIP = $Mail::Mbox::MessageParser::Config{'programs'}{'gzip'} || 'gzip';
+my $CAT = $Mail::Mbox::MessageParser::Config{'programs'}{'cat'} || 'cat';
 
 my %tests = (
-"cat " . catfile('t','mailboxes','mailarc-2.txt.gz') . " | $GZIP -cd"
-  => ['mailarc-2.txt','none'],
+ qq{"$CAT" "} . catfile('t','mailboxes','mailarc-2.txt.gz') . qq{" | "$GZIP" -cd} => ['mailarc-2.txt','none'],
 );
 
 my %expected_errors = (
@@ -49,19 +50,21 @@ sub TestIt
   $testname =~ s#\.t##;
 
   my $test_stdout = File::Temp->new();
+  $test_stdout->close();
   my $test_stderr = File::Temp->new();
+  $test_stderr->close();
 
   system "$test 1>" . $test_stdout->filename . " 2>" . $test_stderr->filename;
 
   if (!$? && defined $error_expected)
   {
-    is(0,"Did not encounter an error executing the test when one was expected.\n\n");
+    ok(0,"Did not encounter an error executing the test when one was expected.\n\n");
     return;
   }
 
   if ($? && !defined $error_expected)
   {
-    is(0, "Encountered an error executing the test when one was not expected.\n" .
+    ok(0,"Encountered an error executing the test when one was not expected.\n" .
       "See " . $test_stdout->filename . " and " . $test_stderr->filename . ".\n\n");
     return;
   }
@@ -83,7 +86,7 @@ sub SetSkip
 
   unless (defined $Mail::Mbox::MessageParser::Config{'programs'}{'gzip'})
   {
-    $skip{"cat " . catfile('t','mailboxes','mailarc-2.txt.gz') . " | $GZIP -cd"}
+    $skip{qq{"$CAT" "} . catfile('t','mailboxes','mailarc-2.txt.gz') . qq{" | "$GZIP" -cd}}
       = 'gzip not available';
   }
 

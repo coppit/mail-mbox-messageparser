@@ -20,7 +20,7 @@ use vars qw( $CACHE $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
-$VERSION = sprintf "%d.%02d%02d", q/1.51.2/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.51.3/ =~ /(\d+)/g;
 $DEBUG = 0;
 
 #-------------------------------------------------------------------------------
@@ -289,7 +289,7 @@ sub _OPEN_FILE_HANDLE
   return (undef,"Can't decompress $file_name--no decompressor available")
     unless defined $Mail::Mbox::MessageParser::Config{'programs'}{$file_type};
 
-  my $filter_command = "$Mail::Mbox::MessageParser::Config{'programs'}{$file_type} -cd '$file_name' |";
+  my $filter_command = qq{"$Mail::Mbox::MessageParser::Config{'programs'}{$file_type}" -cd "$file_name" |};
 
   dprint "Calling \"$filter_command\" to decompress file \"$file_name\".";
 
@@ -528,7 +528,7 @@ sub _DO_WINDOWS_DECOMPRESSION
   return (undef,"Can't decompress file handle--no decompressor available")
     unless defined $Mail::Mbox::MessageParser::Config{'programs'}{$file_type};
 
-  my $filter_command = "$Mail::Mbox::MessageParser::Config{'programs'}{$file_type} -cd";
+  my $filter_command = qq{"$Mail::Mbox::MessageParser::Config{'programs'}{$file_type}" -cd};
 
   my ($temp_file_handle, $temp_file_name) =
     File::Temp::tempfile('mail-mbox-messageparser-XXXXXX', SUFFIX => '.tmp', UNLINK => 1);
@@ -562,7 +562,7 @@ sub _DO_NONWINDOWS_DECOMPRESSION
   return (undef,"Can't decompress file handle--no decompressor available")
     unless defined $Mail::Mbox::MessageParser::Config{'programs'}{$file_type};
 
-  my $filter_command = "$Mail::Mbox::MessageParser::Config{'programs'}{$file_type} -cd";
+  my $filter_command = qq{"$Mail::Mbox::MessageParser::Config{'programs'}{$file_type}" -cd};
 
   dprint "Calling \"$filter_command\" to decompress filehandle";
 

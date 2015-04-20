@@ -10,6 +10,7 @@ $VERSION = sprintf "%d.%02d%02d", q/0.1.2/ =~ /(\d+)/g;
   'programs' => {
     'bzip' => '/usr/bin/bzip2',
     'bzip2' => '/usr/bin/bzip2',
+    'cat' => '/usr/local/opt/coreutils/libexec/gnubin/cat',
     'diff' => '/usr/bin/diff',
     'grep' => undef,
     'gzip' => '/usr/bin/gzip',
