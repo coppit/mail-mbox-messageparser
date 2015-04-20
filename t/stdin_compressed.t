@@ -4,6 +4,7 @@
 
 use strict;
 
+use File::Temp;
 use Test::More;
 use lib 't';
 use File::Spec::Functions qw(:ALL);
@@ -14,8 +15,6 @@ use File::Slurp;
 
 my @files = <t/mailboxes/*.txt.*>;
 @files = grep { !/non-mailbox/ && !/malformed/ } @files;
-
-mkdir catfile('t','temp'), 0700;
 
 plan (tests => 1 * scalar (@files));
 
@@ -63,17 +62,16 @@ sub TestImplementation
 
   my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt.*$/;
 
-  my $output_filename = catfile('t','temp',
-    "${testname}_${folder_name}.stdout");
+  my $output = File::Temp->new();
+  my $script = File::Temp->new();
 
   local $/ = undef;
 
-  write_file(catfile('t','temp','stdin.pl'), {binmode => ':raw'}, $test_program);
+  write_file($script, {binmode => ':raw'}, $test_program);
 
   my $mailbox = read_file($filename, { binmode => ':raw' });
 
-  open PIPE, "|$^X -I" . catdir('blib','lib') . " " .
-    catfile('t','temp','stdin.pl') . " \"$output_filename\"";
+  open PIPE, "|$^X -I" . catdir('blib','lib') . " " . $script->filename . " \"" . $output->filename . "\"";
   binmode PIPE;
   local $SIG{PIPE} = sub { die "test program pipe broke" };
   print PIPE $mailbox;
@@ -81,7 +79,7 @@ sub TestImplementation
 
   $filename =~ s#\.(tz|bz2|lz|xz|gz)$##;
 
-  CheckDiffs([$filename,$output_filename]);
+  CheckDiffs([$filename,$output->filename]);
 }
 
 ################################################################################

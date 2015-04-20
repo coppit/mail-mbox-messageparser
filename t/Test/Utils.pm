@@ -55,8 +55,6 @@ sub CheckDiffs
     else
     {
       print "Output $output_filename looks good.\n";
-
-      unlink $output_filename;
     }
   }
 

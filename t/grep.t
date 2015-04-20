@@ -2,6 +2,7 @@
 
 use strict;
 
+use File::Temp;
 use Test::More;
 use lib 't';
 use Mail::Mbox::MessageParser::Config;
@@ -24,8 +25,6 @@ qq`unset LC_ALL LC_COLLATE LANG LC_CTYPE LC_MESSAGES; $GREP --extended-regexp --
 
 my %expected_errors = (
 );
-
-mkdir catfile('t','temp'), 0700;
 
 plan (tests => scalar (keys %tests));
 
@@ -54,10 +53,10 @@ sub TestIt
   my $testname = [splitdir($0)]->[-1];
   $testname =~ s#\.t##;
 
-  my $test_stdout = catfile('t','temp',"${testname}_$stdout_file.stdout");
-  my $test_stderr = catfile('t','temp',"${testname}_$stderr_file.stderr");
+  my $test_stdout = File::Temp->new();
+  my $test_stderr = File::Temp->new();
 
-  system "$test 1>$test_stdout 2>$test_stderr";
+  system "$test 1>" . $test_stdout->filename . " 2>" . $test_stderr->filename;
 
   if (!$? && defined $error_expected)
   {
@@ -69,16 +68,15 @@ sub TestIt
   if ($? && !defined $error_expected)
   {
     print "Encountered an error executing the test when one was not expected.\n";
-    print "See $test_stdout and $test_stderr.\n\n";
+    print "See " . $test_stdout->filename . " and " . $test_stderr->filename .  ".\n\n";
     ok(0);
     return;
   }
 
-
   my $real_stdout = catfile('t','results',$stdout_file);
   my $real_stderr = catfile('t','results',$stderr_file);
 
-  CheckDiffs([$real_stdout,$test_stdout],[$real_stderr,$test_stderr]);
+  CheckDiffs([$real_stdout,$test_stdout->filename],[$real_stderr,$test_stderr->filename]);
 }
 
 # ---------------------------------------------------------------------------

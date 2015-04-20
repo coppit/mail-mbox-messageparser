@@ -11,6 +11,7 @@ Version 1.5103
 - Require File::Slurp instead of including it, to avoid potential problems
   like this:
   http://www.cpantesters.org/cpan/report/86a0145a-e52b-11e4-a1d1-8536eb4f9f07
+- Improve the ability of the test suite to be run in parallel
 
 Version 1.5102: Sun Apr 12 2015
 - Fix xz and lzip test skip for when tools are not installed

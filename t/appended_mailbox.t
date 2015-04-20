@@ -4,6 +4,7 @@
 
 use strict;
 
+use File::Temp;
 use Test::More;
 use lib 't';
 use Mail::Mbox::MessageParser;
@@ -131,17 +132,14 @@ sub TestModifiedMailbox
 
   my ($folder_name) = $source_filename =~ /\/([^\/\\]*)\.txt$/;
 
-  my $output_filename = catfile($TEMPDIR,
-    "${testname}_${folder_name}_${enable_cache}_${enable_grep}.stdout");
-
-  my $output = new FileHandle(">$output_filename");
+  my $output = File::Temp->new();
   binmode $output;
 
   my $filehandle = new FileHandle($mailbox_filename);
 
-  my $cache_file = catfile($TEMPDIR,'cache');
+  my $cache = File::Temp->new();
 
-  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache_file})
+  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache->filename})
     if $enable_cache;
 
   my $folder_reader =
@@ -170,7 +168,7 @@ sub TestModifiedMailbox
 
   $output->close();
 
-  CheckDiffs([$source_filename,$output_filename]);
+  CheckDiffs([$source_filename,$output->filename]);
 }
 
 # ---------------------------------------------------------------------------

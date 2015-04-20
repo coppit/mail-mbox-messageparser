@@ -5,19 +5,17 @@
 
 use strict;
 
+use File::Temp;
 use Test::More;
 use lib 't';
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Config;
-use File::Spec::Functions qw(:ALL);
 use Test::Utils;
 use FileHandle;
 
 eval 'require Storable;';
 
 my @files = <t/mailboxes/mailarc-1*.txt>;
-
-mkdir catfile('t','temp'), 0700;
 
 plan (tests => 4 * scalar (@files));
 
@@ -54,9 +52,9 @@ sub TestImplementation
   my $enable_cache = shift;
   my $enable_grep = shift;
 
-  my $cache_file = catfile('t','temp','cache');
+  my $cache_file = File::Temp->new();
 
-  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache_file})
+  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache_file->filename})
     if $enable_cache;
 
   my $folder_reader =
