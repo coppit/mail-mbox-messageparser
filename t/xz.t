@@ -9,7 +9,6 @@ use Test::Utils;
 use Mail::Mbox::MessageParser;
 use Mail::Mbox::MessageParser::Config;
 use File::Spec::Functions qw(:ALL);
-use File::Cat;
 
 # To prevent undef warnings
 my $XZ = $Mail::Mbox::MessageParser::Config{'programs'}{'xz'} || 'xz';
