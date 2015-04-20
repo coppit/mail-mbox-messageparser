@@ -47,13 +47,7 @@ enable_verbose_cpan_testing();
 
 WriteAll();
 
-{
-  print "Fixing POD in inc/Sort/Versions.pm\n";
-
-  my $code = read_file('inc/Sort/Versions.pm');
-  $code =~ s|^=encoding.*||m;
-  write_file('inc/Sort/Versions.pm', $code);
-}
+fix_sort_versions('inc/Sort/Versions.pm');
 
 {
   print "Fixing PREOP in the Makefile to copy files with spaces during building\n";

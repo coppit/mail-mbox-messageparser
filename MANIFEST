@@ -146,10 +146,12 @@ inc/Module/Install/WriteAll.pm
 inc/Sort/Versions.pm
 inc/Module/Install/PRIVATE/Add_Test_Target.pm
 inc/Module/Install/PRIVATE/Enable_Verbose_CPAN_Testing.pm
+inc/Module/Install/PRIVATE/Fix_Sort_Versions.pm
 
 # Private Module::Install extensions
 private-lib/Module/Install/PRIVATE/Add_Test_Target.pm
 private-lib/Module/Install/PRIVATE/Enable_Verbose_CPAN_Testing.pm
+private-lib/Module/Install/PRIVATE/Fix_Sort_Versions.pm
 
 # Needed for Module::Install::CheckOptional
 inc/Module/AutoInstall.pm
