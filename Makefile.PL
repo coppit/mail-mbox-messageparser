@@ -6,6 +6,7 @@ use strict;
 use lib 'private-lib';
 
 use inc::Module::Install;
+use Module::Install::GetProgramLocations;
 use File::Slurp;
 
 # To prevent MakeMaker from processing our old directory
@@ -32,7 +33,7 @@ test_requires(
   'File::Path' => 2.08,
 );
 
-check_optional( 'Benchmark::Timer' => '0.7100',
+check_optional('Benchmark::Timer' => '0.7100',
   "Install Benchmark::Timer if you want to run \"make testspeed\"\n");
 
 Add_Test_Target('testspeed', 't/speed.pl');
