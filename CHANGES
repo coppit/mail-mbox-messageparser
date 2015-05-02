@@ -1,3 +1,6 @@
+Version 1.5105:
+- Prevent CPAN from indexing private-lib
+
 Version 1.5104: Mon Apr 20 2015
 - Remove unused File::Cat import
 
