@@ -68,19 +68,18 @@ sub TestImplementation
   my $enable_grep = shift;
 
   my $testname = [splitdir($0)]->[-1];
-  $testname =~ s#\.t##;
+  $testname =~ s/\.t//;
 
   my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt.*$/;
 
   my $output = File::Temp->new();
-
   binmode $output;
 
   my $filehandle = new FileHandle($filename);
 
-  my $cache_file = File::Temp->new();
+  my $cache = File::Temp->new();
 
-  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache_file->filename})
+  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache->filename})
     if $enable_cache;
 
   my $folder_reader =
@@ -113,4 +112,3 @@ sub TestImplementation
 }
 
 # ---------------------------------------------------------------------------
-

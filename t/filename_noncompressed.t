@@ -33,7 +33,7 @@ sub TestImplementation
   my $enable_grep = shift;
 
   my $testname = [splitdir($0)]->[-1];
-  $testname =~ s#\.t##;
+  $testname =~ s/\.t//;
 
   my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt$/;
 

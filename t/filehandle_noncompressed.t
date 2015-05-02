@@ -41,11 +41,10 @@ foreach my $filename (@files)
     skip('gzip not available',4)
       if $filename =~ /\.gz$/ &&
         !defined $Mail::Mbox::MessageParser::Config{'programs'}{'gzip'};
-  
+
     TestImplementation($filename,0,0);
 
-    skip('Storable not installed',2)
-      unless defined $Storable::VERSION;
+    skip('Storable not installed',2) unless defined $Storable::VERSION;
 
     InitializeCache($filename);
 
@@ -73,7 +72,6 @@ sub TestImplementation
   my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt.*$/;
 
   my $output = File::Temp->new();
-
   binmode $output;
 
   my $filehandle = new FileHandle($filename);
@@ -107,10 +105,7 @@ sub TestImplementation
 
   $output->close();
 
-  $filename =~ s#\.(tz|bz2|gz)$##;
-
   CheckDiffs([$filename,$output->filename]);
 }
 
 # ---------------------------------------------------------------------------
-

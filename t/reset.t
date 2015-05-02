@@ -80,7 +80,7 @@ sub TestPartialRead
   my $enable_grep = shift;
 
   my $testname = [splitdir($0)]->[-1];
-  $testname =~ s#\.t##;
+  $testname =~ s/\.t//;
 
   my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt$/;
 
@@ -144,6 +144,7 @@ sub TestFullRead
   my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt$/;
 
   my $output = File::Temp->new();
+
   binmode $output;
 
   my $filehandle = new FileHandle($filename);
@@ -195,4 +196,3 @@ sub TestFullRead
 }
 
 # ---------------------------------------------------------------------------
-

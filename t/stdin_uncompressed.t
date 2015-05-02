@@ -33,7 +33,7 @@ sub TestImplementation
   my $test_program = shift;
 
   my $testname = [splitdir($0)]->[-1];
-  $testname =~ s#\.t##;
+  $testname =~ s/\.t//;
 
   my ($folder_name) = $filename =~ /\/([^\/\\]*)\.txt.*$/;
 

@@ -52,9 +52,9 @@ sub TestImplementation
   my $enable_cache = shift;
   my $enable_grep = shift;
 
-  my $cache_file = File::Temp->new();
+  my $cache = File::Temp->new();
 
-  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache_file->filename})
+  Mail::Mbox::MessageParser::SETUP_CACHE({'file_name' => $cache->filename})
     if $enable_cache;
 
   my $folder_reader =

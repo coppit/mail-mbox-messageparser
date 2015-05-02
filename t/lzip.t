@@ -47,7 +47,7 @@ sub TestIt
   my $error_expected = shift;
 
   my $testname = [splitdir($0)]->[-1];
-  $testname =~ s#\.t##;
+  $testname =~ s/\.t//;
 
   my $test_stdout = File::Temp->new();
   $test_stdout->close();
