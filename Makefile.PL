@@ -57,4 +57,6 @@ enable_verbose_cpan_testing();
 
 WriteAll();
 
+use_standard_tests;
+
 fix_sort_versions('inc/Sort/Versions.pm');
