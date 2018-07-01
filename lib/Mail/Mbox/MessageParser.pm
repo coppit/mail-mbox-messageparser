@@ -20,7 +20,7 @@ use vars qw( $_CACHE $UPDATING_CACHE );
 
 @ISA = qw(Exporter);
 
-$VERSION = sprintf "%d.%02d%02d", q/1.51.5/ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d%02d", q/1.51.6/ =~ /(\d+)/g;
 $_DEBUG = 0;
 
 #-------------------------------------------------------------------------------
@@ -80,11 +80,14 @@ sub new
     _PREPARE_FILE_HANDLE($options->{'file_name'}, $options->{'file_handle'});
 
   if (defined $error &&
-    !($error eq 'Not a mailbox' && $options->{'force_processing'}))
+    !($error eq 'Not a mailbox' && $options->{'force_processing'}) &&
+    !($error =~ 'Found a mix of unix and Windows line endings' && $options->{'force_processing'})
+    )
   {
-    # Here I assume the only error for which the filehandle was opened is
-    # "Not a mailbox"
-    close $options->{'file_handle'} if $error eq 'Not a mailbox';
+    # Here I assume the only errors for which the filehandle was opened is
+    # "Not a mailbox" and mixed line endings
+    close $options->{'file_handle'}
+      if $error eq 'Not a mailbox' || $error =~ /Found a mix of unix and Windows line endings/;
     return $error;
   }
 
@@ -215,20 +218,21 @@ sub _PREPARE_FILE_HANDLE
       return ($decompressed_file_handle,$file_type,0,"Not a mailbox",undef)
         if _GET_FILE_TYPE(\$decompressed_file_handle) ne 'mailbox';
 
-      my $endline = _GET_ENDLINE(\$decompressed_file_handle);
+      my $endline;
+      ($endline, $error) = _GET_ENDLINE(\$decompressed_file_handle);
 
-      return ($decompressed_file_handle,$file_type,0,undef,$endline);
+      return ($decompressed_file_handle,$file_type,0,$error,$endline);
     }
     else
     {
       _dprint "Filehandle is not compressed";
 
-      my $endline = _GET_ENDLINE(\$file_handle);
+      my ($endline, $error) = _GET_ENDLINE(\$file_handle);
 
       return ($file_handle,$file_type,0,"Not a mailbox",$endline)
         if !eof($file_handle) && $file_type ne 'mailbox';
 
-      return ($file_handle,$file_type,0,undef,$endline);
+      return ($file_handle,$file_type,0,$error,$endline);
     }
   }
   else
@@ -242,21 +246,22 @@ sub _PREPARE_FILE_HANDLE
     return ($file_handle,$file_type,0,$error,undef)
       unless defined $opened_file_handle;
 
-    my $endline = _GET_ENDLINE(\$opened_file_handle);
+    my $endline;
+    ($endline, $error) = _GET_ENDLINE(\$opened_file_handle);
 
     if (_IS_COMPRESSED_TYPE($file_type))
     {
       return ($opened_file_handle,$file_type,1,"Not a mailbox",$endline)
         if _GET_FILE_TYPE(\$opened_file_handle) ne 'mailbox';
 
-      return ($opened_file_handle,$file_type,1,undef,$endline);
+      return ($opened_file_handle,$file_type,1,$error,$endline);
     }
     else
     {
       return ($opened_file_handle,$file_type,1,"Not a mailbox",$endline)
         if $file_type ne 'mailbox';
 
-      return ($opened_file_handle,$file_type,1,undef,$endline);
+      return ($opened_file_handle,$file_type,1,$error,$endline);
     }
   }
 }
@@ -404,7 +409,8 @@ sub _GET_FILE_TYPE
 
 #-------------------------------------------------------------------------------
 
-# Returns: undef, "\r\n", "\n"
+# Returns an endline result of either: undef, "\r\n", "\n"
+# Returns an error message (or undef) as well
 sub _GET_ENDLINE
 {
   my $file_name_or_handle_ref = shift;
@@ -467,13 +473,37 @@ sub _GET_ENDLINE
 
   return undef if _IS_BINARY_MAILBOX(\$test_chars); ## no critic (ProhibitExplicitReturnUndef)
 
-  if(index($test_chars,"\r\n") != -1)
+  my $windows_count = 0;
+
+  while ($test_chars =~ /\r\n/gs)
   {
-    return "\r\n";
+    $windows_count++;
+  }
+
+  my $unix_count = 0;
+
+  while ($test_chars =~ /(?<!\r)\n/gs)
+  {
+    $unix_count++;
+  }
+
+  _dprint "Found $unix_count UNIX line endings and $windows_count Windows line endings in a sample of length " . 
+    CORE::length($test_chars);
+
+  if($windows_count > 0 && $unix_count == 0)
+  {
+    return "\r\n", undef;
+  }
+  elsif($windows_count == 0 && $unix_count > 0)
+  {
+    return "\n", undef;
   }
   else
   {
-    return "\n";
+    return $windows_count > $unix_count ? "\r\n" : "\n", 'Found a mix of unix and Windows line endings.' .
+      ' Please normalize the line endings using a tool like "dos2unix".' .
+      ' Use the force option to ignore this error and process using ' . ($windows_count > $unix_count ?
+       'Windows' : 'Unix') . ' line endings (best guess).';
   }
 }
 
