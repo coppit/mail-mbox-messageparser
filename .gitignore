@@ -8,4 +8,3 @@ inc/
 /Mail-Mbox-MessageParser-*.tar.gz
 **/*.swp
 /old/
-t/000_standard__*

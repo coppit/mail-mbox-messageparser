@@ -1,3 +1,6 @@
+Version 1.5107:
+- Check in standard tests, including one that skips the compile check on Windows
+
 Version 1.5106:
 - Add standard tests
 - Detect mailboxes that contain a mix of newline types. Complain about it, but
