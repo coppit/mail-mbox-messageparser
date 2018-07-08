@@ -8,7 +8,7 @@ use lib 'private-lib';
 use lib '.';
 use inc::Module::Install;
 use Module::Install::GetProgramLocations;
-use File::Slurp;
+use File::Slurper;
 
 BEGIN {
   my $commands = q{$(CP) t/mailboxes/*\\ * $(DISTVNAME)/t/mailboxes; $(CP) t/results/*\\ * $(DISTVNAME)/t/results};
@@ -27,7 +27,7 @@ auto_set_bugtracker;
 githubmeta;
 
 configure_requires(
-  'File::Slurp' => 0,
+  'File::Slurper' => 0,
   # Module::Install::Bugtracker needs this
   'URI::Escape' => 0,
 );
@@ -39,7 +39,7 @@ requires(
 
 test_requires(
   'Test::Compile' => 0,
-  'File::Slurp' => 0,
+  'File::Slurper' => 0,
   'Test::More' => 0,
   'Text::Diff' => 0,
   'File::Path' => 2.08,
@@ -52,7 +52,7 @@ Add_Test_Target('testspeed', 't/speed.pl');
 
 configure_programs();
 
-license 'gpl2';
+license 'gpl';
 auto_license(holder => 'David Coppit');
 
 no_index 'directory' => 'private-lib';
