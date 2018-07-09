@@ -52,7 +52,7 @@ Add_Test_Target('testspeed', 't/speed.pl');
 
 configure_programs();
 
-license 'gpl';
+license 'gpl2';
 auto_license(holder => 'David Coppit');
 
 no_index 'directory' => 'private-lib';
