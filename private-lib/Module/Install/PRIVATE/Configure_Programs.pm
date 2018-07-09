@@ -2,7 +2,7 @@ package Module::Install::PRIVATE::Configure_Programs;
 
 use strict;
 use warnings;
-use File::Slurper qw(read_text);
+use File::Slurper qw(read_text write_text);
 
 use lib 'inc';
 use Module::Install::GetProgramLocations;
@@ -78,7 +78,7 @@ sub Update_Config
   my $filename = shift;
   my %locations = %{ shift @_ };
 
-  my $code = read_file($filename, undef, 1);
+  my $code = read_text($filename, undef, 1);
 
   foreach my $program (keys %locations)
   {
@@ -109,5 +109,5 @@ sub Update_Config
     die "Couldn't find programs hash in $filename";
   }
 
-  write_file($filename, $code, undef, 1);
+  write_text($filename, $code, undef, 1);
 }
