@@ -561,7 +561,7 @@ sub _DO_WINDOWS_DECOMPRESSION
   my $filter_command = qq{"$Mail::Mbox::MessageParser::Config{'programs'}{$file_type}" -cd};
 
   my ($temp_file_handle, $temp_file_name) =
-    File::Temp::tempfile('mail-mbox-messageparser-XXXXXX', SUFFIX => '.tmp', UNLINK => 1);
+    File::Temp::tempfile('mail-mbox-messageparser-XXXXXX', SUFFIX => '.tmp', TMPDIR => 1, UNLINK => 1);
 
   while(my $line = <$file_handle>)
   {
